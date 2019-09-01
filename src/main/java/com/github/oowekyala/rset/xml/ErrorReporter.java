@@ -5,6 +5,9 @@ import java.util.List;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Reports errors during serialization.
+ */
 public interface ErrorReporter {
 
 
