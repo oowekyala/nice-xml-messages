@@ -28,6 +28,8 @@ import java.util.function.Supplier;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
+import com.github.oowekyala.rset.xml.reporting.ErrorReporter;
+
 /**
  * A collection of serializers. Once you register a serializer for a type T,
  * list/set types of any depth with that type T as element type can be serialized
