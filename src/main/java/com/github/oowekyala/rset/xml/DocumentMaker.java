@@ -36,7 +36,7 @@ public class DocumentMaker {
         }
         Document document = documentBuilder.newDocument();
 
-        Element rootElt = document.createElement(ser.eltName());
+        Element rootElt = document.createElement(ser.eltName(rootObj));
         document.appendChild(rootElt);
         ser.toXml(rootElt, rootObj, document::createElement);
 

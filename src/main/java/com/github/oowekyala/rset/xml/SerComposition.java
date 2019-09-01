@@ -3,8 +3,12 @@ package com.github.oowekyala.rset.xml;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,6 +22,71 @@ import org.w3c.dom.NodeList;
  */
 public final class SerComposition {
 
+
+    /**
+     * Builds a new serializer from a bunch of other serializers. The
+     * serializer is chosen by the [selector] predicate, the deserializer
+     * is chosen by name.
+     *
+     * @return A new serializer
+     */
+    public static <T> XmlSerializer<T> nameSelectedUnion(Set<XmlSerializer<T>> syntaxes, BiPredicate<T, XmlSerializer<T>> selector) {
+
+        class MyDecorator implements XmlSerializer<T> {
+
+            private final Map<String, XmlSerializer<T>> deser = new HashMap<>();
+
+
+            {
+                for (XmlSerializer<T> ser : syntaxes) {
+                    for (String it : ser.getPossibleNames()) {
+                        if (deser.put(it, ser) != null) {
+                            throw new IllegalStateException("Duplicate serializer name " + it);
+                        }
+                    }
+                }
+
+                if (deser.isEmpty()) {
+                    throw new IllegalStateException("No selectable name!");
+                }
+            }
+
+
+            @Override
+            public String eltName(T value) {
+                return selectSer(value).eltName(value);
+            }
+
+            private XmlSerializer<T> selectSer(T value) {
+                return syntaxes.stream().filter(it -> selector.test(value, it))
+                               .findFirst()
+                               .orElseThrow(() -> new IllegalStateException(
+                                   "No serializer in " + syntaxes + " for value " + value));
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return deser.keySet();
+            }
+
+            @Override
+            public void toXml(Element container, T t, Function<String, Element> eltFactory) {
+                selectSer(t).toXml(container, t, eltFactory);
+            }
+
+            @Override
+            public T fromXml(Element s, ErrorReporter err) {
+                XmlSerializer<T> ser = deser.get(s.getLocalName());
+                if (ser == null) {
+                    throw err.error(s, "Unexpected element with name '" + s.getLocalName() + "', expecting "
+                        + formatPossibilities(this));
+                }
+                return ser.fromXml(s, err);
+            }
+        }
+
+        return new MyDecorator();
+    }
 
     /**
      * Builds a new serializer that can serialize arbitrary collections
@@ -47,14 +116,19 @@ public final class SerComposition {
         class MyDecorator implements XmlSerializer<C> {
 
             @Override
-            public String eltName() {
+            public String eltName(C value) {
                 return seqName;
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton(seqName);
             }
 
             @Override
             public void toXml(Element container, C c, Function<String, Element> eltFactory) {
                 for (T v : c) {
-                    Element item = eltFactory.apply(itemSer.eltName());
+                    Element item = eltFactory.apply(itemSer.eltName(v));
                     itemSer.toXml(item, v, eltFactory);
                     container.appendChild(item);
                 }
@@ -65,13 +139,7 @@ public final class SerComposition {
                 C result = emptyCollSupplier.get();
 
 
-                getElementChildren(element).forEach(child -> {
-                    if (!itemSer.eltName().equals(child.getLocalName())) {
-                        err.warn(child, "Expecting a " + itemSer.eltName() + " element, ignoring node");
-                    } else {
-                        result.add(itemSer.fromXml(child, err));
-                    }
-                });
+                getElementChildren(element).forEach(child -> result.add(itemSer.fromXml(child, err)));
                 return result;
             }
         }
@@ -110,16 +178,23 @@ public final class SerComposition {
         class MyDecorator implements XmlSerializer<M> {
 
             @Override
-            public String eltName() {
+            public String eltName(M value) {
                 return eltName;
             }
+
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton(eltName);
+            }
+
 
             @Override
             public void toXml(Element container, M c, Function<String, Element> eltFactory) {
                 c.forEach((k, v) -> {
                     // TODO escape
                     Element key = eltFactory.apply(k);
-                    Element val = eltFactory.apply(valueSerializer.eltName());
+                    Element val = eltFactory.apply(valueSerializer.eltName(v));
 
                     valueSerializer.toXml(val, v, eltFactory);
                     key.appendChild(val);
@@ -182,16 +257,21 @@ public final class SerComposition {
         class MyDecorator implements XmlSerializer<M> {
 
             @Override
-            public String eltName() {
+            public String eltName(M value) {
                 return eltName;
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton(eltName);
             }
 
             @Override
             public void toXml(Element container, M c, Function<String, Element> eltFactory) {
                 c.forEach((k, v) -> {
                     Element entry = eltFactory.apply("entry");
-                    Element key = eltFactory.apply(keySerializer.eltName());
-                    Element val = eltFactory.apply(valueSerializer.eltName());
+                    Element key = eltFactory.apply(keySerializer.eltName(k));
+                    Element val = eltFactory.apply(valueSerializer.eltName(v));
 
                     keySerializer.toXml(key, k, eltFactory);
                     valueSerializer.toXml(val, v, eltFactory);
@@ -239,8 +319,13 @@ public final class SerComposition {
         return new XmlSerializer<S>() {
 
             @Override
-            public String eltName() {
-                return base.eltName();
+            public String eltName(S value) {
+                return base.eltName(fromS.apply(value));
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return base.getPossibleNames();
             }
 
             @Override
@@ -251,31 +336,6 @@ public final class SerComposition {
             @Override
             public S fromXml(Element s, ErrorReporter err) {
                 return toS.apply(base.fromXml(s, err));
-            }
-        };
-    }
-
-    /**
-     * Returns a new serializer, identical to the given [base] serializer,
-     * except its serializer name is the given one.
-     */
-    public static <T> XmlSerializer<T> rename(final String name, final XmlSerializer<T> base) {
-
-        return new XmlSerializer<T>() {
-
-            @Override
-            public String eltName() {
-                return name;
-            }
-
-            @Override
-            public void toXml(Element container, T t, Function<String, Element> eltFactory) {
-                base.toXml(container, t, eltFactory);
-            }
-
-            @Override
-            public T fromXml(Element s, ErrorReporter err) {
-                return base.fromXml(s, err);
             }
         };
     }
@@ -312,16 +372,65 @@ public final class SerComposition {
         return nodes;
     }
 
+    /**
+     * Returns a new serializer, identical to the given [base] serializer,
+     * except its serializer name is the given one.
+     */
+    public static <T> XmlSerializer<T> rename(final String name, final XmlSerializer<T> base) {
+
+        return new XmlSerializer<T>() {
+
+            @Override
+            public String eltName(T value) {
+                return name;
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton(name);
+            }
+
+            @Override
+            public void toXml(Element container, T t, Function<String, Element> eltFactory) {
+                base.toXml(container, t, eltFactory);
+            }
+
+            @Override
+            public T fromXml(Element s, ErrorReporter err) {
+                return base.fromXml(s, err);
+            }
+        };
+    }
+
     private static <T> T expectElement(ErrorReporter err, Element parent, int idx, XmlSerializer<T> s2) {
         Element value = getChild(parent, idx);
-        if (value == null) {
-            err.warn(parent, "Expecting child #" + idx + " to be a " + s2.eltName());
-        } else if (!s2.eltName().equals(value.getLocalName())) {
-            err.warn(value, "Expecting a " + s2.eltName() + " element");
+
+        String possibilities = formatPossibilities(s2);
+
+        if (possibilities == null && value != null) {
+            return s2.fromXml(value, err);
+        } else if (possibilities == null) {
+            err.warn(parent, "Expecting a child element at index #" + idx);
+        } else if (value == null) {
+            err.warn(parent, "Expecting child #" + idx + " to be " + possibilities);
+        } else if (!s2.getPossibleNames().contains(value.getLocalName())) {
+            err.warn(value, "Wrong name, expecting " + possibilities);
         } else {
             return s2.fromXml(value, err);
         }
 
         return null;
+    }
+
+    // nullable
+    private static String formatPossibilities(XmlSerializer<?> ser) {
+        Set<String> strings = ser.getPossibleNames();
+        if (strings.isEmpty()) {
+            return null;
+        } else if (strings.size() == 1) {
+            return strings.iterator().next();
+        } else {
+            return "one of " + strings;
+        }
     }
 }

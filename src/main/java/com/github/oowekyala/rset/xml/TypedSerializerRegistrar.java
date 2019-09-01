@@ -1,6 +1,3 @@
-/**
- * BSD-style license; for more info see http://pmd.sourceforge.net/license.html
- */
 
 package com.github.oowekyala.rset.xml;
 
@@ -15,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,8 +133,13 @@ public class TypedSerializerRegistrar {
         class Composite implements XmlSerializer<TypedObject<?>> {
 
             @Override
-            public String eltName() {
+            public String eltName(TypedObject<?> value) {
                 return "object";
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton("object");
             }
 
             @Override

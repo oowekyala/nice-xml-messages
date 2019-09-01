@@ -1,6 +1,8 @@
 package com.github.oowekyala.rset.xml;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -17,8 +19,10 @@ public interface XmlSerializer<T> {
      * Name of the element that this serializer should serialize to.
      * Serializer composers will create elements with that name.
      */
-    String eltName();
+    String eltName(T value);
 
+
+    Set<String> getPossibleNames();
 
     /**
      * Produce an XML element that represents the value [t]. The parameter
@@ -87,8 +91,13 @@ public interface XmlSerializer<T> {
         class MyDecorator implements XmlSerializer<T> {
 
             @Override
-            public String eltName() {
+            public String eltName(T value) {
                 return eltName;
+            }
+
+            @Override
+            public Set<String> getPossibleNames() {
+                return Collections.singleton(eltName);
             }
 
             @Override
