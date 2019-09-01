@@ -56,6 +56,17 @@ public interface XmlSerializer<T> {
 
 
     /**
+     * Returns a new serializer, identical to the given [base] serializer,
+     * except its serializer name is the given one.
+     *
+     * @see SerComposition#rename(String, XmlSerializer)
+     */
+    default XmlSerializer<T> withName(String name) {
+        return SerComposition.rename(name, this);
+    }
+
+
+    /**
      * Builds a new serializer that can serialize arbitrary collections
      * with element type {@code <T>}. The list element name is "seq".
      *

@@ -256,6 +256,31 @@ public final class SerComposition {
     }
 
     /**
+     * Returns a new serializer, identical to the given [base] serializer,
+     * except its serializer name is the given one.
+     */
+    public static <T> XmlSerializer<T> rename(final String name, final XmlSerializer<T> base) {
+
+        return new XmlSerializer<T>() {
+
+            @Override
+            public String eltName() {
+                return name;
+            }
+
+            @Override
+            public void toXml(Element container, T t, Function<String, Element> eltFactory) {
+                base.toXml(container, t, eltFactory);
+            }
+
+            @Override
+            public T fromXml(Element s, ErrorReporter err) {
+                return base.fromXml(s, err);
+            }
+        };
+    }
+
+    /**
      * Builds a new serializer that can serialize arrays of component type
      * {@code <T>}.
      *
