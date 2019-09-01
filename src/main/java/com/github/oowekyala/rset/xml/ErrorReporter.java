@@ -1,9 +1,8 @@
-package com.github.oowekyala.rset.xml.reporting;
-
-import java.util.List;
+package com.github.oowekyala.rset.xml;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXParseException;
 
 /**
  * Reports errors during serialization.
@@ -26,16 +25,15 @@ public interface ErrorReporter {
     XmlParsingException error(NodeList node, String message);
 
 
+    XmlParsingException error(SAXParseException throwable);
+
+
     class XmlParsingException extends RuntimeException {
 
-        private final List<XmlParsingException> aggregate;
+        private final Position position;
 
-        public XmlParsingException(List<XmlParsingException> aggregate) {
-            this.aggregate = aggregate;
+        XmlParsingException(Position position) {
+            this.position = position;
         }
-
-        // todo position
-
-
     }
 }

@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml.reporting;
+package com.github.oowekyala.rset.xml;
 
 import java.util.Objects;
 

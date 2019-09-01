@@ -8,8 +8,6 @@ import java.util.function.Supplier;
 
 import org.w3c.dom.Element;
 
-import com.github.oowekyala.rset.xml.reporting.ErrorReporter;
-
 /**
  * Composable XML serializer for a value of type {@code <T>}.
  *

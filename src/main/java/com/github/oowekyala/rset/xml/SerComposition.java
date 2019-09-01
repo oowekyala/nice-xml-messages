@@ -17,8 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.github.oowekyala.rset.xml.reporting.ErrorReporter;
-
 /**
  * @author Clément Fournier
  */
