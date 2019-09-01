@@ -24,6 +24,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -66,16 +67,27 @@ public class DomIoUtils {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-        Document parsed;
-        try {
-            parsed = dBuilder.parse(inputStream);
-        } catch (SAXException e) {
-            reporter.setDocument(inputCopy.get());
-            if (e instanceof SAXParseException) {
-                throw reporter.error((SAXParseException) e);
+        dBuilder.setErrorHandler(new ErrorHandler() {
+            @Override
+            public void warning(SAXParseException exception) {
+                reporter.setDocument(inputCopy.get());
+                reporter.warn(exception);
             }
-            throw e;
-        }
+
+            @Override
+            public void error(SAXParseException exception) {
+                reporter.setDocument(inputCopy.get());
+                reporter.error(exception);
+            }
+
+            @Override
+            public void fatalError(SAXParseException exception) {
+                reporter.setDocument(inputCopy.get());
+                throw reporter.fatal(exception);
+            }
+        });
+
+        Document parsed = dBuilder.parse(inputStream);
 
         TextDoc doc = new TextDoc(inputCopy.get());
         reporter.setDocument(inputCopy.get());

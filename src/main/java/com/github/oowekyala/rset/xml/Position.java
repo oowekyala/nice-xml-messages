@@ -8,8 +8,14 @@ class Position {
     public static final Position UNDEFINED = new Position(-1, -1);
     private final int line;
     private final int column;
+    private final String fileUrlOrWhatever;
 
     public Position(int line, int column) {
+        this(null, line, column);
+    }
+
+    public Position(String fileUrlOrWhatever, int line, int column) {
+        this.fileUrlOrWhatever = fileUrlOrWhatever;
         this.line = line;
         this.column = column;
     }
@@ -20,6 +26,10 @@ class Position {
 
     public int getColumn() {
         return column;
+    }
+
+    public String getFileUrlOrWhatever() {
+        return fileUrlOrWhatever;
     }
 
     @Override

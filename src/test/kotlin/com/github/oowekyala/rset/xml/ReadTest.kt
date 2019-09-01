@@ -6,7 +6,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 
 
-class InputTest : FunSpec({
+class ReadTest : FunSpec({
 
 
     test("Test simple string conversions") {
@@ -111,29 +111,3 @@ $HEADER
 
 })
 
-
-class TestMessagePrinter : MessagePrinter {
-
-    val warn = mutableListOf<String>()
-    val err = mutableListOf<String>()
-    val out = mutableListOf<String>()
-
-
-    override fun warn(message: String) {
-        warn += message
-    }
-
-    override fun error(message: String) {
-        err += message
-    }
-
-    override fun println(msg: String) {
-        out += msg
-    }
-
-    fun shouldBeEmpty() {
-        warn.shouldBeEmpty()
-        err.shouldBeEmpty()
-        out.shouldBeEmpty()
-    }
-}

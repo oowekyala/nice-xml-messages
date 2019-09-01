@@ -13,7 +13,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
-
+/*
+    TODO support attribute nodes, don't do all that eagerly
+ */
 class LineNumberScanner {
 
     private static final String PREFIX = "oxml:";

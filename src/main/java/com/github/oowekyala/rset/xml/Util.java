@@ -70,12 +70,7 @@ final class Util {
         }
 
         private String addLineNum(int i) {
-            return (i + first) + " :" + lines.get(i);
-        }
-
-        private static class IntRef {
-
-            int i;
+            return String.format("%5d| %s", i + first, lines.get(i));
         }
     }
 }

@@ -3,6 +3,8 @@ package com.github.oowekyala.rset.xml;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
+import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
+
 /**
  * Reports errors during serialization.
  */
@@ -21,12 +23,46 @@ public interface ErrorReporter {
     XmlParsingException error(SAXParseException throwable);
 
 
+    XmlParsingException fatal(SAXParseException throwable);
+
+
+    XmlParsingException warn(SAXParseException throwable);
+
+
     void close();
 
     void setDocument(String read);
 
 
     abstract class Message {
+
+        private final Kind kind;
+
+        protected Message(Kind kind) {
+            this.kind = kind;
+        }
+
+        Kind getKind() {
+            return kind;
+        }
+
+        enum Kind {
+            VALIDATION_ERROR("XML validation error"),
+            VALIDATION_WARNING("XML validation warning"),
+            PARSING_ERROR("XML parsing error");
+
+            public static final String IN_FILE = "in %s";
+
+            private final String template;
+
+            Kind(String s) {
+                template = s;
+            }
+
+            public String getTemplate() {
+                return template;
+            }
+        }
 
         public abstract String toString();
 
@@ -35,7 +71,8 @@ public interface ErrorReporter {
             private final String template;
             private final Object[] args;
 
-            public Templated(String template, Object... args) {
+            public Templated(Kind kind, String template, Object... args) {
+                super(kind);
                 this.template = template;
                 this.args = args;
             }
@@ -43,6 +80,23 @@ public interface ErrorReporter {
             @Override
             public String toString() {
                 return String.format(template, args);
+            }
+        }
+
+        static class Wrapper extends Message {
+
+            private final Message base;
+            private final String eval;
+
+            public Wrapper(Message base, String eval) {
+                super(base.getKind());
+                this.base = base;
+                this.eval = eval;
+            }
+
+            @Override
+            public String toString() {
+                return eval;
             }
         }
     }
@@ -71,6 +125,16 @@ public interface ErrorReporter {
 
         public Message getMessageObj() {
             return message;
+        }
+
+        @Override
+        public String toString() {
+            String header = message.getKind().getTemplate();
+            String url = getPosition().getFileUrlOrWhatever();
+            if (url != null) {
+                header = header + Kind.IN_FILE;
+            }
+            return String.format(header + "%n", url) + message;
         }
     }
 }

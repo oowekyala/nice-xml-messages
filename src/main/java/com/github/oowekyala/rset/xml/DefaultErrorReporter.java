@@ -3,6 +3,7 @@ package com.github.oowekyala.rset.xml;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
+import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
 import com.github.oowekyala.rset.xml.ErrorReporter.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
@@ -18,7 +19,7 @@ public class DefaultErrorReporter implements ErrorReporter {
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        String toPrint = makeMessage(LineNumberScanner.beginPos(node), new Templated(message, args));
+        String toPrint = makeMessage(LineNumberScanner.beginPos(node), new Templated(Kind.VALIDATION_WARNING, message, args));
         printer.warn(toPrint);
     }
 
@@ -38,24 +39,43 @@ public class DefaultErrorReporter implements ErrorReporter {
 
 
     @Override
-    public XmlParsingException error(Node node, String message, Object... args) {
-        return pp(new XmlParsingException(LineNumberScanner.beginPos(node), new Templated(message, args)));
+    public XmlParsingException error(Node node, String template, Object... args) {
+        Position pos = LineNumberScanner.beginPos(node);
+        Templated message = new Templated(Kind.VALIDATION_ERROR, template, args);
+        return pp(new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
     }
 
     @Override
     public XmlParsingException error(Node node, Throwable ex) {
-        return pp(new XmlParsingException(LineNumberScanner.beginPos(node), messageFromException(ex), ex));
+        Position pos = LineNumberScanner.beginPos(node);
+        Message message = messageFromException(ex, Kind.VALIDATION_ERROR);
+        return pp(new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
     }
 
 
     @Override
     public XmlParsingException error(SAXParseException throwable) {
-        Position pos = new Position(throwable.getLineNumber(), throwable.getColumnNumber());
-        return pp(new XmlParsingException(pos, messageFromException(throwable), throwable));
+        return pp(convertSax(Kind.VALIDATION_ERROR, throwable));
     }
 
-    private Message messageFromException(Throwable throwable) {
-        return new Templated(throwable.getMessage());
+    @Override
+    public XmlParsingException warn(SAXParseException throwable) {
+        return pp(convertSax(Kind.VALIDATION_WARNING, throwable));
+    }
+
+    @Override
+    public XmlParsingException fatal(SAXParseException throwable) {
+        throw convertSax(Kind.PARSING_ERROR, throwable);
+    }
+
+    private XmlParsingException convertSax(Kind kind, SAXParseException throwable) {
+        Position pos = new Position(throwable.getLineNumber() - 1, throwable.getColumnNumber());
+        Message message = messageFromException(throwable, kind);
+        return new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
+    }
+
+    private Message messageFromException(Throwable throwable, Kind kind) {
+        return new Templated(kind, throwable.getMessage());
     }
 
     @Override
