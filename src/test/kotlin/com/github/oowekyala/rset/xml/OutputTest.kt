@@ -41,4 +41,4 @@ val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 fun Document.toStr(): String = DocumentMaker.writeToString(this).trimIndent()
 
 inline fun <reified T> defaultSer(): XmlSerializer<T> =
-        SerializerRegistrar.getInstance().getSerializer(T::class.java)
+        TypedSerializerRegistrar.getInstance().getSerializer(T::class.java)

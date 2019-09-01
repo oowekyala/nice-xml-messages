@@ -52,15 +52,15 @@ import org.w3c.dom.Element;
  *
  * @author Clément Fournier
  */
-public class SerializerRegistrar {
+public class TypedSerializerRegistrar {
 
 
-    private static final SerializerRegistrar INSTANCE = new SerializerRegistrar();
+    private static final TypedSerializerRegistrar INSTANCE = new TypedSerializerRegistrar();
 
     // using a map of types obviously doesn't handle subtyping
     private final Map<Type, XmlSerializer<?>> converters = new WeakHashMap<>();
 
-    public SerializerRegistrar() {
+    public TypedSerializerRegistrar() {
         registerStandard();
     }
 
@@ -293,7 +293,7 @@ public class SerializerRegistrar {
     }
 
 
-    public static SerializerRegistrar getInstance() {
+    public static TypedSerializerRegistrar getInstance() {
         return INSTANCE;
     }
 
