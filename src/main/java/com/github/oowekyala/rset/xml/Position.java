@@ -5,6 +5,7 @@ import java.util.Objects;
 
 class Position {
 
+    public static final Position UNDEFINED = new Position(-1, -1);
     private final int line;
     private final int column;
 
@@ -13,6 +14,13 @@ class Position {
         this.column = column;
     }
 
+    public int getLine() {
+        return line;
+    }
+
+    public int getColumn() {
+        return column;
+    }
 
     @Override
     public String toString() {

@@ -17,29 +17,6 @@ import org.xml.sax.SAXParseException;
 public class DomReader {
 
 
-    Document parse(InputStream inputStream, ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-        Document parsed;
-        try {
-            parsed = dBuilder.parse(new TeeInputStream(inputStream, bos));
-        } catch (SAXException e) {
-            if (e instanceof SAXParseException) {
-                throw reporter.error((SAXParseException) e);
-            }
-            throw e;
-        }
-
-        String read = bos.toString();
-
-        LineNumberScanner.determineLocation(parsed, new SourceCodePositioner(read), 0);
-
-
-        return parsed;
-    }
 
 
 }

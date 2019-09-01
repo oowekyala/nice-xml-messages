@@ -1,7 +1,6 @@
 package com.github.oowekyala.rset.xml;
 
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -10,29 +9,26 @@ import org.xml.sax.SAXParseException;
 public interface ErrorReporter {
 
 
-    void warn(Node node, String message);
+    void warn(Node node, String message, Object... args);
 
 
-    void warn(NodeList node, String message);
-
-
-    XmlParsingException error(Node node, String message);
+    XmlParsingException error(Node node, String message, Object... args);
 
 
     XmlParsingException error(Node node, Throwable ex);
 
 
-    XmlParsingException error(NodeList node, String message);
-
-
     XmlParsingException error(SAXParseException throwable);
+
+
+    void close();
 
 
     abstract class Message {
 
         public abstract String toString();
 
-        public class Templated extends Message {
+        public static class Templated extends Message {
 
             private final String template;
             private final Object[] args;
@@ -54,13 +50,13 @@ public interface ErrorReporter {
         private final Position position;
         private final Message message;
 
-        private XmlParsingException(Position position, Message message) {
+        XmlParsingException(Position position, Message message) {
             super(message.toString());
             this.position = position;
             this.message = message;
         }
 
-        private XmlParsingException(Position position, Message message, Throwable cause) {
+        XmlParsingException(Position position, Message message, Throwable cause) {
             super(message.toString(), cause);
             this.position = position;
             this.message = message;

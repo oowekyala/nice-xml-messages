@@ -1,20 +1,25 @@
 package com.github.oowekyala.rset.xml;
 
-import com.github.oowekyala.rset.xml.ErrorReporter.Message;
-
 /**
  * @author Clément Fournier
  */
 public interface MessagePrinter {
 
+    MessagePrinter DEFAULT = new MessagePrinter() {};
 
-    default void printlnErr(Message msg) {
-        System.err.println(msg);
+
+    default void error(String msg) {
+        System.err.println("\n[error] " + msg);
     }
 
 
-    default void println(Message msg) {
-        System.out.println(msg);
+    default void warn(String message) {
+        System.err.println("\n[warning] " + message);
+    }
+
+
+    default void println(String msg) {
+        System.out.println("[info] " + msg);
     }
 
 }

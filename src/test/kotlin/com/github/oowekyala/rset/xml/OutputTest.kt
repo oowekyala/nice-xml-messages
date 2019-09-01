@@ -9,7 +9,7 @@ class OutputTest : FunSpec({
 
 
     test("Test simple string conversions") {
-        val doc = DocumentMaker().makeDoc("oha!", defaultSer<String>())
+        val doc = DomIoUtils().makeDoc("oha!", defaultSer<String>())
 
         doc.toStr() shouldBe """
             $HEADER
@@ -18,7 +18,7 @@ class OutputTest : FunSpec({
     }
 
     test("Test composition") {
-        val doc = DocumentMaker().makeDoc(
+        val doc = DomIoUtils().makeDoc(
                 listOf("oha", "what", "are", "you"),
                 defaultSer<String>().toSeq<List<String>> { mutableListOf() }
         )
@@ -38,7 +38,7 @@ $HEADER
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
-fun Document.toStr(): String = DocumentMaker.writeToString(this).trimIndent()
+fun Document.toStr(): String = DomIoUtils.writeToString(this).trimIndent()
 
 inline fun <reified T> defaultSer(): XmlSerializer<T> =
         TypedSerializerRegistrar.getInstance().getSerializer(T::class.java)

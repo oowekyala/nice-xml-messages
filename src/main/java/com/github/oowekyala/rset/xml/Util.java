@@ -32,7 +32,10 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
+
+import com.github.oowekyala.rset.xml.ErrorReporter.Message;
 
 final class Util {
 
@@ -292,5 +295,43 @@ final class Util {
         }
 
         return in;
+    }
+
+    public static String padRight(String s, int n) {
+        return String.format("%-" + n + "s", s);
+    }
+
+    public static String padLeft(String s, int n) {
+        return String.format("%" + n + "s", s);
+    }
+
+    static class MessageTextBuilder {
+
+        private final int first;
+        private final int last;
+        private final int errorIdx;
+        private List<String> lines;
+
+        MessageTextBuilder(List<String> lines, int first, int last, int errorIdx) {
+            this.lines = lines;
+            this.first = first;
+            this.last = last;
+            this.errorIdx = errorIdx;
+        }
+
+        public String make(Position position, Message message) {
+
+
+            List<String> withLineNums = IntStream.range(0, lines.size())
+                                                 .mapToObj(i -> (i + first) + " :" + lines.get(i))
+                                                 .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
+
+            String messageLine = Util.padLeft("^^^ ", position.getColumn()) + message.toString();
+            withLineNums.add(errorIdx, messageLine);
+            withLineNums.add(errorIdx + 1, "\n"); // skip a line
+
+
+            return String.join("\n", withLineNums);
+        }
     }
 }

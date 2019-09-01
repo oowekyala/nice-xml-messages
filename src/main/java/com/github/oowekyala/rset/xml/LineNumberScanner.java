@@ -17,12 +17,22 @@ import org.w3c.dom.ProcessingInstruction;
 class LineNumberScanner {
 
     private static final String PREFIX = "oxml:";
-    static final String BEGIN_LINE = PREFIX + "beginLine";
-    static final String BEGIN_COLUMN = PREFIX + "beginColumn";
-    static final String END_LINE = PREFIX + "endLine";
-    static final String END_COLUMN = PREFIX + "endColumn";
+    private static final String BEGIN_LINE = PREFIX + "beginLine";
+    private static final String BEGIN_COLUMN = PREFIX + "beginColumn";
+    private static final String END_LINE = PREFIX + "endLine";
+    private static final String END_COLUMN = PREFIX + "endColumn";
 
-    static int determineLocation(Node n, SourceCodePositioner positioner, int index) {
+    public static Position beginPos(Node node) {
+        Integer bline = (Integer) node.getUserData(BEGIN_LINE);
+        Integer bcol = (Integer) node.getUserData(BEGIN_COLUMN);
+        if (bline == null || bcol == null) {
+            return Position.UNDEFINED;
+        } else {
+            return new Position(bline, bcol);
+        }
+    }
+
+    static int determineLocation(Node n, TextDoc positioner, int index) {
         int nextIndex = index;
         int nodeLength = 0;
         int textLength = 0;
@@ -135,19 +145,19 @@ class LineNumberScanner {
         return result;
     }
 
-    private static void setBeginLocation(Node n, int index, SourceCodePositioner sourceCodePositioner) {
+    private static void setBeginLocation(Node n, int index, TextDoc textDoc) {
         if (n != null) {
-            int line = sourceCodePositioner.lineNumberFromOffset(index);
-            int column = sourceCodePositioner.columnFromOffset(line, index);
+            int line = textDoc.lineNumberFromOffset(index);
+            int column = textDoc.columnFromOffset(line, index);
             n.setUserData(BEGIN_LINE, line, null);
             n.setUserData(BEGIN_COLUMN, column, null);
         }
     }
 
-    private static void setEndLocation(Node n, int index, SourceCodePositioner sourceCodePositioner) {
+    private static void setEndLocation(Node n, int index, TextDoc textDoc) {
         if (n != null) {
-            int line = sourceCodePositioner.lineNumberFromOffset(index);
-            int column = sourceCodePositioner.columnFromOffset(line, index);
+            int line = textDoc.lineNumberFromOffset(index);
+            int column = textDoc.columnFromOffset(line, index);
             n.setUserData(END_LINE, line, null);
             n.setUserData(END_COLUMN, column, null);
         }

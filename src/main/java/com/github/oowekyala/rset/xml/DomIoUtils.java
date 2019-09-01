@@ -1,7 +1,9 @@
 package com.github.oowekyala.rset.xml;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -20,11 +22,39 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * @author Clément Fournier
  */
-public class DocumentMaker {
+public class DomIoUtils {
+
+    /**
+     * Parse a document using the given deserializer.
+     */
+    static <T> T parse(InputStream inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        Document parsed;
+        try {
+            parsed = dBuilder.parse(new TeeInputStream(inputStream, bos));
+        } catch (SAXException e) {
+            if (e instanceof SAXParseException) {
+                throw reporter.error((SAXParseException) e);
+            }
+            throw e;
+        }
+
+        String read = bos.toString();
+
+        LineNumberScanner.determineLocation(parsed, new TextDoc(read), 0);
+
+        return ser.fromXml(parsed.getDocumentElement(), reporter);
+    }
 
     public <T> Document makeDoc(T rootObj, XmlSerializer<T> ser) {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

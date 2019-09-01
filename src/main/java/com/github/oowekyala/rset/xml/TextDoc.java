@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-class SourceCodePositioner {
+import com.github.oowekyala.rset.xml.Util.MessageTextBuilder;
+
+class TextDoc {
 
     /**
      * This list has one entry for each line, denoting the start offset of the line.
@@ -18,19 +20,7 @@ class SourceCodePositioner {
     private final int sourceCodeLength;
     private final String sourceCode;
 
-    public SourceCodePositioner(String sourceCode) {
-        sourceCodeLength = sourceCode.length();
-        this.sourceCode = sourceCode;
-
-        try (Scanner scanner = new Scanner(new StringReader(sourceCode))) {
-            int currentGlobalOffset = 0;
-
-            while (scanner.hasNextLine()) {
-                lineOffsets.add(currentGlobalOffset);
-                currentGlobalOffset += getLineLengthWithLineSeparator(scanner);
-            }
-        }
-    }
+    private int surroundSize;
 
     /** Returns the full source. */
     public String getSourceCode() {
@@ -45,6 +35,28 @@ class SourceCodePositioner {
 
     public List<String> getLines() {
         return lines;
+    }
+
+    public TextDoc(String sourceCode) {
+        sourceCodeLength = sourceCode.length();
+        this.sourceCode = sourceCode;
+
+        try (Scanner scanner = new Scanner(new StringReader(sourceCode))) {
+            int currentGlobalOffset = 0;
+
+            while (scanner.hasNextLine()) {
+                lineOffsets.add(currentGlobalOffset);
+                currentGlobalOffset += getLineLengthWithLineSeparator(scanner);
+            }
+        }
+    }
+
+    MessageTextBuilder getLinesAround(int line) {
+        int first = Math.max(0, line - surroundSize);
+        int last = Math.min(lines.size(), line + surroundSize + 1);
+
+        List<String> strings = lines.subList(first, last);
+        return new MessageTextBuilder(strings, first, last, line - first);
     }
 
     /**
