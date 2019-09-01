@@ -5,7 +5,7 @@ package com.github.oowekyala;
  */
 public class PropertySpec {
 
-    String name;
+
 
 
 

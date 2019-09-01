@@ -14,9 +14,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 
-/**
- *
- */
 class LineNumberScanner {
 
     private static final String PREFIX = "oxml:";

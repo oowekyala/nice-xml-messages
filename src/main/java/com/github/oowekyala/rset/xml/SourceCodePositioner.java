@@ -14,6 +14,7 @@ class SourceCodePositioner {
      * (1 for \r|\n, 2 for \r\n).
      */
     private final List<Integer> lineOffsets = new ArrayList<>();
+    private final List<String> lines = new ArrayList<>();
     private final int sourceCodeLength;
     private final String sourceCode;
 
@@ -41,6 +42,11 @@ class SourceCodePositioner {
         return lineOffsets;
     }
 
+
+    public List<String> getLines() {
+        return lines;
+    }
+
     /**
      * Sums the line length without the line separation and the characters which matched the line separation pattern
      *
@@ -49,7 +55,9 @@ class SourceCodePositioner {
      * @return the length of the line with the line separator.
      */
     private int getLineLengthWithLineSeparator(final Scanner scanner) {
-        int lineLength = scanner.nextLine().length();
+        String nline = scanner.nextLine();
+        lines.add(nline);
+        int lineLength = nline.length();
         final String lineSeparationMatch = scanner.match().group(1);
 
         if (lineSeparationMatch != null) {
