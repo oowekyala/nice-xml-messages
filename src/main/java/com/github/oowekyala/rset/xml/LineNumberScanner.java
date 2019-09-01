@@ -22,6 +22,9 @@ class LineNumberScanner {
     private static final String END_LINE = PREFIX + "endLine";
     private static final String END_COLUMN = PREFIX + "endColumn";
 
+    private static final String TEXT_DOC = PREFIX + "textDoc";
+
+
     public static Position beginPos(Node node) {
         Integer bline = (Integer) node.getUserData(BEGIN_LINE);
         Integer bcol = (Integer) node.getUserData(BEGIN_COLUMN);

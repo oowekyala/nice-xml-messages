@@ -7,11 +7,11 @@ import com.github.oowekyala.rset.xml.ErrorReporter.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
 
-    private final TextDoc textDoc;
+    private TextDoc textDoc;
     private final MessagePrinter printer;
 
-    public DefaultErrorReporter(TextDoc textDoc, MessagePrinter printer) {
-        this.textDoc = textDoc;
+    public DefaultErrorReporter(MessagePrinter printer) {
+        this.textDoc = null;
         this.printer = printer;
     }
 
@@ -28,7 +28,7 @@ public class DefaultErrorReporter implements ErrorReporter {
     }
 
     private String makeMessage(Position position, Message message) {
-        if (!position.equals(Position.UNDEFINED)) {
+        if (!position.equals(Position.UNDEFINED) && textDoc != null) {
             return textDoc.getLinesAround(position.getLine())
                           .make(position, message);
         } else {
@@ -62,5 +62,10 @@ public class DefaultErrorReporter implements ErrorReporter {
     public void close() {
 
 
+    }
+
+    @Override
+    public void setDocument(String read) {
+        this.textDoc = new TextDoc(read);
     }
 }

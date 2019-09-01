@@ -1,7 +1,9 @@
 package com.github.oowekyala.rset.xml;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -78,6 +80,17 @@ public interface XmlSerializer<T> {
      */
     default <C extends Collection<T>> XmlSerializer<C> toSeq(Supplier<C> emptyCollSupplier) {
         return SerComposition.toSeq("seq", this, emptyCollSupplier);
+    }
+
+
+    /**
+     * Builds a new serializer that can serialize lists of {@code <T>}.
+     * The list element name is "list".
+     *
+     * @see SerComposition#toSeq(String, XmlSerializer, Supplier)
+     */
+    default XmlSerializer<List<T>> toList() {
+        return SerComposition.toSeq("list", this, ArrayList::new);
     }
 
 

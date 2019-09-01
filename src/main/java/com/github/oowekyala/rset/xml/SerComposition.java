@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.w3c.dom.Element;
@@ -138,8 +139,12 @@ public final class SerComposition {
             public C fromXml(Element element, ErrorReporter err) {
                 C result = emptyCollSupplier.get();
 
-
-                getElementChildren(element).forEach(child -> result.add(itemSer.fromXml(child, err)));
+                getElementChildren(element).forEach(child -> {
+                    T item = expectElement(err, child, itemSer);
+                    if (item != null) {
+                        result.add(item);
+                    }
+                });
                 return result;
             }
         }
@@ -413,10 +418,23 @@ public final class SerComposition {
             err.warn(parent, "Expecting a child element at index #" + idx);
         } else if (value == null) {
             err.warn(parent, "Expecting child #" + idx + " to be " + possibilities);
-        } else if (!s2.getPossibleNames().contains(value.getLocalName())) {
+        } else if (!s2.getPossibleNames().contains(value.getTagName())) {
             err.warn(value, "Wrong name, expecting " + possibilities);
         } else {
             return s2.fromXml(value, err);
+        }
+
+        return null;
+    }
+
+    private static <T> T expectElement(ErrorReporter err, Element elt, XmlSerializer<T> s2) {
+
+        String possibilities = formatPossibilities(s2);
+
+        if (!s2.getPossibleNames().contains(elt.getTagName())) {
+            err.warn(elt, "Wrong name, expecting " + possibilities);
+        } else {
+            return s2.fromXml(elt, err);
         }
 
         return null;
@@ -428,9 +446,10 @@ public final class SerComposition {
         if (strings.isEmpty()) {
             return null;
         } else if (strings.size() == 1) {
-            return strings.iterator().next();
+            return Util.enquote(strings.iterator().next());
         } else {
-            return "one of " + strings;
+            return "one of " + strings.stream().map(Util::enquote).collect(Collectors.joining(", "));
         }
     }
+
 }

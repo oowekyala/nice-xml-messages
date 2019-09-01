@@ -20,22 +20,13 @@ class TextDoc {
     private final int sourceCodeLength;
     private final String sourceCode;
 
-    private int surroundSize;
+    private final int surroundSize=2;
 
     /** Returns the full source. */
     public String getSourceCode() {
         return sourceCode;
     }
 
-    // test only
-    List<Integer> getLineOffsets() {
-        return lineOffsets;
-    }
-
-
-    public List<String> getLines() {
-        return lines;
-    }
 
     public TextDoc(String sourceCode) {
         sourceCodeLength = sourceCode.length();
@@ -95,34 +86,4 @@ class TextDoc {
         return columnOffset + 1; // 1-based column offsets
     }
 
-    /**
-     * Finds the offset of a position given (line,column) coordinates.
-     *
-     * @return The offset, or -1 if the given coordinates do not identify a
-     *     valid position in the wrapped file
-     */
-    public int offsetFromLineColumn(int line, int column) {
-        line--;
-
-        if (line < 0 || line >= lineOffsets.size()) {
-            return -1;
-        }
-
-        int bound = line == lineOffsets.size() - 1  // last line?
-                    ? sourceCodeLength
-                    : lineOffsets.get(line + 1);
-
-        int off = lineOffsets.get(line) + column - 1;
-        return off > bound ? -1 // out of bounds!
-                           : off;
-    }
-
-    /** Returns the number of lines, which is also the ordinal of the last line. */
-    public int getLastLine() {
-        return lineOffsets.size();
-    }
-
-    public int getLastLineColumn() {
-        return columnFromOffset(getLastLine(), sourceCodeLength - 1);
-    }
 }

@@ -23,6 +23,8 @@ public interface ErrorReporter {
 
     void close();
 
+    void setDocument(String read);
+
 
     abstract class Message {
 

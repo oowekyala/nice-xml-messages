@@ -1,34 +1,37 @@
 package com.github.oowekyala.rset.xml;
 
-import java.io.FilterInputStream;
+import java.io.FilterReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 
-class TeeInputStream extends FilterInputStream {
+class TeeReader extends FilterReader {
 
-    private final OutputStream copySink;
+    private final Writer copySink;
 
-    TeeInputStream(InputStream source, OutputStream sink) {
+    TeeReader(Reader source, Writer sink) {
         super(source);
         this.copySink = sink;
     }
 
+
+    @Override
     public int read() throws IOException {
         int result = super.read();
         this.copySink.write(result);
         return result;
     }
 
-
-    public int read(byte[] b, int off, int len) throws IOException {
+    @Override
+    public int read(char[] b, int off, int len) throws IOException {
         int result = super.read(b, off, len);
         this.copySink.write(b, off, len);
         return result;
     }
 
-    public int read(byte[] b) throws IOException {
+    @Override
+    public int read(char[] b) throws IOException {
         int result = super.read(b);
         this.copySink.write(b);
         return result;
