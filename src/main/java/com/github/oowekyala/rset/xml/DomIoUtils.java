@@ -13,31 +13,47 @@ import java.util.function.Supplier;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.SourceLocator;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.ErrorHandler;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.ext.Attributes2Impl;
+import org.xml.sax.helpers.XMLFilterImpl;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * @author Clément Fournier
  */
 public class DomIoUtils {
 
+    private static final String PREFIX = "oxml:";
+    private static final String BEGIN_LINE = PREFIX + "beginLine";
+    private static final String BEGIN_COLUMN = PREFIX + "beginColumn";
+    private static final String END_LINE = PREFIX + "endLine";
+    private static final String END_COLUMN = PREFIX + "endColumn";
+
+    private static final String TEXT_DOC = PREFIX + "textDoc";
+
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(InputStream inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
+    static <T> T parse(InputStream inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         InputSource source = new InputSource(new TeeInputStream(inputStream, bos));
 
@@ -53,49 +69,35 @@ public class DomIoUtils {
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(Reader inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
-        StringWriter writer = new CustomStringWriter();
+    static <T> T parse(Reader inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
+        StringWriter writer = new StringWriter();
         InputSource source = new InputSource(new TeeReader(inputStream, writer));
         return parse(source, writer::toString, ser, reporter);
     }
 
 
-    private static <T> T parse(InputSource inputStream,
+    private static <T> T parse(InputSource isource,
                                Supplier<String> inputCopy,
                                XmlSerializer<T> ser,
-                               ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        dbFactory.set
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                               ErrorReporter reporter) throws SAXException {
 
-        dBuilder.setErrorHandler(new ErrorHandler() {
-            @Override
-            public void warning(SAXParseException exception) {
-                reporter.setDocument(inputCopy.get());
-                reporter.warn(exception);
-            }
+        XMLReader xmlReader = XMLReaderFactory.createXMLReader();
+        LocFilter filter = new LocFilter(xmlReader);
 
-            @Override
-            public void error(SAXParseException exception) {
-                reporter.setDocument(inputCopy.get());
-                reporter.error(exception);
-            }
+        SAXSource saxSource = new SAXSource(filter, isource);
 
-            @Override
-            public void fatalError(SAXParseException exception) {
-                reporter.setDocument(inputCopy.get());
-                throw reporter.fatal(exception);
-            }
-        });
+        TransformerFactory factory = TransformerFactory.newInstance();
+        DOMResult domResult = new DOMResult();
+        try {
+            Transformer transformer = factory.newTransformer();
+            transformer.setErrorListener(new TransformerErrorHandler(reporter, inputCopy, filter));
 
-        Document parsed = dBuilder.parse(inputStream);
+            transformer.transform(saxSource, domResult);
+        } catch (TransformerException e) {
+            throw reporter.error(false, e);
+        }
 
-        TextDoc doc = new TextDoc(inputCopy.get());
-        reporter.setDocument(inputCopy.get());
-
-        LineNumberScanner.determineLocation(parsed, doc, 0);
-
-        return ser.fromXml(parsed.getDocumentElement(), reporter);
+        return ser.fromXml((Element) domResult.getNode(), reporter);
     }
 
     public <T> Document makeDoc(T rootObj, XmlSerializer<T> ser) {
@@ -145,4 +147,95 @@ public class DomIoUtils {
         }
     }
 
+    private static class LocFilter extends XMLFilterImpl {
+
+        Locator locator;
+
+        LocFilter(XMLReader reader) {
+            super(reader);
+        }
+
+        @Override
+        public void setDocumentLocator(Locator locator) {
+            super.setDocumentLocator(locator);
+            this.locator = locator;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+            String loc = locator.getSystemId() + ":" + locator.getLineNumber() + ":" + locator.getColumnNumber();
+            Attributes2Impl newAttrs = new Attributes2Impl(atts);
+            newAttrs.addAttribute("http://myStuff", "location", "oxml:location", "CDATA", loc);
+            super.startElement(uri, localName, qName, newAttrs);
+        }
+    }
+
+    private static class TransformerErrorHandler implements ErrorListener {
+
+        private final ErrorReporter reporter;
+        private final Supplier<String> inputCopy;
+        private final LocFilter filter;
+
+        public TransformerErrorHandler(ErrorReporter reporter, Supplier<String> inputCopy, LocFilter filter) {
+            this.reporter = reporter;
+            this.inputCopy = inputCopy;
+            this.filter = filter;
+        }
+
+        private void updateDoc(TransformerException exception) {
+            reporter.setDocument(inputCopy.get());
+            if (filter.locator != null) {
+                exception.setLocator(new LocatorAdapter(filter.locator));
+            }
+        }
+
+        @Override
+        public void warning(TransformerException exception) {
+            updateDoc(exception);
+            reporter.error(true, exception);
+
+        }
+
+        @Override
+        public void error(TransformerException exception) {
+            updateDoc(exception);
+            throw reporter.error(false, exception);
+
+        }
+
+        @Override
+        public void fatalError(TransformerException exception) {
+            updateDoc(exception);
+            throw reporter.error(false, exception);
+        }
+    }
+
+    private static class LocatorAdapter implements SourceLocator {
+
+        private final Locator locator;
+
+        private LocatorAdapter(Locator locator) {
+            this.locator = locator;
+        }
+
+        @Override
+        public String getPublicId() {
+            return locator.getPublicId();
+        }
+
+        @Override
+        public String getSystemId() {
+            return locator.getSystemId();
+        }
+
+        @Override
+        public int getLineNumber() {
+            return locator.getLineNumber();
+        }
+
+        @Override
+        public int getColumnNumber() {
+            return locator.getColumnNumber();
+        }
+    }
 }

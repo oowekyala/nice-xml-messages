@@ -1,5 +1,8 @@
 package com.github.oowekyala.rset.xml;
 
+import javax.xml.transform.SourceLocator;
+import javax.xml.transform.TransformerException;
+
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
@@ -24,14 +27,20 @@ public class DefaultErrorReporter implements ErrorReporter {
     }
 
     protected XmlParseException pp(XmlParseException ex) {
-        printer.error(makeMessage(ex.getPosition(), ex.getMessageObj()));
+        return pp(ex, true);
+    }
+
+    protected XmlParseException pp(XmlParseException ex, boolean condition) {
+        if (condition) {
+            printer.error(ex.toString());
+        }
         return ex;
     }
 
     private String makeMessage(Position position, Message message) {
         if (!position.equals(Position.UNDEFINED) && textDoc != null) {
             return textDoc.getLinesAround(position.getLine())
-                          .make(position, message);
+                          .make(printer.supportsAnsiColor(), message.getKind(), position, message);
         } else {
             return message.toString();
         }
@@ -54,22 +63,30 @@ public class DefaultErrorReporter implements ErrorReporter {
 
 
     @Override
-    public XmlParseException error(SAXParseException throwable) {
-        return pp(convertSax(Kind.VALIDATION_ERROR, throwable));
+    public XmlParseException error(boolean warn, SAXParseException throwable) {
+        XmlParseException xpe = convertException(getExKind(warn), throwable, throwable.getLineNumber(), throwable.getColumnNumber(), throwable.getSystemId());
+        return pp(xpe, warn);
     }
 
     @Override
-    public XmlParseException warn(SAXParseException throwable) {
-        return pp(convertSax(Kind.VALIDATION_WARNING, throwable));
+    public XmlParseException error(boolean warn, TransformerException throwable) {
+        if (throwable.getCause() instanceof SAXParseException) {
+            return error(warn, ((SAXParseException) throwable.getCause()));
+        }
+        SourceLocator locator = throwable.getLocator();
+        int line = locator == null ? -1 : locator.getLineNumber();
+        int column = locator == null ? -1 : locator.getColumnNumber();
+        String systemId = locator == null ? null : locator.getSystemId();
+        XmlParseException xpe = convertException(getExKind(warn), throwable, line, column, systemId);
+        return pp(xpe, warn);
     }
 
-    @Override
-    public XmlParseException fatal(SAXParseException throwable) {
-        throw convertSax(Kind.PARSING_ERROR, throwable);
+    private Kind getExKind(boolean warn) {
+        return warn ? Kind.PARSING_WARNING : Kind.PARSING_ERROR;
     }
 
-    private XmlParseException convertSax(Kind kind, SAXParseException throwable) {
-        Position pos = new Position(throwable.getLineNumber() - 1, throwable.getColumnNumber());
+    private XmlParseException convertException(Kind kind, Throwable throwable, int line, int column, String systemId) {
+        Position pos = new Position(systemId, line, column);
         Message message = messageFromException(throwable, kind);
         return new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
     }

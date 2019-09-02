@@ -17,6 +17,8 @@ class TestMessagePrinter : MessagePrinter {
     val err = mutableListOf<String>()
     val out = mutableListOf<String>()
 
+    override fun supportsAnsiColor(): Boolean = false
+
 
     override fun warn(message: String) {
         warn += message

@@ -35,20 +35,20 @@ $HEADER
         ex.toString().shouldBe(
                 """
 XML parsing error
-    2| <list>
     3|     <list
-                ^^^ Le type d'élément "list" doit être suivi des spécifications d'attribut, ">" ou "/>".
-
-
     4|         <str>oha</str>
+                ^ Le type d'élément "list" doit être suivi des spécifications d'attribut, ">" ou "/>".
+
+
     5|         <str>what</str>
+    6|     </list>
 """.trimIndent()
 
         )
 
         printer.err.shouldBe(emptyList<String>())
     }
-    test("f:Test malformed entities") {
+    test("Test malformed entities") {
 
         val ser = defaultSer<String>().toList().toList()
 
@@ -68,7 +68,13 @@ $HEADER
         // FIXME this uses French Locale!
         ex.toString().shouldBe(
                 """
+XML parsing error
+    2| <list>
+    3|     <list foo="&amb;"/>
+                            ^ L'entité "amb" était référencée, mais pas déclarée.
 
+
+    4| </list>
 """.trimIndent()
 
         )

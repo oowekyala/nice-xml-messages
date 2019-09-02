@@ -1,9 +1,12 @@
 package com.github.oowekyala.rset.xml;
 
+import javax.xml.transform.TransformerException;
+
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
 import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
+import com.github.oowekyala.rset.xml.Util.AnsiColor;
 
 /**
  * Reports errors during serialization.
@@ -20,13 +23,9 @@ public interface ErrorReporter {
     XmlParseException error(Node node, Throwable ex);
 
 
-    XmlParseException error(SAXParseException throwable);
+    XmlParseException error(boolean warn, SAXParseException throwable);
 
-
-    XmlParseException fatal(SAXParseException throwable);
-
-
-    XmlParseException warn(SAXParseException throwable);
+    XmlParseException error(boolean warn, TransformerException throwable);
 
 
     void close();
@@ -47,20 +46,25 @@ public interface ErrorReporter {
         }
 
         enum Kind {
-            VALIDATION_ERROR("XML validation error"),
-            VALIDATION_WARNING("XML validation warning"),
-            PARSING_ERROR("XML parsing error");
-
-            public static final String IN_FILE = "in %s";
+            VALIDATION_WARNING("XML validation warning", AnsiColor.COL_YELLOW),
+            VALIDATION_ERROR("XML validation error", AnsiColor.COL_RED),
+            PARSING_WARNING("XML validation warning", AnsiColor.COL_YELLOW),
+            PARSING_ERROR("XML parsing error", AnsiColor.COL_RED);
 
             private final String template;
+            private final AnsiColor color;
 
-            Kind(String s) {
+            Kind(String s, AnsiColor color) {
                 template = s;
+                this.color = color;
             }
 
-            public String getTemplate() {
-                return template;
+            public String addColor(String str) {
+                return color.apply(str);
+            }
+
+            public String getHeader(/*Nullable*/String fileLoc) {
+                return fileLoc == null ? template : template + " in " + fileLoc;
             }
         }
 
@@ -129,12 +133,8 @@ public interface ErrorReporter {
 
         @Override
         public String toString() {
-            String header = message.getKind().getTemplate();
             String url = getPosition().getFileUrlOrWhatever();
-            if (url != null) {
-                header = header + Kind.IN_FILE;
-            }
-            return String.format(header + "%n", url) + message;
+            return message.getKind().getHeader(url) + System.lineSeparator() + message;
         }
     }
 }

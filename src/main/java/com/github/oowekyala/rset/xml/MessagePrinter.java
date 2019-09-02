@@ -8,6 +8,10 @@ public interface MessagePrinter {
     MessagePrinter DEFAULT = new MessagePrinter() {};
 
 
+    default boolean supportsAnsiColor() {
+        return true;
+    }
+
     default void error(String msg) {
         System.err.println("\n[error] " + msg);
     }

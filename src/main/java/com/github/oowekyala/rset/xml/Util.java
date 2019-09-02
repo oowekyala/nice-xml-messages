@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.github.oowekyala.rset.xml.ErrorReporter.Message;
+import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
 
 final class Util {
 
@@ -36,9 +37,27 @@ final class Util {
 
     static String enquote(String it) {return "'" + it + "'";}
 
+    enum AnsiColor {
+        COL_GREEN("\\e[32m"),
+        COL_RED("\\e[31m"),
+        COL_YELLOW("\\e[33;1m"),
+        ;
+
+        private static final String RESET = "\\e[0m";
+        private final String s;
+
+        AnsiColor(String s) {
+            this.s = s;
+        }
+
+        String apply(String r) {
+            return s + r + RESET;
+        }
+    }
+
     static class MessageTextBuilder {
 
-        private static final String CARET = "^^^ ";
+        private static final String CARET = "^ ";
         private final int first;
         private final int errorIdx;
         private List<String> lines;
@@ -49,7 +68,7 @@ final class Util {
             this.errorIdx = errorIdx;
         }
 
-        public String make(Position position, Message message) {
+        public String make(boolean useColor, Kind kind, Position position, Message message) {
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -60,7 +79,7 @@ final class Util {
 
             String messageLine =
                 Util.padLeft(CARET, position.getColumn() + offset + CARET.length()) + message.toString();
-            withLineNums.add(errorIdx, messageLine);
+            withLineNums.add(errorIdx, useColor ? kind.addColor(messageLine) : messageLine);
             withLineNums.add(errorIdx + 1, "\n"); // skip a line
 
 

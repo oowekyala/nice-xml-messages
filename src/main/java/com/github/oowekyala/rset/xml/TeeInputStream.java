@@ -23,9 +23,9 @@ class TeeInputStream extends FilterInputStream {
 
 
     public int read(byte[] b, int off, int len) throws IOException {
-        int result = super.read(b, off, len);
-        this.copySink.write(b, off, len);
-        return result;
+        int numRead = super.read(b, off, len);
+        this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+        return numRead;
     }
 
     public int read(byte[] b) throws IOException {
