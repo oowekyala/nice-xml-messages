@@ -83,7 +83,9 @@ final class Util {
     static class MessageTextBuilder {
 
         private static final String CARET = "^ ";
+        /** Line number of the first line of the list in the real document */
         private final int first;
+        /** Index in the list of the line that has the error. */
         private final int errorIdx;
         private List<String> lines;
 
@@ -91,6 +93,7 @@ final class Util {
             this.lines = lines;
             this.first = first;
             this.errorIdx = errorIdx;
+            assert (0 <= errorIdx && errorIdx < lines.size());
         }
 
         public String make(boolean useColor, Kind kind, Position position, Message message) {
@@ -134,7 +137,9 @@ final class Util {
 
         public int read(byte[] b, int off, int len) throws IOException {
             int numRead = super.read(b, off, len);
-            this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            if (numRead > 0) {
+                this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            }
             return numRead;
         }
 
@@ -165,7 +170,9 @@ final class Util {
         @Override
         public int read(char[] b, int off, int len) throws IOException {
             int numRead = super.read(b, off, len);
-            this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            if (numRead > 0) {
+                this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            }
             return numRead;
         }
 

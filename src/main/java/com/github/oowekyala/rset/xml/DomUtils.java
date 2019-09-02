@@ -28,13 +28,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.ext.Attributes2Impl;
-import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.github.oowekyala.rset.xml.Util.TeeInputStream;
@@ -44,14 +41,6 @@ import com.github.oowekyala.rset.xml.Util.TeeReader;
  * @author Clément Fournier
  */
 public class DomUtils {
-
-    private static final String PREFIX = "oxml:";
-    private static final String BEGIN_LINE = PREFIX + "beginLine";
-    private static final String BEGIN_COLUMN = PREFIX + "beginColumn";
-    private static final String END_LINE = PREFIX + "endLine";
-    private static final String END_COLUMN = PREFIX + "endColumn";
-
-    private static final String TEXT_DOC = PREFIX + "textDoc";
 
     /**
      * Parse a document using the given deserializer.
@@ -85,7 +74,7 @@ public class DomUtils {
                                ErrorReporter reporter) throws SAXException {
 
         XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-        LocFilter filter = new LocFilter(xmlReader);
+        LocationFilter filter = new LocationFilter(xmlReader);
 
         SAXSource saxSource = new SAXSource(filter, isource);
 
@@ -100,8 +89,13 @@ public class DomUtils {
             throw reporter.error(false, e);
         }
 
-        return ser.fromXml((Element) domResult.getNode(), reporter);
+        reporter.setDocument(inputCopy.get());
+
+        Element root = ((Document) domResult.getNode()).getDocumentElement();
+        LocationFilter.assignLineNumbers(root);
+        return ser.fromXml(root, reporter);
     }
+
 
     public <T> Document makeDoc(T rootObj, XmlMapper<T> ser) {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -150,36 +144,13 @@ public class DomUtils {
         }
     }
 
-    private static class LocFilter extends XMLFilterImpl {
-
-        Locator locator;
-
-        LocFilter(XMLReader reader) {
-            super(reader);
-        }
-
-        @Override
-        public void setDocumentLocator(Locator locator) {
-            super.setDocumentLocator(locator);
-            this.locator = locator;
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-            String loc = locator.getSystemId() + ":" + locator.getLineNumber() + ":" + locator.getColumnNumber();
-            Attributes2Impl newAttrs = new Attributes2Impl(atts);
-            newAttrs.addAttribute("http://myStuff", "location", "oxml:location", "CDATA", loc);
-            super.startElement(uri, localName, qName, newAttrs);
-        }
-    }
-
     private static class TransformerErrorHandler implements ErrorListener {
 
         private final ErrorReporter reporter;
         private final Supplier<String> inputCopy;
-        private final LocFilter filter;
+        private final LocationFilter filter;
 
-        public TransformerErrorHandler(ErrorReporter reporter, Supplier<String> inputCopy, LocFilter filter) {
+        public TransformerErrorHandler(ErrorReporter reporter, Supplier<String> inputCopy, LocationFilter filter) {
             this.reporter = reporter;
             this.inputCopy = inputCopy;
             this.filter = filter;
