@@ -22,7 +22,7 @@ public class DefaultErrorReporter implements ErrorReporter {
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        String toPrint = makeMessage(LocationFilter.beginPos(node), new Templated(Kind.VALIDATION_WARNING, message, args));
+        String toPrint = makeMessage(getBeginPos(node), new Templated(Kind.VALIDATION_WARNING, message, args));
         printer.warn(toPrint);
     }
 
@@ -49,16 +49,20 @@ public class DefaultErrorReporter implements ErrorReporter {
 
     @Override
     public XmlParseException error(Node node, String template, Object... args) {
-        Position pos = LocationFilter.beginPos(node);
+        Position pos = getBeginPos(node);
         Templated message = new Templated(Kind.VALIDATION_ERROR, template, args);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
     }
 
     @Override
     public XmlParseException error(Node node, Throwable ex) {
-        Position pos = LocationFilter.beginPos(node);
+        Position pos = getBeginPos(node);
         Message message = messageFromException(ex, Kind.VALIDATION_ERROR);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
+    }
+
+    protected final Position getBeginPos(Node node) {
+        return OffsetScanner.beginPos(node);
     }
 
 

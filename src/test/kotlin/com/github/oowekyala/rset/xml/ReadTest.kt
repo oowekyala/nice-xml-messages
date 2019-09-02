@@ -94,14 +94,15 @@ $HEADER
         printer.warn.shouldBe(
                 listOf(
                         """
-5 :    </list>
-6 :    <moh>
-        ^^^ Wrong name, expecting 'list'
+    5|         <str>what</str>
+    6|     </list>
+    7|     <moh>
+           ^ Wrong name, expecting 'list'
 
 
-7 :        <str>are</str>
-8 :        <str>you</str>
-9 :    </moh>
+    8|         <str>are</str>
+    9|         <str>you</str>
+   10|     </moh>
                         """.trimIndent()
                 )
         )

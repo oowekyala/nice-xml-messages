@@ -32,6 +32,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.github.oowekyala.rset.xml.Util.TeeInputStream;
@@ -45,7 +46,7 @@ public class DomUtils {
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(InputStream inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
+    static <T> T parse(InputStream inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         InputSource source = new InputSource(new TeeInputStream(inputStream, bos));
 
@@ -61,7 +62,7 @@ public class DomUtils {
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(Reader inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
+    static <T> T parse(Reader inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException {
         StringWriter writer = new StringWriter();
         InputSource source = new InputSource(new TeeReader(inputStream, writer));
         return parse(source, writer::toString, ser, reporter);
@@ -92,7 +93,9 @@ public class DomUtils {
         reporter.setDocument(inputCopy.get());
 
         Element root = ((Document) domResult.getNode()).getDocumentElement();
-        LocationFilter.assignLineNumbers(root);
+        new OffsetScanner(isource.getSystemId())
+            .determineLocation(root, new TextDoc(inputCopy.get()), 0);
+
         return ser.fromXml(root, reporter);
     }
 
@@ -210,6 +213,21 @@ public class DomUtils {
         @Override
         public int getColumnNumber() {
             return locator.getColumnNumber();
+        }
+    }
+
+    /** Transparent filter just to get a locator instance. */
+    static class LocationFilter extends XMLFilterImpl {
+        Locator locator;
+
+        LocationFilter(XMLReader reader) {
+            super(reader);
+        }
+
+        @Override
+        public void setDocumentLocator(Locator locator) {
+            super.setDocumentLocator(locator);
+            this.locator = locator;
         }
     }
 }

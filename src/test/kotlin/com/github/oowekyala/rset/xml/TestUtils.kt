@@ -21,15 +21,15 @@ class TestMessagePrinter : MessagePrinter {
 
 
     override fun warn(message: String) {
-        warn += message
+        warn += message.trimIndent()
     }
 
     override fun error(message: String) {
-        err += message
+        err += message.trimIndent()
     }
 
-    override fun println(msg: String) {
-        out += msg
+    override fun println(message: String) {
+        out += message.trimIndent()
     }
 
     fun shouldBeEmpty() {

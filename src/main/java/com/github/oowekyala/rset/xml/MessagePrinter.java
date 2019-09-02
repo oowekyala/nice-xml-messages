@@ -22,8 +22,8 @@ public interface MessagePrinter {
     }
 
 
-    default void println(String msg) {
-        System.out.println("[info] " + msg);
+    default void println(String message) {
+        System.out.println("[info] " + message);
     }
 
 }

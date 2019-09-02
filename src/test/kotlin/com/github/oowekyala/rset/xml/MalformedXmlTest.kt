@@ -35,6 +35,7 @@ $HEADER
         ex.toString().shouldBe(
                 """
 XML parsing error
+    2| <list>
     3|     <list
     4|         <str>oha</str>
                ^ Le type d'élément "list" doit être suivi des spécifications d'attribut, ">" ou "/>".
@@ -42,6 +43,7 @@ XML parsing error
 
     5|         <str>what</str>
     6|     </list>
+    7|     <moh>
 """.trimIndent()
 
         )
@@ -69,6 +71,7 @@ $HEADER
         ex.toString().shouldBe(
                 """
 XML parsing error
+    1| $HEADER
     2| <list>
     3|     <list foo="&amb;"/>
                            ^ L'entité "amb" était référencée, mais pas déclarée.

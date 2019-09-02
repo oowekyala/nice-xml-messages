@@ -11,6 +11,11 @@ import com.github.oowekyala.rset.xml.Util.MessageTextBuilder;
 class TextDoc {
 
     /**
+     * Number of lines above and below the error line to display.
+     */
+    private static final int SURROUND_SIZE = 3;
+
+    /**
      * This list has one entry for each line, denoting the start offset of the line.
      * The start offset of the next line includes the length of the line terminator
      * (1 for \r|\n, 2 for \r\n).
@@ -19,14 +24,6 @@ class TextDoc {
     private final List<String> lines = new ArrayList<>();
     private final int sourceCodeLength;
     private final String sourceCode;
-
-    private final int surroundSize=2;
-
-    /** Returns the full source. */
-    public String getSourceCode() {
-        return sourceCode;
-    }
-
 
     public TextDoc(String sourceCode) {
         sourceCodeLength = sourceCode.length();
@@ -42,9 +39,14 @@ class TextDoc {
         }
     }
 
+    /** Returns the full source. */
+    public String getSourceCode() {
+        return sourceCode;
+    }
+
     MessageTextBuilder getLinesAround(int line) {
-        int first = Math.max(0, line - surroundSize);
-        int last = Math.min(lines.size(), line + surroundSize);
+        int first = Math.max(0, line - SURROUND_SIZE);
+        int last = Math.min(lines.size(), line + SURROUND_SIZE);
 
         List<String> strings = lines.subList(first, last);
         return new MessageTextBuilder(strings, first, line - first);
