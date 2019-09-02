@@ -2,7 +2,7 @@
  * BSD-style license; for more info see http://pmd.sourceforge.net/license.html
  */
 
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

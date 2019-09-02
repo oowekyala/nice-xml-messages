@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml
+package com.github.oowekyala.oxml
 
 import io.kotlintest.matchers.collections.shouldBeEmpty
 import org.w3c.dom.Document

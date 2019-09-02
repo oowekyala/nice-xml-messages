@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
@@ -6,8 +6,8 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
-import com.github.oowekyala.rset.xml.ErrorReporter.Message.Templated;
+import com.github.oowekyala.oxml.ErrorReporter.Message.Kind;
+import com.github.oowekyala.oxml.ErrorReporter.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
 

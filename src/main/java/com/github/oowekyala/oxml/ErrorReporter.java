@@ -1,11 +1,11 @@
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.rset.xml.Util.AnsiColor;
+import com.github.oowekyala.oxml.Util.AnsiColor;
 
 /**
  * Reports errors during serialization.

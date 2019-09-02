@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -35,8 +35,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.github.oowekyala.rset.xml.Util.TeeInputStream;
-import com.github.oowekyala.rset.xml.Util.TeeReader;
+import com.github.oowekyala.oxml.Util.TeeInputStream;
+import com.github.oowekyala.oxml.Util.TeeReader;
 
 /**
  * @author Clément Fournier

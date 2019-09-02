@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-import com.github.oowekyala.rset.xml.Util.MessageTextBuilder;
+import com.github.oowekyala.oxml.Util.MessageTextBuilder;
 
 class TextDoc {
 

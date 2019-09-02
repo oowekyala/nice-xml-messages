@@ -15,7 +15,7 @@
  */
 
 
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import java.io.FilterInputStream;
 import java.io.FilterReader;
@@ -29,8 +29,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.github.oowekyala.rset.xml.ErrorReporter.Message;
-import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
+import com.github.oowekyala.oxml.ErrorReporter.Message;
+import com.github.oowekyala.oxml.ErrorReporter.Message.Kind;
+
 
 final class Util {
 

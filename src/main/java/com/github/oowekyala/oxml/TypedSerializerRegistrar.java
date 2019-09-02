@@ -1,7 +1,7 @@
 
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
-import static com.github.oowekyala.rset.xml.XmlMapper.textValue;
+import static com.github.oowekyala.oxml.XmlMapper.textValue;
 
 import java.io.File;
 import java.lang.reflect.ParameterizedType;

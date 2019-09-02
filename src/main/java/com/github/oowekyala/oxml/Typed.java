@@ -1,4 +1,4 @@
-package com.github.oowekyala.rset.xml;
+package com.github.oowekyala.oxml;
 
 import java.lang.reflect.Type;
 
