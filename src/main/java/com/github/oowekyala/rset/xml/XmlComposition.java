@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
 /**
  * @author Clément Fournier
  */
-public final class SerComposition {
+public final class XmlComposition {
 
 
     /**
@@ -31,15 +31,15 @@ public final class SerComposition {
      *
      * @return A new serializer
      */
-    public static <T> XmlSerializer<T> nameSelectedUnion(Set<XmlSerializer<T>> syntaxes, BiPredicate<T, XmlSerializer<T>> selector) {
+    public static <T> XmlMapper<T> nameSelectedUnion(Set<XmlMapper<T>> syntaxes, BiPredicate<T, XmlMapper<T>> selector) {
 
-        class MyDecorator implements XmlSerializer<T> {
+        class MyDecorator implements XmlMapper<T> {
 
-            private final Map<String, XmlSerializer<T>> deser = new HashMap<>();
+            private final Map<String, XmlMapper<T>> deser = new HashMap<>();
 
 
             {
-                for (XmlSerializer<T> ser : syntaxes) {
+                for (XmlMapper<T> ser : syntaxes) {
                     for (String it : ser.getPossibleNames()) {
                         if (deser.put(it, ser) != null) {
                             throw new IllegalStateException("Duplicate serializer name " + it);
@@ -58,7 +58,7 @@ public final class SerComposition {
                 return selectSer(value).eltName(value);
             }
 
-            private XmlSerializer<T> selectSer(T value) {
+            private XmlMapper<T> selectSer(T value) {
                 return syntaxes.stream().filter(it -> selector.test(value, it))
                                .findFirst()
                                .orElseThrow(() -> new IllegalStateException(
@@ -77,7 +77,7 @@ public final class SerComposition {
 
             @Override
             public T fromXml(Element s, ErrorReporter err) {
-                XmlSerializer<T> ser = deser.get(s.getLocalName());
+                XmlMapper<T> ser = deser.get(s.getLocalName());
                 if (ser == null) {
                     throw err.error(s, "Unexpected element with name '" + s.getLocalName() + "', expecting "
                         + formatPossibilities(this));
@@ -112,9 +112,9 @@ public final class SerComposition {
      *
      * @return A new serializer
      */
-    public static <T, C extends Collection<T>> XmlSerializer<C> toSeq(final String seqName, final XmlSerializer<T> itemSer, Supplier<C> emptyCollSupplier) {
+    public static <T, C extends Collection<T>> XmlMapper<C> toSeq(final String seqName, final XmlMapper<T> itemSer, Supplier<C> emptyCollSupplier) {
 
-        class MyDecorator implements XmlSerializer<C> {
+        class MyDecorator implements XmlMapper<C> {
 
             @Override
             public String eltName(C value) {
@@ -176,11 +176,11 @@ public final class SerComposition {
      *
      * @return A new serializer
      */
-    public static <V, M extends Map<String, V>> XmlSerializer<M> forStringMap(final String eltName,
-                                                                              Supplier<M> emptyMapSupplier,
-                                                                              XmlSerializer<V> valueSerializer) {
+    public static <V, M extends Map<String, V>> XmlMapper<M> forStringMap(final String eltName,
+                                                                          Supplier<M> emptyMapSupplier,
+                                                                          XmlMapper<V> valueSerializer) {
 
-        class MyDecorator implements XmlSerializer<M> {
+        class MyDecorator implements XmlMapper<M> {
 
             @Override
             public String eltName(M value) {
@@ -257,9 +257,9 @@ public final class SerComposition {
      *
      * @return A new serializer
      */
-    public static <K, V, M extends Map<K, V>> XmlSerializer<M> forMap(final String eltName, Supplier<M> emptyMapSupplier, final XmlSerializer<K> keySerializer, XmlSerializer<V> valueSerializer) {
+    public static <K, V, M extends Map<K, V>> XmlMapper<M> forMap(final String eltName, Supplier<M> emptyMapSupplier, final XmlMapper<K> keySerializer, XmlMapper<V> valueSerializer) {
 
-        class MyDecorator implements XmlSerializer<M> {
+        class MyDecorator implements XmlMapper<M> {
 
             @Override
             public String eltName(M value) {
@@ -319,9 +319,9 @@ public final class SerComposition {
      * Returns a new serializer that can handle another type {@code <S>},
      * provided {@code <T>} can be mapped to and from {@code <S>}.
      */
-    public static <T, S> XmlSerializer<S> map(final XmlSerializer<T> base, Function<T, S> toS, Function<S, T> fromS) {
+    public static <T, S> XmlMapper<S> map(final XmlMapper<T> base, Function<T, S> toS, Function<S, T> fromS) {
 
-        return new XmlSerializer<S>() {
+        return new XmlMapper<S>() {
 
             @Override
             public String eltName(S value) {
@@ -354,8 +354,8 @@ public final class SerComposition {
      *
      * @return A new serializer
      */
-    public static <T> XmlSerializer<T[]> toArray(String eltName, XmlSerializer<T> itemSer, T[] emptyArray) {
-        return SerComposition.<T, List<T>>toSeq(eltName, itemSer, ArrayList::new).map(l -> l.toArray(emptyArray), Arrays::asList);
+    public static <T> XmlMapper<T[]> toArray(String eltName, XmlMapper<T> itemSer, T[] emptyArray) {
+        return XmlComposition.<T, List<T>>toSeq(eltName, itemSer, ArrayList::new).map(l -> l.toArray(emptyArray), Arrays::asList);
     }
 
     private static Element getChild(Element parent, int idx) {
@@ -381,9 +381,9 @@ public final class SerComposition {
      * Returns a new serializer, identical to the given [base] serializer,
      * except its serializer name is the given one.
      */
-    public static <T> XmlSerializer<T> rename(final String name, final XmlSerializer<T> base) {
+    public static <T> XmlMapper<T> rename(final String name, final XmlMapper<T> base) {
 
-        return new XmlSerializer<T>() {
+        return new XmlMapper<T>() {
 
             @Override
             public String eltName(T value) {
@@ -407,7 +407,7 @@ public final class SerComposition {
         };
     }
 
-    private static <T> T expectElement(ErrorReporter err, Element parent, int idx, XmlSerializer<T> s2) {
+    private static <T> T expectElement(ErrorReporter err, Element parent, int idx, XmlMapper<T> s2) {
         Element value = getChild(parent, idx);
 
         String possibilities = formatPossibilities(s2);
@@ -427,7 +427,7 @@ public final class SerComposition {
         return null;
     }
 
-    private static <T> T expectElement(ErrorReporter err, Element elt, XmlSerializer<T> s2) {
+    private static <T> T expectElement(ErrorReporter err, Element elt, XmlMapper<T> s2) {
 
         String possibilities = formatPossibilities(s2);
 
@@ -441,7 +441,7 @@ public final class SerComposition {
     }
 
     // nullable
-    private static String formatPossibilities(XmlSerializer<?> ser) {
+    private static String formatPossibilities(XmlMapper<?> ser) {
         Set<String> strings = ser.getPossibleNames();
         if (strings.isEmpty()) {
             return null;

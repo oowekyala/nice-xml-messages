@@ -6,9 +6,9 @@ import org.w3c.dom.Document
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
-fun Document.toStr(): String = DomIoUtils.writeToString(this).trimIndent()
+fun Document.toStr(): String = DomUtils.writeToString(this).trimIndent()
 
-inline fun <reified T> defaultSer(): XmlSerializer<T> =
+inline fun <reified T> defaultSer(): XmlMapper<T> =
         TypedSerializerRegistrar.getInstance().getSerializer(T::class.java)
 
 class TestMessagePrinter : MessagePrinter {

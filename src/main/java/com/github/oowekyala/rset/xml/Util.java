@@ -17,6 +17,13 @@
 
 package com.github.oowekyala.rset.xml;
 
+import java.io.FilterInputStream;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +33,10 @@ import com.github.oowekyala.rset.xml.ErrorReporter.Message;
 import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
 
 final class Util {
+
+    private Util() {
+
+    }
 
     public static String addNSpacesLeft(String s, int n) {
         StringBuilder builder = new StringBuilder();
@@ -102,6 +113,67 @@ final class Util {
 
         private String addLineNum(int i) {
             return String.format("%5d| %s", 1 + i + first, lines.get(i));
+        }
+    }
+
+    static class TeeInputStream extends FilterInputStream {
+
+        private final OutputStream copySink;
+
+        TeeInputStream(InputStream source, OutputStream sink) {
+            super(source);
+            this.copySink = sink;
+        }
+
+        public int read() throws IOException {
+            int result = super.read();
+            this.copySink.write(result);
+            return result;
+        }
+
+
+        public int read(byte[] b, int off, int len) throws IOException {
+            int numRead = super.read(b, off, len);
+            this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            return numRead;
+        }
+
+        public int read(byte[] b) throws IOException {
+            int result = super.read(b);
+            this.copySink.write(b);
+            return result;
+        }
+    }
+
+    static class TeeReader extends FilterReader {
+
+        private final Writer copySink;
+
+        TeeReader(Reader source, Writer sink) {
+            super(source);
+            this.copySink = sink;
+        }
+
+
+        @Override
+        public int read() throws IOException {
+            int result = super.read();
+            this.copySink.write(result);
+            return result;
+        }
+
+        @Override
+        public int read(char[] b, int off, int len) throws IOException {
+            int numRead = super.read(b, off, len);
+            this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
+            return numRead;
+        }
+
+        @Override
+        public int read(char[] b) throws IOException {
+            int result = super.read(b);
+            this.copySink.write(b);
+            return result;
         }
     }
 }

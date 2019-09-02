@@ -37,10 +37,13 @@ import org.xml.sax.ext.Attributes2Impl;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import com.github.oowekyala.rset.xml.Util.TeeInputStream;
+import com.github.oowekyala.rset.xml.Util.TeeReader;
+
 /**
  * @author Clément Fournier
  */
-public class DomIoUtils {
+public class DomUtils {
 
     private static final String PREFIX = "oxml:";
     private static final String BEGIN_LINE = PREFIX + "beginLine";
@@ -53,7 +56,7 @@ public class DomIoUtils {
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(InputStream inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
+    static <T> T parse(InputStream inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         InputSource source = new InputSource(new TeeInputStream(inputStream, bos));
 
@@ -69,7 +72,7 @@ public class DomIoUtils {
     /**
      * Parse a document using the given deserializer.
      */
-    static <T> T parse(Reader inputStream, XmlSerializer<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
+    static <T> T parse(Reader inputStream, XmlMapper<T> ser, ErrorReporter reporter) throws SAXException, TransformerException {
         StringWriter writer = new StringWriter();
         InputSource source = new InputSource(new TeeReader(inputStream, writer));
         return parse(source, writer::toString, ser, reporter);
@@ -78,7 +81,7 @@ public class DomIoUtils {
 
     private static <T> T parse(InputSource isource,
                                Supplier<String> inputCopy,
-                               XmlSerializer<T> ser,
+                               XmlMapper<T> ser,
                                ErrorReporter reporter) throws SAXException {
 
         XMLReader xmlReader = XMLReaderFactory.createXMLReader();
@@ -100,7 +103,7 @@ public class DomIoUtils {
         return ser.fromXml((Element) domResult.getNode(), reporter);
     }
 
-    public <T> Document makeDoc(T rootObj, XmlSerializer<T> ser) {
+    public <T> Document makeDoc(T rootObj, XmlMapper<T> ser) {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder;
         try {

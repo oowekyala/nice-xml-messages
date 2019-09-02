@@ -28,7 +28,7 @@ $HEADER
         val printer = TestMessagePrinter()
 
         val ex = shouldThrow<ErrorReporter.XmlParseException> {
-            DomIoUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
+            DomUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
         }
 
         // FIXME this uses French Locale!
@@ -62,7 +62,7 @@ $HEADER
         val printer = TestMessagePrinter()
 
         val ex = shouldThrow<ErrorReporter.XmlParseException> {
-            DomIoUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
+            DomUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
         }
 
         // FIXME this uses French Locale!

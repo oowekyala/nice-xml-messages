@@ -2,14 +2,13 @@ package com.github.oowekyala.rset.xml
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
-import org.w3c.dom.Document
 
 
 class OutputTest : FunSpec({
 
 
     test("Test simple string conversions") {
-        val doc = DomIoUtils().makeDoc("oha!", defaultSer<String>())
+        val doc = DomUtils().makeDoc("oha!", defaultSer<String>())
 
         doc.toStr() shouldBe """
             $HEADER
@@ -18,7 +17,7 @@ class OutputTest : FunSpec({
     }
 
     test("Test composition") {
-        val doc = DomIoUtils().makeDoc(
+        val doc = DomUtils().makeDoc(
                 listOf("oha", "what", "are", "you"),
                 defaultSer<String>().toSeq<List<String>> { mutableListOf() }
         )

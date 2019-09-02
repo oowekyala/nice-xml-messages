@@ -5,7 +5,6 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
 import com.github.oowekyala.rset.xml.Util.AnsiColor;
 
 /**

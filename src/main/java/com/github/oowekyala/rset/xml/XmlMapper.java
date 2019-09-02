@@ -11,11 +11,11 @@ import java.util.function.Supplier;
 import org.w3c.dom.Element;
 
 /**
- * Composable XML serializer for a value of type {@code <T>}.
+ * Composable XML serializer/deserializer for a value of type {@code <T>}.
  *
  * @param <T> Type of value handled
  */
-public interface XmlSerializer<T> {
+public interface XmlMapper<T> {
 
     /**
      * Name of the element that this serializer should serialize to.
@@ -45,8 +45,8 @@ public interface XmlSerializer<T> {
      * Returns a new serializer that can handle another type {@code <S>},
      * provided {@code <T>} can be mapped to and from {@code <S>}.
      */
-    default <S> XmlSerializer<S> map(Function<T, S> toS, Function<S, T> fromS) {
-        return SerComposition.map(this, toS, fromS);
+    default <S> XmlMapper<S> map(Function<T, S> toS, Function<S, T> fromS) {
+        return XmlComposition.map(this, toS, fromS);
     }
 
 
@@ -54,10 +54,10 @@ public interface XmlSerializer<T> {
      * Builds a new serializer that can serialize arrays of component type
      * {@code <T>}.
      *
-     * @see SerComposition#toArray(String, XmlSerializer, Object[])
+     * @see XmlComposition#toArray(String, XmlMapper, Object[])
      */
-    default XmlSerializer<T[]> toArray(T[] emptyArray) {
-        return SerComposition.toArray("array", this, emptyArray);
+    default XmlMapper<T[]> toArray(T[] emptyArray) {
+        return XmlComposition.toArray("array", this, emptyArray);
     }
 
 
@@ -65,10 +65,10 @@ public interface XmlSerializer<T> {
      * Returns a new serializer, identical to the given [base] serializer,
      * except its serializer name is the given one.
      *
-     * @see SerComposition#rename(String, XmlSerializer)
+     * @see XmlComposition#rename(String, XmlMapper)
      */
-    default XmlSerializer<T> withName(String name) {
-        return SerComposition.rename(name, this);
+    default XmlMapper<T> withName(String name) {
+        return XmlComposition.rename(name, this);
     }
 
 
@@ -76,10 +76,10 @@ public interface XmlSerializer<T> {
      * Builds a new serializer that can serialize arbitrary collections
      * with element type {@code <T>}. The list element name is "seq".
      *
-     * @see SerComposition#toSeq(String, XmlSerializer, Supplier)
+     * @see XmlComposition#toSeq(String, XmlMapper, Supplier)
      */
-    default <C extends Collection<T>> XmlSerializer<C> toSeq(Supplier<C> emptyCollSupplier) {
-        return SerComposition.toSeq("seq", this, emptyCollSupplier);
+    default <C extends Collection<T>> XmlMapper<C> toSeq(Supplier<C> emptyCollSupplier) {
+        return XmlComposition.toSeq("seq", this, emptyCollSupplier);
     }
 
 
@@ -87,10 +87,10 @@ public interface XmlSerializer<T> {
      * Builds a new serializer that can serialize lists of {@code <T>}.
      * The list element name is "list".
      *
-     * @see SerComposition#toSeq(String, XmlSerializer, Supplier)
+     * @see XmlComposition#toSeq(String, XmlMapper, Supplier)
      */
-    default XmlSerializer<List<T>> toList() {
-        return SerComposition.toSeq("list", this, ArrayList::new);
+    default XmlMapper<List<T>> toList() {
+        return XmlComposition.toSeq("list", this, ArrayList::new);
     }
 
 
@@ -99,9 +99,9 @@ public interface XmlSerializer<T> {
      *
      * @param <T> Type of values
      */
-    static <T> XmlSerializer<T> textValue(String eltName, Function<String, T> fromString, Function<T, String> toString) {
+    static <T> XmlMapper<T> textValue(String eltName, Function<String, T> fromString, Function<T, String> toString) {
 
-        class MyDecorator implements XmlSerializer<T> {
+        class MyDecorator implements XmlMapper<T> {
 
             @Override
             public String eltName(T value) {

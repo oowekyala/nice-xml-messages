@@ -1,7 +1,7 @@
 
 package com.github.oowekyala.rset.xml;
 
-import static com.github.oowekyala.rset.xml.XmlSerializer.textValue;
+import static com.github.oowekyala.rset.xml.XmlMapper.textValue;
 
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
@@ -56,7 +56,7 @@ public class TypedSerializerRegistrar {
     private static final TypedSerializerRegistrar INSTANCE = new TypedSerializerRegistrar();
 
     // using a map of types obviously doesn't handle subtyping
-    private final Map<Type, XmlSerializer<?>> converters = new WeakHashMap<>();
+    private final Map<Type, XmlMapper<?>> converters = new WeakHashMap<>();
 
     public TypedSerializerRegistrar() {
         registerStandard();
@@ -65,7 +65,7 @@ public class TypedSerializerRegistrar {
     /**
      * Registers a new serializer for type [toRegister], which is based
      * on an already registered serializer for [existing]. The new serializer
-     * is obtained using {@link XmlSerializer#map(Function, Function)}.
+     * is obtained using {@link XmlMapper#map(Function, Function)}.
      */
     public final <T, U> void registerMapped(Class<T> toRegister, Class<U> existing,
                                             Function<T, U> toBase, Function<U, T> fromBase) {
@@ -109,7 +109,7 @@ public class TypedSerializerRegistrar {
      * be accessed on this registrar instance with {@link #getSerializer(Typed)}.
      */
     @SafeVarargs
-    public final <T> void register(XmlSerializer<T> serializer, Typed<T> firstType, Typed<T>... type) {
+    public final <T> void register(XmlMapper<T> serializer, Typed<T> firstType, Typed<T>... type) {
         converters.put(firstType.getType(), serializer);
         for (Typed<T> tClass : type) {
             converters.put(tClass.getType(), serializer);
@@ -117,7 +117,7 @@ public class TypedSerializerRegistrar {
     }
 
     @SafeVarargs
-    public final <T> void register(XmlSerializer<T> serializer, Class<T> firstType, Class<T>... type) {
+    public final <T> void register(XmlMapper<T> serializer, Class<T> firstType, Class<T>... type) {
         converters.put(firstType, serializer);
         for (Class<T> it : type) {
             converters.put(it, serializer);
@@ -129,8 +129,8 @@ public class TypedSerializerRegistrar {
      * on this registrar instance to serialize any object. It throws IllegalStateExceptions
      * if serializers are missing for a particular type.
      */
-    public XmlSerializer<TypedObject<?>> compositeSerializer() {
-        class Composite implements XmlSerializer<TypedObject<?>> {
+    public XmlMapper<TypedObject<?>> compositeSerializer() {
+        class Composite implements XmlMapper<TypedObject<?>> {
 
             @Override
             public String eltName(TypedObject<?> value) {
@@ -145,7 +145,7 @@ public class TypedSerializerRegistrar {
             @Override
             public void toXml(Element container, TypedObject<?> typedObject, Function<String, Element> eltFactory) {
                 @SuppressWarnings("unchecked")
-                XmlSerializer<Object> serializer = (XmlSerializer<Object>) getSerializer(typedObject.getType());
+                XmlMapper<Object> serializer = (XmlMapper<Object>) getSerializer(typedObject.getType());
                 if (serializer == null) {
                     throw new IllegalStateException("No serializer registered for type " + typedObject.getType());
                 }
@@ -172,7 +172,7 @@ public class TypedSerializerRegistrar {
                     throw err.error(attr, e);
                 }
 
-                XmlSerializer<?> serializer = getSerializer(type);
+                XmlMapper<?> serializer = getSerializer(type);
                 if (serializer == null) {
                     throw new IllegalStateException("No serializer registered for type " + type);
                 }
@@ -196,9 +196,9 @@ public class TypedSerializerRegistrar {
      *
      * @return A serializer, or null if none can be derived
      */
-    public final <T> XmlSerializer<T> getSerializer(Class<T> type) {
+    public final <T> XmlMapper<T> getSerializer(Class<T> type) {
         @SuppressWarnings("unchecked")
-        XmlSerializer<T> t = (XmlSerializer<T>) converters.get(type);
+        XmlMapper<T> t = (XmlMapper<T>) converters.get(type);
         return t;
     }
 
@@ -207,9 +207,9 @@ public class TypedSerializerRegistrar {
      *
      * @param typed Type witness
      */
-    public final <T> XmlSerializer<T> getSerializer(Typed<T> typed) {
+    public final <T> XmlMapper<T> getSerializer(Typed<T> typed) {
         @SuppressWarnings("unchecked")
-        XmlSerializer<T> serializer = (XmlSerializer<T>) getSerializer(typed.getType());
+        XmlMapper<T> serializer = (XmlMapper<T>) getSerializer(typed.getType());
         return serializer;
     }
 
@@ -224,7 +224,7 @@ public class TypedSerializerRegistrar {
      * @return A serializer, or null if none can be found
      */
     @SuppressWarnings("unchecked")
-    public final XmlSerializer<?> getSerializer(Type genericType) {
+    public final XmlMapper<?> getSerializer(Type genericType) {
         if (converters.containsKey(genericType)) {
             return converters.get(genericType);
         }
@@ -241,12 +241,12 @@ public class TypedSerializerRegistrar {
             Type[] actualTypeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
 
             if (actualTypeArguments.length == 1) {
-                XmlSerializer<?> targSerializer = get1targSerializer(rawType, actualTypeArguments[0]);
+                XmlMapper<?> targSerializer = get1targSerializer(rawType, actualTypeArguments[0]);
                 if (targSerializer != null) {
                     return targSerializer;
                 }
             } else if (actualTypeArguments.length == 2) {
-                XmlSerializer<?> targSerializer = get2targSerializer(rawType, actualTypeArguments[0], actualTypeArguments[1]);
+                XmlMapper<?> targSerializer = get2targSerializer(rawType, actualTypeArguments[0], actualTypeArguments[1]);
                 if (targSerializer != null) {
                     return targSerializer;
                 }
@@ -260,21 +260,21 @@ public class TypedSerializerRegistrar {
 
     // FIXME the deserializer doesn't handle maps bc of 2 type args
 
-    private XmlSerializer<?> get2targSerializer(Class rawType, Type targ1, Type targ2) {
-        XmlSerializer kSerializer = getSerializer(targ1);
-        XmlSerializer vSerializer = getSerializer(targ2);
+    private XmlMapper<?> get2targSerializer(Class rawType, Type targ1, Type targ2) {
+        XmlMapper kSerializer = getSerializer(targ1);
+        XmlMapper vSerializer = getSerializer(targ2);
         if (kSerializer != null && vSerializer != null) {
             if (SortedMap.class.isAssignableFrom(rawType)) {
-                return SerComposition.forMap("map", TreeMap::new, kSerializer, vSerializer);
+                return XmlComposition.forMap("map", TreeMap::new, kSerializer, vSerializer);
             } else if (Map.class.isAssignableFrom(rawType)) {
-                return SerComposition.forMap("map", HashMap::new, kSerializer, vSerializer);
+                return XmlComposition.forMap("map", HashMap::new, kSerializer, vSerializer);
             }
         }
 
         return null;
     }
 
-    private XmlSerializer<?> get1targSerializer(Class rawType, Type targ1) {
+    private XmlMapper<?> get1targSerializer(Class rawType, Type targ1) {
 
         Supplier<Collection<Object>> emptyCollSupplier = null;
         if (rawType != null && Collection.class.isAssignableFrom(rawType)) {
@@ -286,7 +286,7 @@ public class TypedSerializerRegistrar {
         }
 
         if (emptyCollSupplier != null) {
-            XmlSerializer componentSerializer = getSerializer(targ1);
+            XmlMapper componentSerializer = getSerializer(targ1);
             if (componentSerializer != null) {
                 return componentSerializer.<Collection<Object>>toSeq(emptyCollSupplier);
             }

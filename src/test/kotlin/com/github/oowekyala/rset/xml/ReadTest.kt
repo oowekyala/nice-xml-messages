@@ -1,7 +1,5 @@
 package com.github.oowekyala.rset.xml
 
-import io.kotlintest.matchers.collections.shouldBeEmpty
-import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 
@@ -10,7 +8,7 @@ class ReadTest : FunSpec({
 
 
     test("Test simple string conversions") {
-        val doc = DomIoUtils().makeDoc("oha!", defaultSer<String>())
+        val doc = DomUtils().makeDoc("oha!", defaultSer<String>())
 
         doc.toStr() shouldBe """
             $HEADER
@@ -19,7 +17,7 @@ class ReadTest : FunSpec({
     }
 
     test("Test composition") {
-        val doc = DomIoUtils().makeDoc(
+        val doc = DomUtils().makeDoc(
                 listOf("oha", "what", "are", "you"),
                 defaultSer<String>().toSeq<List<String>> { mutableListOf() }
         )
@@ -42,7 +40,7 @@ $HEADER
                 listOf("oha", "what"),
                 listOf("are", "you")
         )
-        val doc = DomIoUtils().makeDoc(list, ser)
+        val doc = DomUtils().makeDoc(list, ser)
 
         val expected = """
 $HEADER
@@ -62,7 +60,7 @@ $HEADER
 
 
         val printer = TestMessagePrinter()
-        DomIoUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
+        DomUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
                 .shouldBe(list)
 
         printer.shouldBeEmpty()
@@ -90,7 +88,7 @@ $HEADER
         """.trimIndent()
 
         val printer = TestMessagePrinter()
-        DomIoUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
+        DomUtils.parse(expected.reader(), ser, DefaultErrorReporter(printer))
                 .shouldBe(listOf(listOf("oha", "what")))
 
         printer.warn.shouldBe(
