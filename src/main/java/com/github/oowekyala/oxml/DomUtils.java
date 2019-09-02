@@ -41,7 +41,11 @@ import com.github.oowekyala.oxml.Util.TeeReader;
 /**
  * @author Clément Fournier
  */
-public class DomUtils {
+public final class DomUtils {
+
+    private DomUtils() {
+
+    }
 
     /**
      * Parse a document using the given deserializer.
