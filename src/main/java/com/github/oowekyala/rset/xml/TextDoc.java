@@ -44,10 +44,10 @@ class TextDoc {
 
     MessageTextBuilder getLinesAround(int line) {
         int first = Math.max(0, line - surroundSize);
-        int last = Math.min(lines.size(), line + surroundSize + 1);
+        int last = Math.min(lines.size(), line + surroundSize);
 
         List<String> strings = lines.subList(first, last);
-        return new MessageTextBuilder(strings, first, last, line - first);
+        return new MessageTextBuilder(strings, first, line - first);
     }
 
     /**

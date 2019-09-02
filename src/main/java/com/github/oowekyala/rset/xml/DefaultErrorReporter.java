@@ -23,7 +23,7 @@ public class DefaultErrorReporter implements ErrorReporter {
         printer.warn(toPrint);
     }
 
-    protected XmlParsingException pp(XmlParsingException ex) {
+    protected XmlParseException pp(XmlParseException ex) {
         printer.error(makeMessage(ex.getPosition(), ex.getMessageObj()));
         return ex;
     }
@@ -39,39 +39,39 @@ public class DefaultErrorReporter implements ErrorReporter {
 
 
     @Override
-    public XmlParsingException error(Node node, String template, Object... args) {
+    public XmlParseException error(Node node, String template, Object... args) {
         Position pos = LineNumberScanner.beginPos(node);
         Templated message = new Templated(Kind.VALIDATION_ERROR, template, args);
-        return pp(new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
+        return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
     }
 
     @Override
-    public XmlParsingException error(Node node, Throwable ex) {
+    public XmlParseException error(Node node, Throwable ex) {
         Position pos = LineNumberScanner.beginPos(node);
         Message message = messageFromException(ex, Kind.VALIDATION_ERROR);
-        return pp(new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
+        return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
     }
 
 
     @Override
-    public XmlParsingException error(SAXParseException throwable) {
+    public XmlParseException error(SAXParseException throwable) {
         return pp(convertSax(Kind.VALIDATION_ERROR, throwable));
     }
 
     @Override
-    public XmlParsingException warn(SAXParseException throwable) {
+    public XmlParseException warn(SAXParseException throwable) {
         return pp(convertSax(Kind.VALIDATION_WARNING, throwable));
     }
 
     @Override
-    public XmlParsingException fatal(SAXParseException throwable) {
+    public XmlParseException fatal(SAXParseException throwable) {
         throw convertSax(Kind.PARSING_ERROR, throwable);
     }
 
-    private XmlParsingException convertSax(Kind kind, SAXParseException throwable) {
+    private XmlParseException convertSax(Kind kind, SAXParseException throwable) {
         Position pos = new Position(throwable.getLineNumber() - 1, throwable.getColumnNumber());
         Message message = messageFromException(throwable, kind);
-        return new XmlParsingException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
+        return new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
     }
 
     private Message messageFromException(Throwable throwable, Kind kind) {

@@ -14,19 +14,19 @@ public interface ErrorReporter {
     void warn(Node node, String message, Object... args);
 
 
-    XmlParsingException error(Node node, String message, Object... args);
+    XmlParseException error(Node node, String message, Object... args);
 
 
-    XmlParsingException error(Node node, Throwable ex);
+    XmlParseException error(Node node, Throwable ex);
 
 
-    XmlParsingException error(SAXParseException throwable);
+    XmlParseException error(SAXParseException throwable);
 
 
-    XmlParsingException fatal(SAXParseException throwable);
+    XmlParseException fatal(SAXParseException throwable);
 
 
-    XmlParsingException warn(SAXParseException throwable);
+    XmlParseException warn(SAXParseException throwable);
 
 
     void close();
@@ -101,18 +101,18 @@ public interface ErrorReporter {
         }
     }
 
-    class XmlParsingException extends RuntimeException {
+    class XmlParseException extends RuntimeException {
 
         private final Position position;
         private final Message message;
 
-        XmlParsingException(Position position, Message message) {
+        XmlParseException(Position position, Message message) {
             super(message.toString());
             this.position = position;
             this.message = message;
         }
 
-        XmlParsingException(Position position, Message message, Throwable cause) {
+        XmlParseException(Position position, Message message, Throwable cause) {
             super(message.toString(), cause);
             this.position = position;
             this.message = message;

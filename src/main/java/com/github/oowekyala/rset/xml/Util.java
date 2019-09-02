@@ -40,14 +40,12 @@ final class Util {
 
         private static final String CARET = "^^^ ";
         private final int first;
-        private final int last;
         private final int errorIdx;
         private List<String> lines;
 
-        MessageTextBuilder(List<String> lines, int first, int last, int errorIdx) {
+        MessageTextBuilder(List<String> lines, int first, int errorIdx) {
             this.lines = lines;
             this.first = first;
-            this.last = last;
             this.errorIdx = errorIdx;
         }
 
@@ -70,7 +68,7 @@ final class Util {
         }
 
         private String addLineNum(int i) {
-            return String.format("%5d| %s", i + first, lines.get(i));
+            return String.format("%5d| %s", 1 + i + first, lines.get(i));
         }
     }
 }

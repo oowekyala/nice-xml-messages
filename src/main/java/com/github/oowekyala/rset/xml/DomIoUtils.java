@@ -65,6 +65,7 @@ public class DomIoUtils {
                                XmlSerializer<T> ser,
                                ErrorReporter reporter) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        dbFactory.set
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
         dBuilder.setErrorHandler(new ErrorHandler() {
