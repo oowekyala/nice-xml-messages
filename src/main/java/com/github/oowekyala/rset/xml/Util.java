@@ -27,12 +27,26 @@ import com.github.oowekyala.rset.xml.ErrorReporter.Message.Kind;
 
 final class Util {
 
-    public static String padRight(String s, int n) {
-        return String.format("%-" + n + "s", s);
+    public static String addNSpacesLeft(String s, int n) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(' ');
+        repeatChar(builder, ' ', n - 1);
+        builder.append(s);
+        return builder.toString();
     }
 
-    public static String padLeft(String s, int n) {
-        return String.format("%" + n + "s", s);
+    // input builder must not be empty
+    private static void repeatChar(StringBuilder builder, char c, int n) {
+        while (n > 0) {
+            if (n < builder.length()) {
+                builder.append(c);
+                n--;
+            } else {
+                int len = builder.length();
+                builder.append(builder);
+                n -= len;
+            }
+        }
     }
 
     static String enquote(String it) {return "'" + it + "'";}
@@ -78,7 +92,7 @@ final class Util {
             int offset = rline.length() - lines.get(errorIdx).length();
 
             String messageLine =
-                Util.padLeft(CARET, position.getColumn() + offset + CARET.length()) + message.toString();
+                Util.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
             withLineNums.add(errorIdx, useColor ? kind.addColor(messageLine) : messageLine);
             withLineNums.add(errorIdx + 1, "\n"); // skip a line
 
