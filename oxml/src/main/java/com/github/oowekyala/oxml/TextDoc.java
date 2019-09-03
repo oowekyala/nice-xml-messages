@@ -25,7 +25,7 @@ class TextDoc {
     private final int sourceCodeLength;
     private final String sourceCode;
 
-    public TextDoc(String sourceCode) {
+    TextDoc(String sourceCode) {
         sourceCodeLength = sourceCode.length();
         this.sourceCode = sourceCode;
 
@@ -44,12 +44,13 @@ class TextDoc {
         return sourceCode;
     }
 
-    MessageTextBuilder getLinesAround(int line) {
-        int first = Math.max(0, line - SURROUND_SIZE);
-        int last = Math.min(lines.size(), line + SURROUND_SIZE);
+    MessageTextBuilder getLinesAround(@OneBased int line) {
+        @ZeroBased int zeroL = line - 1;
+        @ZeroBased int firstL = Math.max(0, zeroL - SURROUND_SIZE + 1);
+        @ZeroBased int lastL = Math.min(lines.size(), zeroL + SURROUND_SIZE);
 
-        List<String> strings = lines.subList(first, last);
-        return new MessageTextBuilder(strings, first, line - first);
+        List<String> strings = lines.subList(firstL, lastL);
+        return new MessageTextBuilder(strings, firstL, zeroL - firstL);
     }
 
     /**

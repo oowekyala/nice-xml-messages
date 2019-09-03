@@ -17,11 +17,8 @@
 
 package com.github.oowekyala.oxml;
 
-import java.io.FilterInputStream;
 import java.io.FilterReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -67,12 +64,12 @@ final class Util {
 
         private static final String CARET = "^ ";
         /** Line number of the first line of the list in the real document */
-        private final int first;
+        private final @OneBased int first;
         /** Index in the list of the line that has the error. */
         private final int errorIdx;
         private List<String> lines;
 
-        MessageTextBuilder(List<String> lines, int first, int errorIdx) {
+        MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
             this.lines = lines;
             this.first = first;
             this.errorIdx = errorIdx;
@@ -90,14 +87,14 @@ final class Util {
 
             String messageLine =
                 Util.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
-            withLineNums.add(errorIdx, printer.applyAnsi(kind.getColor(), messageLine));
-            withLineNums.add(errorIdx + 1, "\n"); // skip a line
+            withLineNums.add(errorIdx + 1, printer.applyAnsi(kind.getColor(), messageLine));
+            withLineNums.add(errorIdx + 2, "\n"); // skip a line
 
 
             return String.join("\n", withLineNums);
         }
 
-        private String addLineNum(int i) {
+        private String addLineNum(@ZeroBased int i) {
             return String.format("%5d| %s", 1 + i + first, lines.get(i));
         }
     }

@@ -10,21 +10,21 @@ class Position {
     private final int column;
     private final String fileUrlOrWhatever;
 
-    Position(int line, int column) {
+    private Position(int line, int column) {
         this(null, line, column);
     }
 
-    Position(String fileUrlOrWhatever, int line, int column) {
+    Position(String fileUrlOrWhatever, @OneBased int line, @OneBased int column) {
         this.fileUrlOrWhatever = fileUrlOrWhatever;
         this.line = line;
         this.column = column;
     }
 
-    int getLine() {
+    @OneBased int getLine() {
         return line;
     }
 
-    int getColumn() {
+    @OneBased int getColumn() {
         return column;
     }
 

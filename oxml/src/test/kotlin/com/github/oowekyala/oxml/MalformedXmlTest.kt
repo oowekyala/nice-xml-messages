@@ -40,13 +40,13 @@ XML parsing error
 
     5|         <str>what</str>
     6|     </list>
-    7|     <moh>
 """.trimIndent()
 
         )
 
         printer.err.shouldBe(emptyList<String>())
     }
+
     test("Test malformed entities") {
 
         val expected = """
@@ -74,6 +74,29 @@ XML parsing error
     4| </list>
 """.trimIndent()
 
+        )
+
+        printer.err.shouldBe(emptyList<String>())
+    }
+
+    test("Test empty document") {
+
+        val expected = """
+$HEADER
+""".trimIndent()
+
+        val printer = TestMessagePrinter()
+
+        val ex = shouldThrow<XmlParseException> {
+            expected.parseStr(printer)
+        }
+
+        ex.toString().shouldBe(
+"""XML parsing error
+    1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                             ^ Fin prématurée du fichier.
+
+"""
         )
 
         printer.err.shouldBe(emptyList<String>())
