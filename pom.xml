@@ -4,9 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.oowekyala</groupId>
-    <artifactId>ruleset-parser</artifactId>
+    <groupId>com.github.oowekyala.oxml</groupId>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
     <version>7.0.0-SNAPSHOT</version>
+    <modules>
+        <module>mappers</module>
+        <module>oxml</module>
+    </modules>
 
     <name>ruleset-parser</name>
     <!-- FIXME change it to the project's website -->
