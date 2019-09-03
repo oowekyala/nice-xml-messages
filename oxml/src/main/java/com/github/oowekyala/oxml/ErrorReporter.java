@@ -47,9 +47,8 @@ public interface ErrorReporter {
      * @param warn      Whether this is a warning
      * @param throwable Cause
      *
-     * @return An exception, to throw or not. If "warn" is true, the exception
-     *     is logged, otherwise it's expected to be thrown by the caller and isn't
-     *     logged directly
+     * @return An exception. If "warn" is true, the exception
+     *     is logged, otherwise it's thrown, and not logged directly.
      *
      * @throws XmlParseException If "warn" is false. In that case, to improve compiler
      *                           control-flow analysis, you can call this method with
@@ -150,36 +149,4 @@ public interface ErrorReporter {
         }
     }
 
-    class XmlParseException extends RuntimeException {
-
-        private final Position position;
-        private final Message message;
-
-        XmlParseException(Position position, Message message) {
-            super(message.toString());
-            this.position = position;
-            this.message = message;
-        }
-
-        XmlParseException(Position position, Message message, Throwable cause) {
-            super(message.toString(), cause);
-            this.position = position;
-            this.message = message;
-        }
-
-        public Position getPosition() {
-            return position;
-        }
-
-
-        public Message getMessageObj() {
-            return message;
-        }
-
-        @Override
-        public String toString() {
-            String url = getPosition().getFileUrlOrWhatever();
-            return message.getKind().getHeader(url) + System.lineSeparator() + message;
-        }
-    }
 }

@@ -5,30 +5,30 @@ import java.util.Objects;
 
 class Position {
 
-    public static final Position UNDEFINED = new Position(-1, -1);
+    static final Position UNDEFINED = new Position(-1, -1);
     private final int line;
     private final int column;
     private final String fileUrlOrWhatever;
 
-    public Position(int line, int column) {
+    Position(int line, int column) {
         this(null, line, column);
     }
 
-    public Position(String fileUrlOrWhatever, int line, int column) {
+    Position(String fileUrlOrWhatever, int line, int column) {
         this.fileUrlOrWhatever = fileUrlOrWhatever;
         this.line = line;
         this.column = column;
     }
 
-    public int getLine() {
+    int getLine() {
         return line;
     }
 
-    public int getColumn() {
+    int getColumn() {
         return column;
     }
 
-    public String getFileUrlOrWhatever() {
+    String getFileUrlOrWhatever() {
         return fileUrlOrWhatever;
     }
 

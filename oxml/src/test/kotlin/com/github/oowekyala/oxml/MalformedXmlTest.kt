@@ -9,8 +9,6 @@ class MalformedXmlTest : FunSpec({
 
     test("Test malformed xml 1") {
 
-        val ser = defaultSer<String>().toList().toList()
-
         val expected = """
 $HEADER
 <list>
@@ -27,7 +25,7 @@ $HEADER
 
         val printer = TestMessagePrinter()
 
-        val ex = shouldThrow<ErrorReporter.XmlParseException> {
+        val ex = shouldThrow<XmlParseException> {
             expected.parseStr(printer)
         }
 
@@ -51,8 +49,6 @@ XML parsing error
     }
     test("Test malformed entities") {
 
-        val ser = defaultSer<String>().toList().toList()
-
         val expected = """
 $HEADER
 <list>
@@ -62,7 +58,7 @@ $HEADER
 
         val printer = TestMessagePrinter()
 
-        val ex = shouldThrow<ErrorReporter.XmlParseException> {
+        val ex = shouldThrow<XmlParseException> {
             expected.parseStr(printer)
         }
 

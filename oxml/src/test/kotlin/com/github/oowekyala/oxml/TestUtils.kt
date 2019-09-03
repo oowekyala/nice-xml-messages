@@ -8,9 +8,6 @@ val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
 fun Document.toStr(): String = Oxml.getDefault().writeToString(this).trimIndent()
 
-inline fun <reified T> defaultSer(): XmlMapper<T> =
-        TypedSerializerRegistrar.getInstance().getSerializer(T::class.java)
-
 
 fun String.parseStr(printer: MessagePrinter = TestMessagePrinter()): Oxml.LocationedDoc = Oxml.getDefault().parse(reader()) { DefaultErrorReporter(printer, it) }
 
