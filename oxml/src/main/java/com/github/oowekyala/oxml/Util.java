@@ -63,24 +63,6 @@ final class Util {
 
     static String enquote(String it) {return "'" + it + "'";}
 
-    enum AnsiColor {
-        COL_GREEN("\\e[32m"),
-        COL_RED("\\e[31m"),
-        COL_YELLOW("\\e[33;1m"),
-        ;
-
-        private static final String RESET = "\\e[0m";
-        private final String s;
-
-        AnsiColor(String s) {
-            this.s = s;
-        }
-
-        String apply(String r) {
-            return s + r + RESET;
-        }
-    }
-
     static class MessageTextBuilder {
 
         private static final String CARET = "^ ";
@@ -97,7 +79,7 @@ final class Util {
             assert (0 <= errorIdx && errorIdx < lines.size());
         }
 
-        public String make(boolean useColor, Kind kind, Position position, Message message) {
+        public String make(MessagePrinter printer, Kind kind, Position position, Message message) {
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -108,7 +90,7 @@ final class Util {
 
             String messageLine =
                 Util.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
-            withLineNums.add(errorIdx, useColor ? kind.addColor(messageLine) : messageLine);
+            withLineNums.add(errorIdx, printer.applyAnsi(kind.getColor(), messageLine));
             withLineNums.add(errorIdx + 1, "\n"); // skip a line
 
 

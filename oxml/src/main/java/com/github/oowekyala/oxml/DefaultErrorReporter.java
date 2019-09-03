@@ -44,7 +44,7 @@ public class DefaultErrorReporter implements ErrorReporter {
     private String makeMessage(Position position, Message message) {
         if (!position.equals(Position.UNDEFINED) && textDoc != null) {
             return textDoc.getLinesAround(position.getLine())
-                          .make(printer.supportsAnsiColor(), message.getKind(), position, message);
+                          .make(printer, message.getKind(), position, message);
         } else {
             return message.toString();
         }
@@ -71,12 +71,38 @@ public class DefaultErrorReporter implements ErrorReporter {
 
 
     @Override
-    public XmlParseException error(boolean warn, SAXParseException throwable) {
+    public XmlParseException parseError(boolean warn, Throwable throwable) {
+        Kind exKind = getExKind(warn);
+        XmlParseException xpe;
+        if (throwable instanceof SAXParseException) {
+            SAXParseException e = (SAXParseException) throwable;
+            xpe = convertException(getExKind(warn), throwable, e.getLineNumber(), e.getColumnNumber(), e.getSystemId());
+        } else if (throwable instanceof TransformerException) {
+            if (throwable.getCause() instanceof SAXParseException) {
+                return parseError(warn, throwable.getCause());
+            }
+            SourceLocator locator = ((TransformerException) throwable).getLocator();
+            int line = locator == null ? -1 : locator.getLineNumber();
+            int column = locator == null ? -1 : locator.getColumnNumber();
+            String systemId = locator == null ? null : locator.getSystemId();
+            xpe = convertException(getExKind(warn), throwable, line, column, systemId);
+        } else {
+            xpe = new XmlParseException(Position.UNDEFINED, new Templated(exKind, "Parse error"), throwable);
+        }
+
+        if (warn) {
+            printer.error(xpe.toString());
+            return xpe;
+        } else {
+            throw xpe;
+        }
+    }
+
+    private XmlParseException error(boolean warn, SAXParseException throwable) {
         XmlParseException xpe = convertException(getExKind(warn), throwable, throwable.getLineNumber(), throwable.getColumnNumber(), throwable.getSystemId());
         return pp(xpe, warn);
     }
 
-    @Override
     public XmlParseException error(boolean warn, TransformerException throwable) {
         if (throwable.getCause() instanceof SAXParseException) {
             return error(warn, ((SAXParseException) throwable.getCause()));

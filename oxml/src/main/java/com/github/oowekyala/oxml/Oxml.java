@@ -119,7 +119,7 @@ public class Oxml {
 
             transformer.transform(saxSource, domResult);
         } catch (TransformerException e) {
-            throw reporterFactory.create(inputCopy.get()).error(false, e);
+            throw reporterFactory.create(inputCopy.get()).parseError(false, e);
         }
 
         ErrorReporter reporter = reporterFactory.create(inputCopy.get());
@@ -155,18 +155,18 @@ public class Oxml {
 
         @Override
         public void warning(TransformerException exception) {
-            updateReporter(exception).error(true, exception);
+            updateReporter(exception).parseError(true, exception);
 
         }
 
         @Override
         public void error(TransformerException exception) {
-            throw updateReporter(exception).error(false, exception);
+            throw updateReporter(exception).parseError(false, exception);
         }
 
         @Override
         public void fatalError(TransformerException exception) {
-            throw updateReporter(exception).error(false, exception);
+            throw updateReporter(exception).parseError(false, exception);
         }
     }
 

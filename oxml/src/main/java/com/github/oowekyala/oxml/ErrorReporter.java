@@ -1,32 +1,69 @@
 package com.github.oowekyala.oxml;
 
-import javax.xml.transform.TransformerException;
-
 import org.w3c.dom.Node;
-import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.oxml.Util.AnsiColor;
+import com.github.oowekyala.oxml.MessagePrinter.AnsiCode;
 
 /**
- * Reports errors during serialization.
+ * Reports errors in an XML document. Implementations have a way to
+ * associate nodes with their location in the document.
  */
 public interface ErrorReporter {
 
-
+    /**
+     * Print a warning at the location of a node.
+     *
+     * @param node    XML node which owns the warning
+     * @param message Message, possibly templated
+     * @param args    Formatter arguments
+     */
     void warn(Node node, String message, Object... args);
 
 
+    /**
+     * Report an error at the location of a node. Whether this throws
+     * the exception is an implementation detail.
+     *
+     * @param node    XML node which owns the warning
+     * @param message Message, possibly templated
+     * @param args    Formatter arguments
+     */
     XmlParseException error(Node node, String message, Object... args);
 
 
+    /**
+     * Report an external error at the location of a node. Whether this
+     * throws the exception is an implementation detail.
+     *
+     * @param node XML node which owns the warning
+     * @param ex   Cause exception
+     */
     XmlParseException error(Node node, Throwable ex);
 
 
-    XmlParseException error(boolean warn, SAXParseException throwable);
+    /**
+     * An error occurring in the parsing phase.
+     *
+     * @param warn      Whether this is a warning
+     * @param throwable Cause
+     *
+     * @return An exception, to throw or not. If "warn" is true, the exception
+     *     is logged, otherwise it's expected to be thrown by the caller and isn't
+     *     logged directly
+     *
+     * @throws XmlParseException If "warn" is false. In that case, to improve compiler
+     *                           control-flow analysis, you can call this method with
+     *                           a throw statement as well (eg {@code throw reporter.parseError(false, ex);},
+     *                           even though this method throws).
+     */
+    XmlParseException parseError(boolean warn, Throwable throwable);
 
-    XmlParseException error(boolean warn, TransformerException throwable);
 
-
+    /**
+     * End the reporting phase. For example, if this reporter is configured
+     * to accumulate errors, this should throw the accumulated errors. This
+     * could also print some footer or anything.
+     */
     void close();
 
 
@@ -50,21 +87,25 @@ public interface ErrorReporter {
         }
 
         enum Kind {
-            VALIDATION_WARNING("XML validation warning", AnsiColor.COL_YELLOW),
-            VALIDATION_ERROR("XML validation error", AnsiColor.COL_RED),
-            PARSING_WARNING("XML validation warning", AnsiColor.COL_YELLOW),
-            PARSING_ERROR("XML parsing error", AnsiColor.COL_RED);
+            VALIDATION_WARNING("XML validation warning", AnsiCode.COL_YELLOW),
+            VALIDATION_ERROR("XML validation error", AnsiCode.COL_RED),
+            PARSING_WARNING("XML validation warning", AnsiCode.COL_YELLOW),
+            PARSING_ERROR("XML parsing error", AnsiCode.COL_RED);
 
             private final String template;
-            private final AnsiColor color;
+            private final AnsiCode color;
 
-            Kind(String s, AnsiColor color) {
+            Kind(String s, AnsiCode color) {
                 template = s;
                 this.color = color;
             }
 
             public String addColor(String str) {
                 return color.apply(str);
+            }
+
+            public AnsiCode getColor() {
+                return color;
             }
 
             public String getHeader(/*Nullable*/String fileLoc) {

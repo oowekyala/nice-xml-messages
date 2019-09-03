@@ -6,7 +6,7 @@ import org.w3c.dom.Document
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
-fun Document.toStr(): String = DomUtils.writeToString(this).trimIndent()
+fun Document.toStr(): String = Oxml.getDefault().writeToString(this).trimIndent()
 
 inline fun <reified T> defaultSer(): XmlMapper<T> =
         TypedSerializerRegistrar.getInstance().getSerializer(T::class.java)
@@ -24,7 +24,9 @@ class TestMessagePrinter : MessagePrinter {
     val err = mutableListOf<String>()
     val out = mutableListOf<String>()
 
-    override fun supportsAnsiColor(): Boolean = false
+    override fun applyAnsi(code: MessagePrinter.AnsiCode, string: String): String {
+        return string
+    }
 
 
     override fun warn(message: String) {
