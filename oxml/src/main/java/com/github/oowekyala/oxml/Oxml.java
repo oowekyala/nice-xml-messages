@@ -1,9 +1,7 @@
 package com.github.oowekyala.oxml;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -33,8 +31,6 @@ import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.github.oowekyala.oxml.ErrorReporter.ErrorReporterFactory;
-import com.github.oowekyala.oxml.Util.TeeInputStream;
-import com.github.oowekyala.oxml.Util.TeeReader;
 
 /**
  * @author Clément Fournier
@@ -43,10 +39,6 @@ public class Oxml {
 
 
     private static final Oxml DEFAULT = new Oxml();
-
-    public static  Oxml getDefault() {
-        return DEFAULT;
-    }
 
     public void write(Document document, File outputFile) throws IOException {
         outputFile.getParentFile().mkdirs();
@@ -77,33 +69,45 @@ public class Oxml {
         }
     }
 
+
     /**
      * Parse a document using the given deserializer.
      */
-    public LocationedDoc parse(InputStream inputStream, ErrorReporterFactory reporter) throws SAXException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        InputSource source = new InputSource(new TeeInputStream(inputStream, bos));
-
-        Supplier<String> docMaker = () -> {
-            String bytes = bos.toString();
-            int end = bytes.indexOf('0');
-            return (end > 0) ? bytes.substring(0, end) : bytes;
-        };
-
-        return parse(source, docMaker, reporter);
+    public LocationedDoc parse(InputSource inputStream, ErrorReporterFactory reporter) throws SAXException {
+        return parse(spyOn(inputStream), reporter);
     }
 
     /**
      * Parse a document using the given deserializer.
      */
-    public LocationedDoc parse(Reader inputStream, ErrorReporterFactory reporter) throws SAXException {
-        StringWriter writer = new StringWriter();
-        InputSource source = new InputSource(new TeeReader(inputStream, writer));
-        return parse(source, writer::toString, reporter);
+    public LocationedDoc parse(Reader reader, ErrorReporterFactory reporter) throws SAXException {
+        return parse(new InputSource(reader), reporter);
     }
 
-    private static LocationedDoc parse(InputSource isource,
-                                       Supplier<String> inputCopy,
+    public static Oxml getDefault() {
+        return DEFAULT;
+    }
+
+    /*
+     TODO the whole string may be kept if we're parsing to DOM, for SAX
+       we should only keep the head of the stream
+     */
+    private static SpyInputSource spyOn(InputSource inputSource) {
+        SpyInputSource is = new SpyInputSource();
+        is.setSystemId(inputSource.getSystemId());
+        is.setPublicId(inputSource.getPublicId());
+        is.setEncoding(is.getEncoding());
+        if (inputSource.getCharacterStream() != null) {
+            is.setCharacterStream(inputSource.getCharacterStream());
+        } else {
+            if (inputSource.getByteStream() != null) {
+                is.setByteStream(inputSource.getByteStream());
+            }
+        }
+        return is;
+    }
+
+    private static LocationedDoc parse(SpyInputSource isource,
                                        ErrorReporterFactory reporterFactory) throws SAXException {
 
         XMLReader xmlReader = XMLReaderFactory.createXMLReader();
@@ -115,19 +119,19 @@ public class Oxml {
         DOMResult domResult = new DOMResult();
         try {
             Transformer transformer = factory.newTransformer();
-            transformer.setErrorListener(new TransformerErrorHandler(reporterFactory, inputCopy, () -> filter.locator));
+            transformer.setErrorListener(new TransformerErrorHandler(reporterFactory, isource::getRead, () -> filter.locator));
 
             transformer.transform(saxSource, domResult);
         } catch (TransformerException e) {
-            throw reporterFactory.create(inputCopy.get()).parseError(false, e);
+            throw reporterFactory.create(isource.getRead()).parseError(false, e);
         }
 
-        ErrorReporter reporter = reporterFactory.create(inputCopy.get());
+        ErrorReporter reporter = reporterFactory.create(isource.getRead());
 
         Document document = (Document) domResult.getNode();
         Element root = document.getDocumentElement();
         new OffsetScanner(isource.getSystemId())
-            .determineLocation(root, new TextDoc(inputCopy.get()), 0);
+            .determineLocation(root, new TextDoc(isource.getRead()), 0);
 
         return new LocationedDoc(document, reporter);
     }

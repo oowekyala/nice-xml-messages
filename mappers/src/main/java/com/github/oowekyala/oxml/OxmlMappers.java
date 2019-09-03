@@ -7,19 +7,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.github.oowekyala.oxml.Oxml.LocationedDoc;
-
 /**
  * @author Clément Fournier
  */
-public class OxmlMappers {
+public class OxmlMappers extends Oxml {
 
-    private static final OxmlMappers DEFAULT = new OxmlMappers(Oxml.getDefault());
-    private final Oxml oxml;
-
-    public OxmlMappers(Oxml oxml) {
-        this.oxml = oxml;
-    }
+    private static final OxmlMappers DEFAULT = new OxmlMappers();
 
     public <T> T parse(LocationedDoc doc, XmlMapper<T> mapper) {
         return mapper.fromXml(doc.getDocument().getDocumentElement(), doc.getReporter());

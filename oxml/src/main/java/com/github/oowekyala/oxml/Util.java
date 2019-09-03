@@ -102,37 +102,6 @@ final class Util {
         }
     }
 
-    static class TeeInputStream extends FilterInputStream {
-
-        private final OutputStream copySink;
-
-        TeeInputStream(InputStream source, OutputStream sink) {
-            super(source);
-            this.copySink = sink;
-        }
-
-        public int read() throws IOException {
-            int result = super.read();
-            this.copySink.write(result);
-            return result;
-        }
-
-
-        public int read(byte[] b, int off, int len) throws IOException {
-            int numRead = super.read(b, off, len);
-            if (numRead > 0) {
-                this.copySink.write(b, off, numRead); // pay attention to use "numRead" and not "len"
-            }
-            return numRead;
-        }
-
-        public int read(byte[] b) throws IOException {
-            int result = super.read(b);
-            this.copySink.write(b);
-            return result;
-        }
-    }
-
     static class TeeReader extends FilterReader {
 
         private final Writer copySink;
