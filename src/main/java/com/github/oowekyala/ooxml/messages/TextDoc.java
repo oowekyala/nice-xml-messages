@@ -5,15 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-
-import com.github.oowekyala.ooxml.messages.InternalUtil.MessageTextBuilder;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class TextDoc {
 
-    /**
-     * Number of lines above and below the error line to display.
-     */
-    private static final int SURROUND_SIZE = 3;
 
     /**
      * This list has one entry for each line, denoting the start offset of the line.
@@ -44,10 +40,10 @@ class TextDoc {
         return sourceCode;
     }
 
-    MessageTextBuilder getLinesAround(@InternalUtil.OneBased int line) {
-        @InternalUtil.ZeroBased int zeroL = line - 1;
-        @InternalUtil.ZeroBased int firstL = Math.max(0, zeroL - SURROUND_SIZE + 1);
-        @InternalUtil.ZeroBased int lastL = Math.min(lines.size(), zeroL + SURROUND_SIZE);
+    MessageTextBuilder getLinesAround(@OneBased int line, int numLinesAround) {
+        @ZeroBased int zeroL = line - 1;
+        @ZeroBased int firstL = Math.max(0, zeroL - numLinesAround + 1);
+        @ZeroBased int lastL = Math.min(lines.size(), zeroL + numLinesAround);
 
         List<String> strings = lines.subList(firstL, lastL);
         return new MessageTextBuilder(strings, firstL, zeroL - firstL);
@@ -89,4 +85,53 @@ class TextDoc {
         return columnOffset + 1; // 1-based column offsets
     }
 
+    /**
+     * Helper object.
+     */
+    static class MessageTextBuilder {
+
+        private static final String CARET = "^ ";
+        /** Line number of the first line of the list in the real document */
+        private final @OneBased int first;
+        /** Index in the list of the line that has the error. */
+        private final int errorIdx;
+        private List<String> lines;
+
+        MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
+            this.lines = lines;
+            this.first = first;
+            this.errorIdx = errorIdx;
+            assert (0 <= errorIdx && errorIdx < lines.size());
+        }
+
+
+        public String make(boolean supportsAnsiColors, XmlMessageKind kind, XmlPosition position, String message) {
+
+
+            String url = position.getSystemId();
+            String header = url == null ? kind.getHeader() : kind.getHeader() + " in " + url;
+
+
+            List<String> withLineNums = IntStream.range(0, lines.size())
+                                                 .mapToObj(this::addLineNum)
+                                                 .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
+
+            String rline = addLineNum(errorIdx);
+            int offset = rline.length() - lines.get(errorIdx).length();
+
+            String messageLine = InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset - 1) + message;
+
+            String colored = supportsAnsiColors ? kind.withColor(messageLine) : messageLine;
+
+            withLineNums.add(errorIdx + 1, colored);
+            withLineNums.add(errorIdx + 2, "\n"); // skip a line
+
+
+            return header + "\n" + String.join("\n", withLineNums);
+        }
+
+        private String addLineNum(@ZeroBased int i) {
+            return String.format("%5d| %s", 1 + i + first, lines.get(i));
+        }
+    }
 }

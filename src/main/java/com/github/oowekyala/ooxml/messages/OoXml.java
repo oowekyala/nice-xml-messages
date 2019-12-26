@@ -22,7 +22,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -127,15 +126,15 @@ public class OoXml {
 
             transformer.transform(saxSource, domResult);
         } catch (TransformerException e) {
-            throw reporterFactory.create(isource.getRead()).parseError(false, e);
+            throw reporterFactory.create(new PartialFilePositioner(isource.getRead()))
+                                 .parseError(false, e);
         }
 
-        ErrorReporter reporter = reporterFactory.create(isource.getRead());
-
         Document document = (Document) domResult.getNode();
-        Element root = document.getDocumentElement();
-        new OffsetScanner(isource.getSystemId())
-            .determineLocation(root, new TextDoc(isource.getRead()), 0);
+
+        FullFilePositioner positioner = new FullFilePositioner(isource.getSystemId(), isource.getRead(), document);
+
+        ErrorReporter reporter = reporterFactory.create(positioner);
 
         return new PositionedXmlDoc(document, reporter);
     }
@@ -158,7 +157,7 @@ public class OoXml {
             if (exception.getLocator() == null) {
                 exception.setLocator(new LocatorAdapter(locatorSupplier.get()));
             }
-            return reporter.create(inputCopy.get());
+            return reporter.create(new PartialFilePositioner(inputCopy.get()));
         }
 
         @Override

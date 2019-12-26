@@ -1,92 +1,81 @@
 package com.github.oowekyala.ooxml.messages;
 
-import javax.xml.transform.SourceLocator;
-import javax.xml.transform.TransformerException;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING_ERROR;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING_WARNING;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.VALIDATION_ERROR;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.VALIDATION_WARNING;
 
 import org.w3c.dom.Node;
-import org.xml.sax.SAXParseException;
-
-import com.github.oowekyala.ooxml.messages.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
 
-    private final TextDoc textDoc;
+    private final XmlPositioner positioner;
     private final MessagePrinter printer;
 
-    public DefaultErrorReporter(MessagePrinter printer, String document) {
-        this.textDoc = new TextDoc(document);
+    public DefaultErrorReporter(MessagePrinter printer,
+                                XmlPositioner positioner) {
+        this.positioner = positioner;
         this.printer = printer;
-    }
-
-    public DefaultErrorReporter(String document) {
-        this(MessagePrinter.DEFAULT, document);
-    }
-
-    protected final FilePosition getBeginPos(Node node) {
-        return OffsetScanner.beginPos(node);
     }
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        String toPrint = makeMessage(getBeginPos(node), new Templated(MessageKind.VALIDATION_WARNING, message, args));
+        XmlPosition pos = positioner.startPositionOf(node);
+        String formatted = String.format(message, args);
+        String toPrint = makeMessage(pos, VALIDATION_WARNING, formatted);
         printer.warn(toPrint);
     }
 
-    protected XmlParseException pp(XmlParseException ex) {
-        return pp(ex, true);
-    }
-
-    protected XmlParseException pp(XmlParseException ex, boolean condition) {
-        if (condition) {
-            printer.error(ex.toString());
-        }
+    private XmlParseException printAndPass(XmlParseException ex) {
+        printer.error(ex.toString());
         return ex;
     }
 
-    private String makeMessage(FilePosition position, Message message) {
-        if (!position.equals(FilePosition.UNDEFINED) && textDoc != null) {
-            return textDoc.getLinesAround(position.getLine())
-                          .make(printer, message.getKind(), position, message);
-        } else {
-            return message.toString();
-        }
+    private String makeMessage(XmlPosition position, XmlMessageKind kind, String message) {
+        return positioner.makePositionedMessage(position, printer.supportsAnsiColors(), kind, message);
     }
 
 
     @Override
     public XmlParseException error(Node node, String template, Object... args) {
-        FilePosition pos = getBeginPos(node);
-        Templated message = new Templated(MessageKind.VALIDATION_ERROR, template, args);
-        return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
+        XmlPosition pos = positioner.startPositionOf(node);
+        String simpleMessage = String.format(template, args);
+        return printAndPass(createException(pos, simpleMessage, null));
     }
+
 
     @Override
     public XmlParseException error(Node node, Throwable ex) {
-        FilePosition pos = getBeginPos(node);
-        Message message = messageFromException(ex, MessageKind.VALIDATION_ERROR);
-        return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
+        XmlPosition pos = positioner.startPositionOf(node);
+        return printAndPass(createException(pos, ex.getMessage(), ex));
     }
 
+
+    private XmlParseException createException(XmlPosition pos, String formatted, Throwable ex) {
+        String fullMessage = makeMessage(pos, VALIDATION_ERROR, formatted);
+        return new XmlParseException(pos, fullMessage, formatted, VALIDATION_ERROR, ex);
+    }
 
 
     @Override
     public XmlParseException parseError(boolean warn, Throwable throwable) {
-        MessageKind exKind = getExKind(warn);
-        XmlParseException xpe;
-        if (throwable instanceof SAXParseException) {
-            SAXParseException e = (SAXParseException) throwable;
-            xpe = convertException(getExKind(warn), throwable, e.getLineNumber(), e.getColumnNumber(), e.getSystemId());
-        } else if (throwable instanceof TransformerException) {
-            if (throwable.getCause() instanceof SAXParseException) {
-                return parseError(warn, throwable.getCause());
-            }
-            SourceLocator locator = ((TransformerException) throwable).getLocator();
-            int line = locator == null ? -1 : locator.getLineNumber();
-            int column = locator == null ? -1 : locator.getColumnNumber();
-            String systemId = locator == null ? null : locator.getSystemId();
-            xpe = convertException(getExKind(warn), throwable, line, column, systemId);
+        final XmlMessageKind exKind = warn ? PARSING_WARNING : PARSING_ERROR;
+
+        XmlPosition pos = XmlPositioner.extractPosition(throwable);
+
+
+        final XmlParseException xpe;
+        if (pos.equals(XmlPosition.UNDEFINED)) {
+            // unknown exception
+            xpe = new XmlParseException(XmlPosition.UNDEFINED,
+                                        "Parse error\n\t" + throwable.getMessage(),
+                                        throwable.getMessage(),
+                                        exKind,
+                                        throwable);
+
         } else {
-            xpe = new XmlParseException(FilePosition.UNDEFINED, new Templated(exKind, "Parse error"), throwable);
+            String message = makeMessage(pos, exKind, throwable.getMessage());
+            xpe = new XmlParseException(pos, message, throwable.getMessage(), exKind, throwable);
         }
 
         if (warn) {
@@ -95,37 +84,6 @@ public class DefaultErrorReporter implements ErrorReporter {
         } else {
             throw xpe;
         }
-    }
-
-    private XmlParseException error(boolean warn, SAXParseException throwable) {
-        XmlParseException xpe = convertException(getExKind(warn), throwable, throwable.getLineNumber(), throwable.getColumnNumber(), throwable.getSystemId());
-        return pp(xpe, warn);
-    }
-
-    public XmlParseException error(boolean warn, TransformerException throwable) {
-        if (throwable.getCause() instanceof SAXParseException) {
-            return error(warn, ((SAXParseException) throwable.getCause()));
-        }
-        SourceLocator locator = throwable.getLocator();
-        int line = locator == null ? -1 : locator.getLineNumber();
-        int column = locator == null ? -1 : locator.getColumnNumber();
-        String systemId = locator == null ? null : locator.getSystemId();
-        XmlParseException xpe = convertException(getExKind(warn), throwable, line, column, systemId);
-        return pp(xpe, warn);
-    }
-
-    private MessageKind getExKind(boolean warn) {
-        return warn ? MessageKind.PARSING_WARNING : MessageKind.PARSING_ERROR;
-    }
-
-    private XmlParseException convertException(MessageKind kind, Throwable throwable, int line, int column, String systemId) {
-        FilePosition pos = new FilePosition(systemId, line, column);
-        Message message = messageFromException(throwable, kind);
-        return new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
-    }
-
-    private Message messageFromException(Throwable throwable, MessageKind kind) {
-        return new Templated(kind, throwable.getMessage());
     }
 
     @Override

@@ -106,13 +106,13 @@ class OffsetScanner {
         if (n != null) {
             int line = textDoc.lineNumberFromOffset(index);
             int column = textDoc.columnFromOffset(line, index);
-            n.setUserData(BEGIN_POS, new FilePosition(systemId, line, column), null);
+            n.setUserData(BEGIN_POS, new XmlPosition(systemId, line, column), null);
         }
     }
 
-    public static FilePosition beginPos(Node node) {
-        FilePosition bline = (FilePosition) node.getUserData(BEGIN_POS);
-        return bline == null ? FilePosition.UNDEFINED : bline;
+    public XmlPosition beginPos(Node node) {
+        XmlPosition bline = (XmlPosition) node.getUserData(BEGIN_POS);
+        return bline == null ? XmlPosition.UNDEFINED : bline;
     }
 
     private static String unexpandEntities(Node n, String te, boolean withQuotes) {

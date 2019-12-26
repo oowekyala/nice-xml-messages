@@ -73,11 +73,11 @@ public interface ErrorReporter {
         /**
          * Create a new error reporter from the given string
          *
-         * @param xmlDocument Full string corresponding to the XML document
+         * @param positioner Xml positioner
          *
          * @return A new error reporter
          */
-        ErrorReporter create(String xmlDocument);
+        ErrorReporter create(XmlPositioner positioner);
 
     }
 

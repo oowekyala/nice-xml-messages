@@ -64,44 +64,6 @@ final class InternalUtil {
 
     static String enquote(String it) {return "'" + it + "'";}
 
-    static class MessageTextBuilder {
-
-        private static final String CARET = "^ ";
-        /** Line number of the first line of the list in the real document */
-        private final @OneBased int first;
-        /** Index in the list of the line that has the error. */
-        private final int errorIdx;
-        private List<String> lines;
-
-        MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
-            this.lines = lines;
-            this.first = first;
-            this.errorIdx = errorIdx;
-            assert (0 <= errorIdx && errorIdx < lines.size());
-        }
-
-        public String make(MessagePrinter printer, MessageKind kind, FilePosition position, Message message) {
-
-            List<String> withLineNums = IntStream.range(0, lines.size())
-                                                 .mapToObj(this::addLineNum)
-                                                 .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
-
-            String rline = addLineNum(errorIdx);
-            int offset = rline.length() - lines.get(errorIdx).length();
-
-            String messageLine = InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
-            withLineNums.add(errorIdx + 1, printer.applyAnsi(kind.getColor(), messageLine));
-            withLineNums.add(errorIdx + 2, "\n"); // skip a line
-
-
-            return String.join("\n", withLineNums);
-        }
-
-        private String addLineNum(@ZeroBased int i) {
-            return String.format("%5d| %s", 1 + i + first, lines.get(i));
-        }
-    }
-
     static class TeeReader extends FilterReader {
 
         private final Writer copySink;
@@ -140,15 +102,4 @@ final class InternalUtil {
         Those are here to clarify between 1 and 0 based offsets.
      */
 
-    @Target(ElementType.TYPE_USE)
-    @Retention(RetentionPolicy.SOURCE)
-    @Documented
-    @interface OneBased {
-    }
-
-    @Target(ElementType.TYPE_USE)
-    @Retention(RetentionPolicy.SOURCE)
-    @Documented
-    @interface ZeroBased {
-    }
 }

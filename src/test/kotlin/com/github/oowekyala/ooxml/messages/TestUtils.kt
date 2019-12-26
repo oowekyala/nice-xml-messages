@@ -24,10 +24,6 @@ class TestMessagePrinter : MessagePrinter {
     val err = mutableListOf<String>()
     val out = mutableListOf<String>()
 
-    override fun applyAnsi(code: MessagePrinter.AnsiCode, string: String): String {
-        return string
-    }
-
 
     override fun warn(message: String) {
         warn += message.trimIndent()
@@ -40,6 +36,8 @@ class TestMessagePrinter : MessagePrinter {
     override fun info(message: String) {
         out += message.trimIndent()
     }
+
+    override fun supportsAnsiColors(): Boolean = false
 
     fun shouldBeEmpty() {
         warn.shouldBeEmpty()

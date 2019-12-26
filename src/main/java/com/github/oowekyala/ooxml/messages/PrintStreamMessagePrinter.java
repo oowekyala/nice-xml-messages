@@ -35,7 +35,7 @@ public class PrintStreamMessagePrinter implements MessagePrinter {
     }
 
     @Override
-    public String applyAnsi(AnsiCode color, String string) {
-        return supportsColor ? color.apply(string) : string;
+    public boolean supportsAnsiColors() {
+        return supportsColor;
     }
 }

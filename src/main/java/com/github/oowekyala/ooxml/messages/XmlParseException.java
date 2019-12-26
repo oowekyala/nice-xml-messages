@@ -5,51 +5,46 @@ package com.github.oowekyala.ooxml.messages;
  */
 public class XmlParseException extends RuntimeException {
 
-    private final FilePosition position;
-    private final Message message;
+    private final XmlPosition position;
+    private final String simpleMessage;
+    private final XmlMessageKind kind;
 
-    XmlParseException(FilePosition position, Message message) {
-        super(message.toString());
+    XmlParseException(XmlPosition position,
+                      String fullMessage,
+                      String simpleMessage,
+                      XmlMessageKind kind) {
+        this(position, fullMessage, simpleMessage, kind, null);
+    }
+
+    XmlParseException(XmlPosition position,
+                      String fullMessage,
+                      String simpleMessage,
+                      XmlMessageKind kind,
+                      Throwable cause) {
+        super(fullMessage, cause);
         this.position = position;
-        this.message = message;
-    }
-
-    XmlParseException(FilePosition position, Message message, Throwable cause) {
-        super(message.toString(), cause);
-        this.position = position;
-        this.message = message;
-    }
-
-    FilePosition getPosition() {
-        return position;
+        this.simpleMessage = simpleMessage;
+        this.kind = kind;
     }
 
 
-    public int getLine() {
-        return position.getLine();
+    public String getSimpleMessage() {
+        return simpleMessage;
     }
 
-    public int getColumn() {
-        return position.getColumn();
-    }
 
-    public boolean isPositionDefined() {
-        return position != FilePosition.UNDEFINED;
-    }
-
-    public String getPositionFile() {
-        return position.getFileUrlOrWhatever();
-    }
+  public XmlPosition getPosition() {
+      return position;
+  }
 
 
     /** Returns the message kind. */
-    public MessageKind getKind() {
-        return message.getKind();
+    public XmlMessageKind getKind() {
+        return kind;
     }
 
     @Override
     public String toString() {
-        String url = getPosition().getFileUrlOrWhatever();
-        return message.getKind().getHeader(url) + System.lineSeparator() + message;
+        return getMessage();
     }
 }
