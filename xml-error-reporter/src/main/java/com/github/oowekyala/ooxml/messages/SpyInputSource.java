@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import org.xml.sax.InputSource;
 
-import com.github.oowekyala.ooxml.Util.TeeReader;
+import com.github.oowekyala.ooxml.messages.InternalUtil.TeeReader;
 
 /**
  *

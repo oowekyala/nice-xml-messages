@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.github.oowekyala.ooxml.ErrorReporter.ErrorReporterFactory;
+import com.github.oowekyala.ooxml.messages.ErrorReporter.ErrorReporterFactory;
 
 /**
  * @author Clément Fournier

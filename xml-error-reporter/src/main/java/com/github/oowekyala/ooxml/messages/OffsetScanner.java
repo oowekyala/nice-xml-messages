@@ -2,7 +2,7 @@
  * BSD-style license; for more info see http://pmd.sourceforge.net/license.html
  */
 
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,13 +106,13 @@ class OffsetScanner {
         if (n != null) {
             int line = textDoc.lineNumberFromOffset(index);
             int column = textDoc.columnFromOffset(line, index);
-            n.setUserData(BEGIN_POS, new Position(systemId, line, column), null);
+            n.setUserData(BEGIN_POS, new FilePosition(systemId, line, column), null);
         }
     }
 
-    public static Position beginPos(Node node) {
-        Position bline = (Position) node.getUserData(BEGIN_POS);
-        return bline == null ? Position.UNDEFINED : bline;
+    public static FilePosition beginPos(Node node) {
+        FilePosition bline = (FilePosition) node.getUserData(BEGIN_POS);
+        return bline == null ? FilePosition.UNDEFINED : bline;
     }
 
     private static String unexpandEntities(Node n, String te, boolean withQuotes) {

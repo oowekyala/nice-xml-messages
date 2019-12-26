@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-import com.github.oowekyala.ooxml.Util.MessageTextBuilder;
+import com.github.oowekyala.ooxml.messages.InternalUtil.MessageTextBuilder;
 
 class TextDoc {
 
@@ -44,10 +44,10 @@ class TextDoc {
         return sourceCode;
     }
 
-    MessageTextBuilder getLinesAround(@OneBased int line) {
-        @ZeroBased int zeroL = line - 1;
-        @ZeroBased int firstL = Math.max(0, zeroL - SURROUND_SIZE + 1);
-        @ZeroBased int lastL = Math.min(lines.size(), zeroL + SURROUND_SIZE);
+    MessageTextBuilder getLinesAround(@InternalUtil.OneBased int line) {
+        @InternalUtil.ZeroBased int zeroL = line - 1;
+        @InternalUtil.ZeroBased int firstL = Math.max(0, zeroL - SURROUND_SIZE + 1);
+        @InternalUtil.ZeroBased int lastL = Math.min(lines.size(), zeroL + SURROUND_SIZE);
 
         List<String> strings = lines.subList(firstL, lastL);
         return new MessageTextBuilder(strings, firstL, zeroL - firstL);

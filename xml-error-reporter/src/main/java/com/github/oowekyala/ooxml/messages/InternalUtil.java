@@ -15,24 +15,29 @@
  */
 
 
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.github.oowekyala.ooxml.ErrorReporter.Message;
-import com.github.oowekyala.ooxml.ErrorReporter.Message.Kind;
+import com.github.oowekyala.ooxml.messages.ErrorReporter.Message;
+import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Kind;
 
 
-final class Util {
+final class InternalUtil {
 
-    private Util() {
+    private InternalUtil() {
 
     }
 
@@ -76,7 +81,7 @@ final class Util {
             assert (0 <= errorIdx && errorIdx < lines.size());
         }
 
-        public String make(MessagePrinter printer, Kind kind, Position position, Message message) {
+        public String make(MessagePrinter printer, Kind kind, FilePosition position, Message message) {
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -86,7 +91,7 @@ final class Util {
             int offset = rline.length() - lines.get(errorIdx).length();
 
             String messageLine =
-                Util.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
+                InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
             withLineNums.add(errorIdx + 1, printer.applyAnsi(kind.getColor(), messageLine));
             withLineNums.add(errorIdx + 2, "\n"); // skip a line
 
@@ -131,5 +136,21 @@ final class Util {
             this.copySink.write(b);
             return result;
         }
+    }
+
+    /*
+        Those are here to clarify between 1 and 0 based offsets.
+     */
+
+    @Target(ElementType.TYPE_USE)
+    @Retention(RetentionPolicy.SOURCE)
+    @Documented
+    @interface OneBased {
+    }
+
+    @Target(ElementType.TYPE_USE)
+    @Retention(RetentionPolicy.SOURCE)
+    @Documented
+    @interface ZeroBased {
     }
 }

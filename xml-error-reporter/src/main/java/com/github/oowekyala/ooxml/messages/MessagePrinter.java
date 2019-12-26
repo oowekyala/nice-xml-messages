@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 /**
  * Outputs messages in some way.

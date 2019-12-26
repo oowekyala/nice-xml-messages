@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
@@ -6,8 +6,8 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.ooxml.ErrorReporter.Message.Kind;
-import com.github.oowekyala.ooxml.ErrorReporter.Message.Templated;
+import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Kind;
+import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
 
@@ -41,8 +41,8 @@ public class DefaultErrorReporter implements ErrorReporter {
         return ex;
     }
 
-    private String makeMessage(Position position, Message message) {
-        if (!position.equals(Position.UNDEFINED) && textDoc != null) {
+    private String makeMessage(FilePosition position, Message message) {
+        if (!position.equals(FilePosition.UNDEFINED) && textDoc != null) {
             return textDoc.getLinesAround(position.getLine())
                           .make(printer, message.getKind(), position, message);
         } else {
@@ -53,19 +53,19 @@ public class DefaultErrorReporter implements ErrorReporter {
 
     @Override
     public XmlParseException error(Node node, String template, Object... args) {
-        Position pos = getBeginPos(node);
+        FilePosition pos = getBeginPos(node);
         Templated message = new Templated(Kind.VALIDATION_ERROR, template, args);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
     }
 
     @Override
     public XmlParseException error(Node node, Throwable ex) {
-        Position pos = getBeginPos(node);
+        FilePosition pos = getBeginPos(node);
         Message message = messageFromException(ex, Kind.VALIDATION_ERROR);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
     }
 
-    protected final Position getBeginPos(Node node) {
+    protected final FilePosition getBeginPos(Node node) {
         return OffsetScanner.beginPos(node);
     }
 
@@ -87,7 +87,7 @@ public class DefaultErrorReporter implements ErrorReporter {
             String systemId = locator == null ? null : locator.getSystemId();
             xpe = convertException(getExKind(warn), throwable, line, column, systemId);
         } else {
-            xpe = new XmlParseException(Position.UNDEFINED, new Templated(exKind, "Parse error"), throwable);
+            xpe = new XmlParseException(FilePosition.UNDEFINED, new Templated(exKind, "Parse error"), throwable);
         }
 
         if (warn) {
@@ -120,7 +120,7 @@ public class DefaultErrorReporter implements ErrorReporter {
     }
 
     private XmlParseException convertException(Kind kind, Throwable throwable, int line, int column, String systemId) {
-        Position pos = new Position(systemId, line, column);
+        FilePosition pos = new FilePosition(systemId, line, column);
         Message message = messageFromException(throwable, kind);
         return new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
     }

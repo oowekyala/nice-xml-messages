@@ -1,8 +1,8 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.MessagePrinter.AnsiCode;
+import com.github.oowekyala.ooxml.messages.MessagePrinter.AnsiCode;
 
 /**
  * Reports errors in an XML document. Implementations have a way to

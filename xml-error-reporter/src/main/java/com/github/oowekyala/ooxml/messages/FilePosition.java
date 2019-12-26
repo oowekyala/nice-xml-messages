@@ -1,30 +1,33 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.messages;
 
 import java.util.Objects;
 
 
-class Position {
+/**
+ * Represents a position in a file.
+ */
+public class FilePosition {
 
-    static final Position UNDEFINED = new Position(-1, -1);
+    static final FilePosition UNDEFINED = new FilePosition(-1, -1);
     private final int line;
     private final int column;
     private final String fileUrlOrWhatever;
 
-    private Position(int line, int column) {
+    private FilePosition(int line, int column) {
         this(null, line, column);
     }
 
-    Position(String fileUrlOrWhatever, @OneBased int line, @OneBased int column) {
+    FilePosition(String fileUrlOrWhatever, @InternalUtil.OneBased int line, @InternalUtil.OneBased int column) {
         this.fileUrlOrWhatever = fileUrlOrWhatever;
         this.line = line;
         this.column = column;
     }
 
-    @OneBased int getLine() {
+    @InternalUtil.OneBased int getLine() {
         return line;
     }
 
-    @OneBased int getColumn() {
+    @InternalUtil.OneBased int getColumn() {
         return column;
     }
 
@@ -45,7 +48,7 @@ class Position {
         if (data == null || getClass() != data.getClass()) {
             return false;
         }
-        Position position = (Position) data;
+        FilePosition position = (FilePosition) data;
         return line == position.line &&
             column == position.column;
     }

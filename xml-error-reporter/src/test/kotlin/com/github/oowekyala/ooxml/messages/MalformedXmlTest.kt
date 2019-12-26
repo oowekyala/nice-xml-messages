@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml
+package com.github.oowekyala.ooxml.messages
 
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
