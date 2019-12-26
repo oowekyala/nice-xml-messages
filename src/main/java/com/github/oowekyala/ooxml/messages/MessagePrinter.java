@@ -5,31 +5,22 @@ package com.github.oowekyala.ooxml.messages;
  */
 public interface MessagePrinter {
 
-    MessagePrinter DEFAULT = new MessagePrinter() {
+    MessagePrinter SYSTEM_ERR = new PrintStreamMessagePrinter(System.out, System.err, true);
 
-        @Override
-        public String applyAnsi(AnsiCode color, String string) {
-            return string;
-        }
-    };
+    MessagePrinter DEFAULT = new PrintStreamMessagePrinter(System.out, System.err, false);
 
 
-    default void error(String msg) {
-        System.err.println("\n[error] " + msg);
-    }
+    void error(String msg);
 
 
-    default void warn(String message) {
-        System.err.println("\n[warning] " + message);
-    }
+    void warn(String message);
+
+
+    void info(String message);
 
 
     default String applyAnsi(AnsiCode color, String string) {
         return color.apply(string);
-    }
-
-    default void println(String message) {
-        System.out.println("[info] " + message);
     }
 
 

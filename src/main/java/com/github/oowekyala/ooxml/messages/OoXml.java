@@ -33,6 +33,8 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.github.oowekyala.ooxml.messages.ErrorReporter.ErrorReporterFactory;
 
 /**
+ * XML utilities.
+ *
  * @author Clément Fournier
  */
 public class OoXml {
@@ -41,6 +43,13 @@ public class OoXml {
     private static final OoXml DEFAULT = new OoXml();
 
     OoXml() {}
+
+    /**
+     * Parse a document using the given deserializer.
+     */
+    public PositionedXmlDoc parse(InputSource inputStream, ErrorReporterFactory reporter) throws SAXException {
+        return parse(spyOn(inputStream), reporter);
+    }
 
     public void write(Document document, File outputFile) throws IOException {
         outputFile.getParentFile().mkdirs();
@@ -71,24 +80,17 @@ public class OoXml {
         }
     }
 
-
     /**
      * Parse a document using the given deserializer.
      */
-    public LocationedDoc parse(InputSource inputStream, ErrorReporterFactory reporter) throws SAXException {
-        return parse(spyOn(inputStream), reporter);
-    }
-
-    /**
-     * Parse a document using the given deserializer.
-     */
-    public LocationedDoc parse(Reader reader, ErrorReporterFactory reporter) throws SAXException {
+    public PositionedXmlDoc parse(Reader reader, ErrorReporterFactory reporter) throws SAXException {
         return parse(new InputSource(reader), reporter);
     }
 
     public static OoXml getDefault() {
         return DEFAULT;
     }
+
 
     /*
      TODO the whole string may be kept if we're parsing to DOM, for SAX
@@ -109,8 +111,8 @@ public class OoXml {
         return is;
     }
 
-    private static LocationedDoc parse(SpyInputSource isource,
-                                       ErrorReporterFactory reporterFactory) throws SAXException {
+    private static PositionedXmlDoc parse(SpyInputSource isource,
+                                          ErrorReporterFactory reporterFactory) throws SAXException {
 
         XMLReader xmlReader = XMLReaderFactory.createXMLReader();
         LocationFilter filter = new LocationFilter(xmlReader);
@@ -135,7 +137,7 @@ public class OoXml {
         new OffsetScanner(isource.getSystemId())
             .determineLocation(root, new TextDoc(isource.getRead()), 0);
 
-        return new LocationedDoc(document, reporter);
+        return new PositionedXmlDoc(document, reporter);
     }
 
     private static class TransformerErrorHandler implements ErrorListener {
@@ -221,22 +223,4 @@ public class OoXml {
         }
     }
 
-    public static class LocationedDoc {
-
-        private final Document document;
-        private final ErrorReporter reporter;
-
-        LocationedDoc(Document document, ErrorReporter reporter) {
-            this.document = document;
-            this.reporter = reporter;
-        }
-
-        public Document getDocument() {
-            return document;
-        }
-
-        public ErrorReporter getReporter() {
-            return reporter;
-        }
-    }
 }

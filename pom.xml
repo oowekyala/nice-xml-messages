@@ -5,16 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.oowekyala.ooxml</groupId>
-    <artifactId>parent</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>xml-positioner</artifactId>
+    <packaging>jar</packaging>
     <version>7.0.0-SNAPSHOT</version>
-    <modules>
-        <module>xml-error-reporter</module>
-    </modules>
 
-    <name>OoXML utils</name>
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
+    <name>XML Error Positioner</name>
+    <description> Associates positions to XML nodes, to enrich error messages.</description>
+    <url>https://github.com/oowekyala/xml-positioner</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

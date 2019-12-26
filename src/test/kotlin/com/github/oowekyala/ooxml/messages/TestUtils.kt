@@ -9,7 +9,7 @@ val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 fun Document.toStr(): String = OoXml.getDefault().writeToString(this).trimIndent()
 
 
-fun String.parseStr(printer: MessagePrinter = TestMessagePrinter()): OoXml.LocationedDoc =
+fun String.parseStr(printer: MessagePrinter = TestMessagePrinter()): PositionedXmlDoc =
         OoXml.getDefault().parse(reader()) {
             DefaultErrorReporter(printer, it)
         }
@@ -37,7 +37,7 @@ class TestMessagePrinter : MessagePrinter {
         err += message.trimIndent()
     }
 
-    override fun println(message: String) {
+    override fun info(message: String) {
         out += message.trimIndent()
     }
 

@@ -2,8 +2,6 @@ package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.messages.MessagePrinter.AnsiCode;
-
 /**
  * Reports errors in an XML document. Implementations have a way to
  * associate nodes with their location in the document.
@@ -42,7 +40,8 @@ public interface ErrorReporter {
 
 
     /**
-     * An error occurring in the parsing phase.
+     * An error occurring in the parsing phase. This is called when the
+     * XML document is not well-formed (eg missing closing tag).
      *
      * @param warn      Whether this is a warning
      * @param throwable Cause
@@ -66,87 +65,21 @@ public interface ErrorReporter {
     void close();
 
 
+    /**
+     * Creates an error reporter.
+     */
     interface ErrorReporterFactory {
 
+        /**
+         * Create a new error reporter from the given string
+         *
+         * @param xmlDocument Full string corresponding to the XML document
+         *
+         * @return A new error reporter
+         */
         ErrorReporter create(String xmlDocument);
 
     }
 
-
-    abstract class Message {
-
-        private final Kind kind;
-
-        protected Message(Kind kind) {
-            this.kind = kind;
-        }
-
-        Kind getKind() {
-            return kind;
-        }
-
-        enum Kind {
-            VALIDATION_WARNING("XML validation warning", AnsiCode.COL_YELLOW),
-            VALIDATION_ERROR("XML validation error", AnsiCode.COL_RED),
-            PARSING_WARNING("XML validation warning", AnsiCode.COL_YELLOW),
-            PARSING_ERROR("XML parsing error", AnsiCode.COL_RED);
-
-            private final String template;
-            private final AnsiCode color;
-
-            Kind(String s, AnsiCode color) {
-                template = s;
-                this.color = color;
-            }
-
-            public String addColor(String str) {
-                return color.apply(str);
-            }
-
-            public AnsiCode getColor() {
-                return color;
-            }
-
-            public String getHeader(/*Nullable*/String fileLoc) {
-                return fileLoc == null ? template : template + " in " + fileLoc;
-            }
-        }
-
-        public abstract String toString();
-
-        public static class Templated extends Message {
-
-            private final String template;
-            private final Object[] args;
-
-            public Templated(Kind kind, String template, Object... args) {
-                super(kind);
-                this.template = template;
-                this.args = args;
-            }
-
-            @Override
-            public String toString() {
-                return String.format(template, args);
-            }
-        }
-
-        static class Wrapper extends Message {
-
-            private final Message base;
-            private final String eval;
-
-            public Wrapper(Message base, String eval) {
-                super(base.getKind());
-                this.base = base;
-                this.eval = eval;
-            }
-
-            @Override
-            public String toString() {
-                return eval;
-            }
-        }
-    }
 
 }

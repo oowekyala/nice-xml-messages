@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Represents a position in a file.
  */
-public class FilePosition {
+class FilePosition {
 
     static final FilePosition UNDEFINED = new FilePosition(-1, -1);
     private final int line;

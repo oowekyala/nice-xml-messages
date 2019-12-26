@@ -6,8 +6,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Kind;
-import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Templated;
+import com.github.oowekyala.ooxml.messages.Message.Templated;
 
 public class DefaultErrorReporter implements ErrorReporter {
 
@@ -23,10 +22,13 @@ public class DefaultErrorReporter implements ErrorReporter {
         this(MessagePrinter.DEFAULT, document);
     }
 
+    protected final FilePosition getBeginPos(Node node) {
+        return OffsetScanner.beginPos(node);
+    }
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        String toPrint = makeMessage(getBeginPos(node), new Templated(Kind.VALIDATION_WARNING, message, args));
+        String toPrint = makeMessage(getBeginPos(node), new Templated(MessageKind.VALIDATION_WARNING, message, args));
         printer.warn(toPrint);
     }
 
@@ -54,25 +56,22 @@ public class DefaultErrorReporter implements ErrorReporter {
     @Override
     public XmlParseException error(Node node, String template, Object... args) {
         FilePosition pos = getBeginPos(node);
-        Templated message = new Templated(Kind.VALIDATION_ERROR, template, args);
+        Templated message = new Templated(MessageKind.VALIDATION_ERROR, template, args);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message))));
     }
 
     @Override
     public XmlParseException error(Node node, Throwable ex) {
         FilePosition pos = getBeginPos(node);
-        Message message = messageFromException(ex, Kind.VALIDATION_ERROR);
+        Message message = messageFromException(ex, MessageKind.VALIDATION_ERROR);
         return pp(new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), ex));
     }
 
-    protected final FilePosition getBeginPos(Node node) {
-        return OffsetScanner.beginPos(node);
-    }
 
 
     @Override
     public XmlParseException parseError(boolean warn, Throwable throwable) {
-        Kind exKind = getExKind(warn);
+        MessageKind exKind = getExKind(warn);
         XmlParseException xpe;
         if (throwable instanceof SAXParseException) {
             SAXParseException e = (SAXParseException) throwable;
@@ -115,17 +114,17 @@ public class DefaultErrorReporter implements ErrorReporter {
         return pp(xpe, warn);
     }
 
-    private Kind getExKind(boolean warn) {
-        return warn ? Kind.PARSING_WARNING : Kind.PARSING_ERROR;
+    private MessageKind getExKind(boolean warn) {
+        return warn ? MessageKind.PARSING_WARNING : MessageKind.PARSING_ERROR;
     }
 
-    private XmlParseException convertException(Kind kind, Throwable throwable, int line, int column, String systemId) {
+    private XmlParseException convertException(MessageKind kind, Throwable throwable, int line, int column, String systemId) {
         FilePosition pos = new FilePosition(systemId, line, column);
         Message message = messageFromException(throwable, kind);
         return new XmlParseException(pos, new Message.Wrapper(message, makeMessage(pos, message)), throwable);
     }
 
-    private Message messageFromException(Throwable throwable, Kind kind) {
+    private Message messageFromException(Throwable throwable, MessageKind kind) {
         return new Templated(kind, throwable.getMessage());
     }
 

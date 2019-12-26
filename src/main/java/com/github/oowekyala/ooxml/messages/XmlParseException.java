@@ -1,7 +1,5 @@
 package com.github.oowekyala.ooxml.messages;
 
-import com.github.oowekyala.ooxml.messages.ErrorReporter.Message;
-
 /**
  * Generic XML exception wrapper. Can occur during validation or parsing.
  */
@@ -22,13 +20,31 @@ public class XmlParseException extends RuntimeException {
         this.message = message;
     }
 
-    public FilePosition getPosition() {
+    FilePosition getPosition() {
         return position;
     }
 
 
-    public Message getMessageObj() {
-        return message;
+    public int getLine() {
+        return position.getLine();
+    }
+
+    public int getColumn() {
+        return position.getColumn();
+    }
+
+    public boolean isPositionDefined() {
+        return position != FilePosition.UNDEFINED;
+    }
+
+    public String getPositionFile() {
+        return position.getFileUrlOrWhatever();
+    }
+
+
+    /** Returns the message kind. */
+    public MessageKind getKind() {
+        return message.getKind();
     }
 
     @Override

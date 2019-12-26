@@ -31,11 +31,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.github.oowekyala.ooxml.messages.ErrorReporter.Message;
-import com.github.oowekyala.ooxml.messages.ErrorReporter.Message.Kind;
-
 
 final class InternalUtil {
+
+    static final Object[] EMPTY_OBJ_ARRAY = new Object[0];
 
     private InternalUtil() {
 
@@ -81,7 +80,7 @@ final class InternalUtil {
             assert (0 <= errorIdx && errorIdx < lines.size());
         }
 
-        public String make(MessagePrinter printer, Kind kind, FilePosition position, Message message) {
+        public String make(MessagePrinter printer, MessageKind kind, FilePosition position, Message message) {
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -90,8 +89,7 @@ final class InternalUtil {
             String rline = addLineNum(errorIdx);
             int offset = rline.length() - lines.get(errorIdx).length();
 
-            String messageLine =
-                InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
+            String messageLine = InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset -1) + message.toString();
             withLineNums.add(errorIdx + 1, printer.applyAnsi(kind.getColor(), messageLine));
             withLineNums.add(errorIdx + 2, "\n"); // skip a line
 
