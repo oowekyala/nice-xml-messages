@@ -40,6 +40,8 @@ public class Oxml {
 
     private static final Oxml DEFAULT = new Oxml();
 
+    Oxml() {}
+
     public void write(Document document, File outputFile) throws IOException {
         outputFile.getParentFile().mkdirs();
         write(document, Files.newBufferedWriter(outputFile.toPath(), StandardCharsets.UTF_8));

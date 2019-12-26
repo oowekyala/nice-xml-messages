@@ -14,6 +14,8 @@ public class OxmlMappers extends Oxml {
 
     private static final OxmlMappers DEFAULT = new OxmlMappers();
 
+    OxmlMappers() {}
+
     public <T> T parse(LocationedDoc doc, XmlMapper<T> mapper) {
         return mapper.fromXml(doc.getDocument().getDocumentElement(), doc.getReporter());
     }
