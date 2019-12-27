@@ -1,13 +1,17 @@
 package com.github.oowekyala.ooxml.messages;
 
+import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
 
 /**
  * Associates XML nodes with a position. This is a low-level utility,
- * created by this library. It's meant as a back-end for a validation
- * helper, for which {@link XmlErrorReporter} provides an example.
+ * created by this library (see {@link XmlErrorUtils#parse(DocumentBuilder, InputSource, XmlMessageHandler)
+ * XmlErrorUtils::parse}).
+ * It's meant as a back-end for a validation helper, like {@link XmlErrorReporter}.
  */
 public interface XmlPositioner {
 

@@ -24,7 +24,13 @@ public final class XmlException extends RuntimeException {
                         XmlMessageKind kind,
                         Severity severity,
                         Throwable cause) {
+
         super(fullMessage, cause);
+
+        assert severity != null;
+        assert kind != null;
+        assert position != null;
+
         this.position = position;
         this.simpleMessage = simpleMessage;
         this.kind = kind;

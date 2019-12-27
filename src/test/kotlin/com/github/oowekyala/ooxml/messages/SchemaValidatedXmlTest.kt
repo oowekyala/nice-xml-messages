@@ -29,7 +29,7 @@ class SchemaValidatedXmlTest : FunSpec({
             }.newDocumentBuilder()
 
     fun String.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
-            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler.asMessageHandler())
+            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler)
 
 
     test("Test wrong schema") {
@@ -46,7 +46,7 @@ $HEADER
 
         expected.parseStr(printer)
 
-        printer.err.shouldContainExactly("""
+        printer.err.map { it.toString() }.shouldContainExactly("""
             Error (XML validation)
                 1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
                 2| <note xmlns="https://com.github.oowekyala/ooxml/tests" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://com.github.oowekyala/ooxml/tests file:/home/clifrr/Documents/Git/ooxml/target/test-classes/com/github/oowekyala/ooxml/messages/SampleSchema.xsd">

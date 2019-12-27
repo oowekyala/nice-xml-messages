@@ -4,7 +4,6 @@ import static com.github.oowekyala.ooxml.messages.Severity.ERROR;
 import static com.github.oowekyala.ooxml.messages.Severity.FATAL;
 import static com.github.oowekyala.ooxml.messages.Severity.WARNING;
 import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,8 +37,7 @@ public final class XmlErrorUtils {
      * Exceptions thrown by the parser (eg because of invalid XML syntax)
      * are reported using the given message handler. Their position is
      * recovered on a best-effort basis. Only fatal parsing exceptions
-     * are thrown, and only non-fatal exceptions and warnings are passed
-     * to the given {@link XmlMessageHandler}.
+     * are thrown, but even them are passed to the given {@link XmlMessageHandler}.
      *
      * <p>To validate the document against a schema, you must use either
      * {@link DocumentBuilderFactory#setValidating(boolean) setValidating} or
@@ -78,7 +76,9 @@ public final class XmlErrorUtils {
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
             PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar());
-            throw InternalUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
+            XmlException ex = InternalUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
+            handler.accept(ex);
+            throw ex;
         }
     }
 
@@ -110,31 +110,33 @@ public final class XmlErrorUtils {
 
     private static abstract class MyErrorHandler implements ErrorHandler {
 
-        private final XmlMessageHandler parseExceptionHandler;
+        private final XmlMessageHandler handler;
 
-        public MyErrorHandler(XmlMessageHandler parseExceptionHandler) {
-            this.parseExceptionHandler = parseExceptionHandler;
+        public MyErrorHandler(XmlMessageHandler handler) {
+            this.handler = handler;
         }
 
         abstract XmlPositioner getPositioner();
 
         private XmlException parseException(SAXParseException exception, Severity severity) {
-            return InternalUtil.createEntryBestEffort(getPositioner(), SCHEMA_VALIDATION, severity, parseExceptionHandler.supportsAnsiColors(), exception);
+            return InternalUtil.createEntryBestEffort(getPositioner(), PARSING, severity, handler.supportsAnsiColors(), exception);
         }
 
         @Override
         public void warning(SAXParseException exception) {
-            parseExceptionHandler.accept(parseException(exception, WARNING));
+            handler.accept(parseException(exception, WARNING));
         }
 
         @Override
         public void error(SAXParseException exception) {
-            parseExceptionHandler.accept(parseException(exception, ERROR));
+            handler.accept(parseException(exception, ERROR));
         }
 
         @Override
         public void fatalError(SAXParseException exception) {
-            throw parseException(exception, FATAL);
+            XmlException ex = parseException(exception, FATAL);
+            handler.accept(ex);
+            throw ex;
         }
     }
 

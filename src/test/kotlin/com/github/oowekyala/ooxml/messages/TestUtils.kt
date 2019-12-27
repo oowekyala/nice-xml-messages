@@ -1,36 +1,33 @@
 package com.github.oowekyala.ooxml.messages
 
-import com.github.oowekyala.ooxml.messages.more.MessagePrinter
+import io.kotlintest.fail
 import io.kotlintest.matchers.collections.shouldBeEmpty
-import org.xml.sax.InputSource
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
 
 
-val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
+const val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
 
+class TestMessagePrinter(private val useColors: Boolean = false) : XmlMessageHandler {
 
-class TestMessagePrinter : MessagePrinter {
+    val warn = mutableListOf<XmlException>()
+    val err = mutableListOf<XmlException>()
+    val out = mutableListOf<XmlException>()
+    val debug = mutableListOf<XmlException>()
 
-    val warn = mutableListOf<String>()
-    val err = mutableListOf<String>()
-    val out = mutableListOf<String>()
 
-
-    override fun warn(message: String) {
-        warn += message.trimIndent()
+    override fun accept(entry: XmlException) {
+        when (entry.severity) {
+            Severity.INFO -> out += entry
+            Severity.DEBUG -> debug += entry
+            Severity.WARNING -> warn += entry
+            Severity.ERROR -> err += entry
+            Severity.FATAL -> err += entry
+            else -> fail("impossible")
+        }
     }
 
-    override fun error(message: String) {
-        err += message.trimIndent()
-    }
 
-    override fun info(message: String) {
-        out += message.trimIndent()
-    }
-
-    override fun supportsAnsiColors(): Boolean = false
+    override fun supportsAnsiColors(): Boolean = useColors
 
     fun shouldBeEmpty() {
         warn.shouldBeEmpty()

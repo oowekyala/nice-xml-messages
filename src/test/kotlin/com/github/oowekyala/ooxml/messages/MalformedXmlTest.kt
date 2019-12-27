@@ -1,5 +1,6 @@
 package com.github.oowekyala.ooxml.messages
 
+import io.kotlintest.matchers.collections.shouldContainExactly
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
@@ -19,7 +20,7 @@ class MalformedXmlTest : FunSpec({
             DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
     fun String.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
-            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler.asMessageHandler())
+            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler)
 
     test("Test malformed xml 1") {
 
@@ -58,7 +59,7 @@ Fatal error (XML parsing)
 
         )
 
-        printer.err.shouldBe(emptyList<String>())
+        printer.err.shouldContainExactly(ex)
     }
 
     test("Test malformed entities") {
@@ -90,7 +91,7 @@ Fatal error (XML parsing)
 
         )
 
-        printer.err.shouldBe(emptyList<String>())
+        printer.err.shouldContainExactly(ex)
 
     }
 
@@ -114,8 +115,7 @@ $HEADER
 """.trim()
         )
 
-        printer.err.shouldBe(emptyList<String>())
-
+        printer.err.shouldContainExactly(ex)
     }
 
 })
