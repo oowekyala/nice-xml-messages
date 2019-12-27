@@ -25,6 +25,9 @@ class PartialFilePositioner implements XmlPositioner {
 
     @Override
     public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, String message) {
+        if (position.equals(XmlPosition.UNDEFINED)) {
+            return message;
+        }
         return textDoc.getLinesAround(position.getLine(), NUM_LINES_AROUND)
                       .make(supportsAnsiColors, kind, position, message);
 

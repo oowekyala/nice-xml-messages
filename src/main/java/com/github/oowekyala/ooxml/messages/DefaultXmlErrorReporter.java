@@ -60,7 +60,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     public XmlParseException parseError(boolean warn, Throwable throwable) {
         final XmlMessageKind exKind = warn ? PARSING_WARNING : PARSING_ERROR;
 
-        XmlPosition pos = XmlPositioner.extractPosition(throwable);
+        XmlPosition pos = InternalUtil.extractPosition(throwable);
 
 
         final XmlParseException xpe;
