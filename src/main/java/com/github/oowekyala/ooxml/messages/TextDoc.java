@@ -33,6 +33,11 @@ class TextDoc {
                 currentGlobalOffset += getLineLengthWithLineSeparator(scanner);
             }
         }
+
+        if (lines.isEmpty()) {
+            // empty doc yields one empty line
+            lines.add("");
+        }
     }
 
     /** Returns the full source. */
@@ -101,7 +106,8 @@ class TextDoc {
             this.lines = lines;
             this.first = first;
             this.errorIdx = errorIdx;
-            assert (0 <= errorIdx && errorIdx < lines.size());
+            assert (0 <= errorIdx && errorIdx < lines.size()) :
+                "Weird indices --- first=" + first + ", errorIdx=" + errorIdx + ", lines=" + lines;
         }
 
 

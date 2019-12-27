@@ -95,7 +95,7 @@ Fatal error (XML parsing)
 
     }
 
-    test("Test empty document") {
+    test("Test no root node") {
 
         val expected = """
 $HEADER
@@ -111,6 +111,26 @@ $HEADER
 """Fatal error (XML parsing)
     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
                                                              ^ Premature end of file.
+
+""".trim()
+        )
+
+        printer.err.shouldContainExactly(ex)
+    }
+    test("Test empty document") {
+
+        val code = ""
+
+        val printer = TestMessagePrinter()
+
+        val ex = shouldThrow<XmlException> {
+            code.parseStr(printer)
+        }
+
+        ex.toString().shouldBe(
+"""Fatal error (XML parsing)
+    1| 
+       ^ Premature end of file.
 
 """.trim()
         )
