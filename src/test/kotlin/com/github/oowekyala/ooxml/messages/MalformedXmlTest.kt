@@ -4,6 +4,10 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 
+/*
+   Error messages are localized, locale is set to French in pom.xml
+ */
+
 
 class MalformedXmlTest : FunSpec({
 
