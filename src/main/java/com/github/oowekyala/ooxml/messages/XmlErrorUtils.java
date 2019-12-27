@@ -7,9 +7,11 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.SourceLocator;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
@@ -35,35 +37,30 @@ public class XmlErrorUtils {
     XmlErrorUtils() {
     }
 
-    public void validate(PositionedXmlDoc xmlDoc, Schema schema, XmlMessageHandler messageHandler) {
-        Validator validator = schema.newValidator();
-
-        validator.setErrorHandler(new MyErrorHandler(messageHandler) {
-            @Override
-            XmlPositioner getPositioner() {
-                return xmlDoc.getPositioner();
-            }
-        });
-
-        try {
-            validator.validate(new DOMSource(xmlDoc.getDocument()));
-        } catch (SAXException | IOException e) {
-            throw InternalUtil.createEntryBestEffort(xmlDoc.getPositioner(), SCHEMA_VALIDATION, FATAL, messageHandler.supportsAnsiColors(), e);
-        }
-    }
-
     /**
      * Parses an XML document and creates an associated {@link XmlPositioner}.
      * Exceptions thrown by the parser (because of eg invalid XML syntax)
      * are reported using the given message handler. Their position is
      * recovered on a best-effort basis. Only fatal parsing exceptions
-     * are thrown.
+     * are thrown, and only non-fatal exceptions and warnings are handled
+     * by the parameter.
+     *
+     * <p>To validate the document against a schema, you must use either
+     * {@link DocumentBuilderFactory#setValidating(boolean)} or
+     * {@link DocumentBuilderFactory#setSchema(Schema)}. Text positions
+     * cannot be recovered by a {@link Validator} after the fact (this
+     * is a limitation of {@code java.xml}). Note that setting both may
+     * result in duplicate messages.
+     *
+     * <p>For best messages please back your {@link InputSource} with an
+     * {@link InputStream}, or better, a {@link Reader}.
      *
      * @param domBuilder          Preconfigured DOM builder, the {@linkplain DocumentBuilder#setErrorHandler(ErrorHandler)
      *                            error handler} is set by this method.
      * @param inputSource         Source for the XML document. The {@linkplain InputSource#setSystemId(String) system
      *                            ID} should be set for better error messages.
-     * @param parsingErrorHandler Exception handler for XML parsing errors.
+     * @param parsingErrorHandler Exception handler for recoverable parsing or
+     *                            schema validation errors.
      */
     public PositionedXmlDoc parse(DocumentBuilder domBuilder, InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
         return parseImpl(domBuilder, spyOn(inputSource), parsingErrorHandler);
