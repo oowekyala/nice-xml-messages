@@ -26,7 +26,7 @@
  * }</pre>
  *
  * <p>{@link com.github.oowekyala.ooxml.messages.XmlPositioner} is meant
- * as a low-level utility, it is advised to use {@link com.github.oowekyala.ooxml.messages.more.XmlErrorReporter},
+ * as a low-level utility, it is advised to use {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter},
  * or use a positioner as a backend for your own custom validation helper.
  *
  * @author Clément Fournier

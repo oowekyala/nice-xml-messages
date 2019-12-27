@@ -1,9 +1,6 @@
-package com.github.oowekyala.ooxml.messages.more;
+package com.github.oowekyala.ooxml.messages;
 
 import java.io.PrintStream;
-
-import com.github.oowekyala.ooxml.messages.XmlException;
-import com.github.oowekyala.ooxml.messages.XmlMessageHandler;
 
 /**
  * Implements {@link XmlMessageHandler} with a pair of {@link PrintStream}s.

@@ -5,8 +5,6 @@ import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
-
 /**
  * Associates XML nodes with a position. This is a low-level utility,
  * created by this library (see {@link XmlErrorUtils#parse(DocumentBuilder, InputSource, XmlMessageHandler)

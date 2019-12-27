@@ -4,8 +4,6 @@ import javax.management.modelmbean.XMLParseException;
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
-
 /**
  * Kind of a message (or {@linkplain XMLParseException exception}),
  * mostly just a formatting helper.

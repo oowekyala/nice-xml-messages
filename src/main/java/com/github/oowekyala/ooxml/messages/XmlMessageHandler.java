@@ -2,8 +2,6 @@ package com.github.oowekyala.ooxml.messages;
 
 import java.util.function.Consumer;
 
-import com.github.oowekyala.ooxml.messages.more.PrintStreamMessageHandler;
-
 /**
  * Handles XML messages, for example forwarding them to a print stream.
  */

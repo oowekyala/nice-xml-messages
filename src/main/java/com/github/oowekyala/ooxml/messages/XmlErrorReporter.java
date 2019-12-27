@@ -1,8 +1,6 @@
-package com.github.oowekyala.ooxml.messages.more;
+package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
-
-import com.github.oowekyala.ooxml.messages.XmlException;
 
 /**
  * Reports errors in an XML document. This is meant as a helper to
