@@ -3,6 +3,9 @@ package com.github.oowekyala.ooxml.messages
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
+import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 /*
    Error messages are localized, locale is set to english in pom.xml
@@ -10,6 +13,13 @@ import io.kotlintest.specs.FunSpec
 
 
 class MalformedXmlTest : FunSpec({
+
+
+    fun domBuilder(): DocumentBuilder =
+            DocumentBuilderFactory.newInstance().newDocumentBuilder()
+
+    fun String.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
+            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler.asMessageHandler())
 
     test("Test malformed xml 1") {
 
@@ -35,7 +45,7 @@ $HEADER
 
         ex.toString().shouldBe(
                 """
-XML parsing error
+Fatal error (XML parsing)
     2| <list>
     3|     <list
     4|         <str>oha</str>
@@ -48,7 +58,7 @@ XML parsing error
 
         )
 
-        printer.err.shouldBe(listOf(ex.toString()))
+        printer.err.shouldBe(emptyList<String>())
     }
 
     test("Test malformed entities") {
@@ -68,7 +78,7 @@ $HEADER
 
         ex.toString().shouldBe(
                 """
-XML parsing error
+Fatal error (XML parsing)
     1| $HEADER
     2| <list>
     3|     <list foo="&amb;"/>
@@ -80,7 +90,8 @@ XML parsing error
 
         )
 
-        printer.err.shouldBe(listOf(ex.toString()))
+        printer.err.shouldBe(emptyList<String>())
+
     }
 
     test("Test empty document") {
@@ -96,14 +107,15 @@ $HEADER
         }
 
         ex.toString().shouldBe(
-"""XML parsing error
+"""Fatal error (XML parsing)
     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
                                                              ^ Premature end of file.
 
 """.trim()
         )
 
-        printer.err.shouldBe(listOf(ex.toString()))
+        printer.err.shouldBe(emptyList<String>())
+
     }
 
 })

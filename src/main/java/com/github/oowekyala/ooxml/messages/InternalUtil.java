@@ -20,6 +20,7 @@ package com.github.oowekyala.ooxml.messages;
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
@@ -98,6 +99,7 @@ final class InternalUtil {
      */
     public static XmlException createEntryBestEffort(XmlPositioner positioner,
                                                      XmlMessageKind kind,
+                                                     Severity severity,
                                                      boolean useColors,
                                                      Throwable exception) {
 
@@ -115,15 +117,30 @@ final class InternalUtil {
         if (pos.equals(XmlPosition.UNDEFINED)) {
             // unknown exception
             return new XmlException(XmlPosition.UNDEFINED,
-                                    kind.getHeader() + "\n" + simpleMessage,
+                                    kind.getHeader(severity) + "\n" + simpleMessage,
                                     simpleMessage,
                                     kind,
+                                    severity,
                                     exception);
 
         } else {
-            String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, simpleMessage);
-            return new XmlException(pos, fullMessage, simpleMessage, kind, exception);
+            String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, severity, simpleMessage);
+            return new XmlException(pos, fullMessage, simpleMessage, kind, severity, exception);
         }
+    }
+
+    static String readFully(Reader reader) throws IOException {
+
+        StringWriter writer = new StringWriter();
+        char[] buf = new char[1024 * 8];
+        int read = reader.read(buf);
+
+        while (read >= 0) {
+            writer.write(buf, 0, read);
+            read = reader.read(buf);
+        }
+
+        return writer.toString();
     }
 
 

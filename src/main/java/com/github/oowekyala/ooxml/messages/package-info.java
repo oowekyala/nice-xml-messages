@@ -1,7 +1,7 @@
 /**
  * Simple API to produce nice error messages when reading an XML file.
  *
- * <p>Use {@link com.github.oowekyala.ooxml.messages.XmlErrorUtils#parse(org.xml.sax.InputSource, XmlMessageHandler)
+ * <p>Use {@link com.github.oowekyala.ooxml.messages.XmlErrorUtils#parse(javax.xml.parsers.DocumentBuilder, org.xml.sax.InputSource, com.github.oowekyala.ooxml.messages.XmlMessageHandler)
  * XmlErrorUtils::parse}
  * and overloads to get an instance of an {@link com.github.oowekyala.ooxml.messages.XmlPositioner}.
  * This object is used to associate {@link org.w3c.dom.Node}s with their
@@ -36,3 +36,4 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import com.sun.org.apache.xml.internal.utils.DOMBuilder;

@@ -8,23 +8,27 @@ public class XmlException extends RuntimeException {
     private final XmlPosition position;
     private final String simpleMessage;
     private final XmlMessageKind kind;
+    private final Severity severity;
 
     public XmlException(XmlPosition position,
                         String fullMessage,
                         String simpleMessage,
-                        XmlMessageKind kind) {
-        this(position, fullMessage, simpleMessage, kind, null);
+                        XmlMessageKind kind,
+                        Severity severity) {
+        this(position, fullMessage, simpleMessage, kind, severity, null);
     }
 
     public XmlException(XmlPosition position,
                         String fullMessage,
                         String simpleMessage,
                         XmlMessageKind kind,
+                        Severity severity,
                         Throwable cause) {
         super(fullMessage, cause);
         this.position = position;
         this.simpleMessage = simpleMessage;
         this.kind = kind;
+        this.severity = severity;
     }
 
 
@@ -33,14 +37,18 @@ public class XmlException extends RuntimeException {
     }
 
 
-  public XmlPosition getPosition() {
-      return position;
-  }
+    public XmlPosition getPosition() {
+        return position;
+    }
 
 
     /** Returns the message kind. */
     public XmlMessageKind getKind() {
         return kind;
+    }
+
+    public Severity getSeverity() {
+        return severity;
     }
 
     @Override

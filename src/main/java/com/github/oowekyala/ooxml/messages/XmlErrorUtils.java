@@ -1,25 +1,26 @@
 package com.github.oowekyala.ooxml.messages;
 
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING_ERROR;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING_WARNING;
+import static com.github.oowekyala.ooxml.messages.Severity.ERROR;
+import static com.github.oowekyala.ooxml.messages.Severity.FATAL;
+import static com.github.oowekyala.ooxml.messages.Severity.WARNING;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
 
-import java.io.Reader;
-import java.util.function.Supplier;
-import javax.xml.transform.ErrorListener;
+import java.io.IOException;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.SourceLocator;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Main entry point of the API.
@@ -34,6 +35,23 @@ public class XmlErrorUtils {
     XmlErrorUtils() {
     }
 
+    public void validate(PositionedXmlDoc xmlDoc, Schema schema, XmlMessageHandler messageHandler) {
+        Validator validator = schema.newValidator();
+
+        validator.setErrorHandler(new MyErrorHandler(messageHandler) {
+            @Override
+            XmlPositioner getPositioner() {
+                return xmlDoc.getPositioner();
+            }
+        });
+
+        try {
+            validator.validate(new DOMSource(xmlDoc.getDocument()));
+        } catch (SAXException | IOException e) {
+            throw InternalUtil.createEntryBestEffort(xmlDoc.getPositioner(), SCHEMA_VALIDATION, FATAL, messageHandler.supportsAnsiColors(), e);
+        }
+    }
+
     /**
      * Parses an XML document and creates an associated {@link XmlPositioner}.
      * Exceptions thrown by the parser (because of eg invalid XML syntax)
@@ -41,59 +59,34 @@ public class XmlErrorUtils {
      * recovered on a best-effort basis. Only fatal parsing exceptions
      * are thrown.
      *
-     * @param inputSource         Source for the XML document
+     * @param domBuilder          Preconfigured DOM builder, the {@linkplain DocumentBuilder#setErrorHandler(ErrorHandler)
+     *                            error handler} is set by this method.
+     * @param inputSource         Source for the XML document. The {@linkplain InputSource#setSystemId(String) system
+     *                            ID} should be set for better error messages.
      * @param parsingErrorHandler Exception handler for XML parsing errors.
      */
-    public PositionedXmlDoc parse(InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException {
-        return parseImpl(spyOn(inputSource), parsingErrorHandler);
+    public PositionedXmlDoc parse(DocumentBuilder domBuilder, InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
+        return parseImpl(domBuilder, spyOn(inputSource), parsingErrorHandler);
     }
 
-    /**
-     * Returns a new input source with the given system id (typically
-     * a file name), and the given character stream.
-     *
-     * @param systemId System ID of the file (see {@link InputSource#setSystemId(String)})
-     * @param reader   Character stream
-     */
-    public static InputSource createInputSource(String systemId, Reader reader) {
-        InputSource source = new InputSource();
-        source.setSystemId(systemId);
-        source.setCharacterStream(reader);
-        return source;
-    }
+    private PositionedXmlDoc parseImpl(DocumentBuilder builder, SpyInputSource isource, XmlMessageHandler handler) throws XmlException, IOException {
 
-    private PositionedXmlDoc parseImpl(SpyInputSource isource, XmlMessageHandler handler) throws XmlException {
+        builder.setErrorHandler(new MyErrorHandler(handler) {
+            @Override
+            XmlPositioner getPositioner() {
+                return new PartialFilePositioner(isource.getReadSoFar());
+            }
+        });
 
-        final XMLReader xmlReader;
         try {
-            xmlReader = XMLReaderFactory.createXMLReader();
+            Document doc = builder.parse(isource);
+            FullFilePositioner positioner = new FullFilePositioner(isource.getSystemId(), isource.getReadSoFar(), doc);
+
+            return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
-            throw new XmlException(XmlPosition.UNDEFINED, e.getMessage(), e.getMessage(), PARSING_ERROR, e);
+            PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar());
+            throw InternalUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
         }
-
-        LocationFilter filter = new LocationFilter(xmlReader);
-
-        SAXSource saxSource = new SAXSource(filter, isource);
-
-        TransformerFactory factory = TransformerFactory.newInstance();
-        DOMResult domResult = new DOMResult();
-        try {
-            Transformer transformer = factory.newTransformer();
-            TransformerErrorHandler errorHandler =
-                new TransformerErrorHandler(isource::getRead, () -> filter.locator, handler);
-            transformer.setErrorListener(errorHandler);
-
-            transformer.transform(saxSource, domResult);
-        } catch (TransformerException e) {
-            PartialFilePositioner positioner = new PartialFilePositioner(isource.getRead());
-            throw InternalUtil.createEntryBestEffort(positioner, PARSING_ERROR, handler.supportsAnsiColors(), e);
-        }
-
-        Document document = (Document) domResult.getNode();
-
-        FullFilePositioner positioner = new FullFilePositioner(isource.getSystemId(), isource.getRead(), document);
-
-        return new PositionedXmlDoc(document, positioner);
     }
 
     /** Returns the singleton. */
@@ -106,7 +99,7 @@ public class XmlErrorUtils {
      TODO the whole string may be kept if we're parsing to DOM, for SAX
        we should only keep the head of the stream
      */
-    private static SpyInputSource spyOn(InputSource inputSource) {
+    private static SpyInputSource spyOn(InputSource inputSource) throws IOException {
         SpyInputSource is = new SpyInputSource();
         is.setSystemId(inputSource.getSystemId());
         is.setPublicId(inputSource.getPublicId());
@@ -118,6 +111,11 @@ public class XmlErrorUtils {
                 is.setByteStream(inputSource.getByteStream());
             }
         }
+
+        if (is.getCharacterStream() != null) {
+            is.setFullText(InternalUtil.readFully(is.getCharacterStream()));
+        }
+
         return is;
     }
 
@@ -166,44 +164,33 @@ public class XmlErrorUtils {
         }
     }
 
-    private static class TransformerErrorHandler implements ErrorListener {
+    private static abstract class MyErrorHandler implements ErrorHandler {
 
-        private final Supplier<String> inputCopy;
         private final XmlMessageHandler parseExceptionHandler;
-        private Supplier<Locator> locatorSupplier;
 
-        public TransformerErrorHandler(Supplier<String> inputCopy,
-                                       Supplier<Locator> locatorSupplier,
-                                       XmlMessageHandler parseExceptionHandler) {
-            this.inputCopy = inputCopy;
-            this.locatorSupplier = locatorSupplier;
+        public MyErrorHandler(XmlMessageHandler parseExceptionHandler) {
             this.parseExceptionHandler = parseExceptionHandler;
         }
 
-        private XmlPositioner updatePositioner(TransformerException exception) {
-            if (exception.getLocator() == null) {
-                exception.setLocator(new LocatorAdapter(locatorSupplier.get()));
-            }
-            return new PartialFilePositioner(inputCopy.get());
-        }
+        abstract XmlPositioner getPositioner();
 
-        private XmlException parseException(TransformerException exception, XmlMessageKind kind, XmlPositioner positioner) {
-            return InternalUtil.createEntryBestEffort(positioner, kind, parseExceptionHandler.supportsAnsiColors(), exception);
+        private XmlException parseException(SAXParseException exception, Severity severity) {
+            return InternalUtil.createEntryBestEffort(getPositioner(), SCHEMA_VALIDATION, severity, parseExceptionHandler.supportsAnsiColors(), exception);
         }
 
         @Override
-        public void warning(TransformerException exception) {
-            parseExceptionHandler.accept(parseException(exception, PARSING_WARNING, updatePositioner(exception)));
+        public void warning(SAXParseException exception) {
+            parseExceptionHandler.accept(parseException(exception, WARNING));
         }
 
         @Override
-        public void error(TransformerException exception) {
-            parseExceptionHandler.accept(parseException(exception, PARSING_ERROR, updatePositioner(exception)));
+        public void error(SAXParseException exception) {
+            parseExceptionHandler.accept(parseException(exception, ERROR));
         }
 
         @Override
-        public void fatalError(TransformerException exception) {
-            throw parseException(exception, PARSING_ERROR, updatePositioner(exception));
+        public void fatalError(SAXParseException exception) {
+            throw parseException(exception, FATAL);
         }
     }
 

@@ -3,16 +3,15 @@ package com.github.oowekyala.ooxml.messages
 import com.github.oowekyala.ooxml.messages.more.MessagePrinter
 import io.kotlintest.matchers.collections.shouldBeEmpty
 import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
 
-fun String.parseStr(handler: XmlMessageHandler = TestMessagePrinter()): PositionedXmlDoc =
-        XmlErrorUtils.getInstance().parse(InputSource(reader()), handler)
 
-
-class TestMessagePrinter : MessagePrinter, XmlMessageHandler {
+class TestMessagePrinter : MessagePrinter {
 
     val warn = mutableListOf<String>()
     val err = mutableListOf<String>()
@@ -29,10 +28,6 @@ class TestMessagePrinter : MessagePrinter, XmlMessageHandler {
 
     override fun info(message: String) {
         out += message.trimIndent()
-    }
-
-    override fun accept(entry: XmlException) {
-        error(entry.toString())
     }
 
     override fun supportsAnsiColors(): Boolean = false

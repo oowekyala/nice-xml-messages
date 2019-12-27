@@ -105,12 +105,14 @@ class TextDoc {
         }
 
 
-        public String make(boolean supportsAnsiColors, XmlMessageKind kind, XmlPosition position, String message) {
+        public String make(boolean supportsAnsiColors, XmlMessageKind kind, Severity severity, XmlPosition position, String message) {
 
 
             String url = position.getSystemId();
-            String header = url == null ? kind.getHeader() : kind.getHeader() + " in " + url;
-
+            String header = kind.getHeader(severity);
+            if (url != null) {
+                header += " in " + url;
+            }
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -121,7 +123,7 @@ class TextDoc {
 
             String messageLine = InternalUtil.addNSpacesLeft(CARET, position.getColumn() + offset - 1) + message;
 
-            String colored = supportsAnsiColors ? kind.withColor(messageLine) : messageLine;
+            String colored = supportsAnsiColors ? severity.withColor(messageLine) : messageLine;
 
             withLineNums.add(errorIdx + 1, colored);
             withLineNums.add(errorIdx + 2, "\n"); // skip a line

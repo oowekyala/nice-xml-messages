@@ -3,7 +3,7 @@ package com.github.oowekyala.ooxml.messages.more;
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.XmlException;
-import com.github.oowekyala.ooxml.messages.XmlPositioner;
+import com.github.oowekyala.ooxml.messages.XmlMessageHandler;
 
 /**
  * Reports errors in an XML document. Implementations have a way to

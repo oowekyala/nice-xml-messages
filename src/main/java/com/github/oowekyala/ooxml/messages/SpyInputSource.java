@@ -3,6 +3,7 @@ package com.github.oowekyala.ooxml.messages;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.function.Supplier;
@@ -11,12 +12,19 @@ import org.xml.sax.InputSource;
 
 import com.github.oowekyala.ooxml.messages.InternalUtil.TeeReader;
 
-/**
- *
- */
 class SpyInputSource extends InputSource {
 
     private Supplier<String> sup;
+
+    public SpyInputSource(String wholeText) {
+        if (wholeText != null) {
+            sup = () -> wholeText;
+        }
+    }
+
+    public SpyInputSource() {
+
+    }
 
     @Override
     public void setCharacterStream(Reader characterStream) {
@@ -44,8 +52,12 @@ class SpyInputSource extends InputSource {
         setCharacterStream(reader);
     }
 
-    public String getRead() {
+    public String getReadSoFar() {
         return sup == null ? "" : sup.get();
     }
 
+    public void setFullText(String wholeText) {
+        sup = () -> wholeText;
+        super.setCharacterStream(new StringReader(wholeText));
+    }
 }

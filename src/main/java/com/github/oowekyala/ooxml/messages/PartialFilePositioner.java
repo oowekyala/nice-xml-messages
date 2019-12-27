@@ -24,12 +24,12 @@ class PartialFilePositioner implements XmlPositioner {
     }
 
     @Override
-    public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, String message) {
+    public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, Severity severity, String message) {
         if (position.equals(XmlPosition.UNDEFINED)) {
             return message;
         }
         return textDoc.getLinesAround(position.getLine(), NUM_LINES_AROUND)
-                      .make(supportsAnsiColors, kind, position, message)
+                      .make(supportsAnsiColors, kind, severity, position, message)
                       .trim();
 
     }

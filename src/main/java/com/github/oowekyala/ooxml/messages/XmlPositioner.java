@@ -1,5 +1,7 @@
 package com.github.oowekyala.ooxml.messages;
 
+import java.util.logging.Level;
+
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
@@ -36,6 +38,7 @@ public interface XmlPositioner {
         XmlPosition position,
         boolean supportsAnsiColors,
         XmlMessageKind kind,
+        Severity level,
         String message
     );
 
