@@ -7,7 +7,8 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
 /**
- * Associates XML nodes with a position.
+ * Associates XML nodes with a position. It's the responsibility of this
+ * library to create positioners.
  */
 public interface XmlPositioner {
 

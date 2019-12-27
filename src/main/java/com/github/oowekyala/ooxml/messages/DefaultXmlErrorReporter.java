@@ -7,13 +7,12 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 
 import org.w3c.dom.Node;
 
-public class DefaultErrorReporter implements ErrorReporter {
+public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     private final XmlPositioner positioner;
     private final MessagePrinter printer;
 
-    public DefaultErrorReporter(MessagePrinter printer,
-                                XmlPositioner positioner) {
+    public DefaultXmlErrorReporter(MessagePrinter printer, XmlPositioner positioner) {
         this.positioner = positioner;
         this.printer = printer;
     }

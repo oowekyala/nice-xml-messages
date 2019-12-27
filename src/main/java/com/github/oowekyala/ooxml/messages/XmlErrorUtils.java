@@ -1,25 +1,14 @@
 package com.github.oowekyala.ooxml.messages;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.function.Supplier;
 import javax.xml.transform.ErrorListener;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -29,64 +18,55 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.github.oowekyala.ooxml.messages.ErrorReporter.ErrorReporterFactory;
+import com.github.oowekyala.ooxml.messages.XmlErrorReporter.ErrorReporterFactory;
 
 /**
- * XML utilities.
+ * Main entry point of the API.
  *
  * @author Clément Fournier
  */
-public class OoXml {
+public class XmlErrorUtils {
 
 
-    private static final OoXml DEFAULT = new OoXml();
+    private static final XmlErrorUtils DEFAULT = new XmlErrorUtils();
 
-    OoXml() {}
+    XmlErrorUtils() {}
 
     /**
-     * Parse a document using the given deserializer.
+     * Parses an XML document and creates an error reporter.
+     * Parse exceptions thrown by the parser are reported using the given
+     * reporter factory, on a best-effort basis.
+     *
+     * @param inputSource     Source
+     * @param reporterFactory Factory for error reporters
      */
-    public PositionedXmlDoc parse(InputSource inputStream, ErrorReporterFactory reporter) throws SAXException {
-        return parse(spyOn(inputStream), reporter);
-    }
-
-    public void write(Document document, File outputFile) throws IOException {
-        outputFile.getParentFile().mkdirs();
-        write(document, Files.newBufferedWriter(outputFile.toPath(), StandardCharsets.UTF_8));
-    }
-
-    public String writeToString(Document document) throws IOException {
-        StringWriter writer = new StringWriter();
-        write(document, writer);
-        return writer.toString();
-    }
-
-    public void write(Document document, Writer outputFile) throws IOException {
-        try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            Source source = new DOMSource(document);
-            Result result = new StreamResult(outputFile);
-            transformer.transform(source, result);
-        } catch (TransformerException e) {
-            throw new IOException("Failed to save settings", e);
-        }
+    public PositionedXmlDoc parse(InputSource inputSource, ErrorReporterFactory reporterFactory) throws SAXException {
+        return parse(spyOn(inputSource), reporterFactory);
     }
 
     /**
-     * Parse a document using the given deserializer.
+     * Parses an XML document and creates an error reporter.
+     *
+     * @param reader          Source
+     * @param reporterFactory Factory for error reporters
+     *
+     * @see #parse(InputSource, ErrorReporterFactory)
      */
-    public PositionedXmlDoc parse(Reader reader, ErrorReporterFactory reporter) throws SAXException {
-        return parse(new InputSource(reader), reporter);
+    public PositionedXmlDoc parse(Reader reader, ErrorReporterFactory reporterFactory) throws SAXException {
+        return parse(new InputSource(reader), reporterFactory);
     }
 
-    public static OoXml getDefault() {
+    /**
+     * Parses an XML document and creates an error reporter.
+     * This uses a default reporter factory.
+     *
+     * @see #parse(InputSource, ErrorReporterFactory)
+     */
+    public PositionedXmlDoc parse(Reader reader) throws SAXException {
+        return parse(new InputSource(reader), x -> new DefaultXmlErrorReporter(MessagePrinter.SYSTEM_ERR, x));
+    }
+
+    public static XmlErrorUtils getDefault() {
         return DEFAULT;
     }
 
@@ -134,7 +114,7 @@ public class OoXml {
 
         FullFilePositioner positioner = new FullFilePositioner(isource.getSystemId(), isource.getRead(), document);
 
-        ErrorReporter reporter = reporterFactory.create(positioner);
+        XmlErrorReporter reporter = reporterFactory.create(positioner);
 
         return new PositionedXmlDoc(document, reporter);
     }
@@ -153,7 +133,7 @@ public class OoXml {
             this.locatorSupplier = locatorSupplier;
         }
 
-        private ErrorReporter updateReporter(TransformerException exception) {
+        private XmlErrorReporter updateReporter(TransformerException exception) {
             if (exception.getLocator() == null) {
                 exception.setLocator(new LocatorAdapter(locatorSupplier.get()));
             }

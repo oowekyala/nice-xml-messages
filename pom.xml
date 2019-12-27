@@ -154,7 +154,7 @@
                 <version>2.22.1</version>
                 <configuration>
                     <!-- XML error messages are localized -->
-                    <argLine>-Duser.language=fr -Duser.region=FR</argLine>
+                    <argLine>-Duser.language=en -Duser.region=GB</argLine>
                 </configuration>
             </plugin>
             <plugin>

@@ -51,7 +51,7 @@ XML parsing error
         printer.err.shouldBe(emptyList<String>())
     }
 
-    test("Test malformed entities") {
+    test("f:Test malformed entities") {
 
         val expected = """
 $HEADER

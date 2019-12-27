@@ -6,7 +6,7 @@ import org.w3c.dom.Node;
  * Reports errors in an XML document. Implementations have a way to
  * associate nodes with their location in the document.
  */
-public interface ErrorReporter {
+public interface XmlErrorReporter {
 
     /**
      * Print a warning at the location of a node.
@@ -77,7 +77,7 @@ public interface ErrorReporter {
          *
          * @return A new error reporter
          */
-        ErrorReporter create(XmlPositioner positioner);
+        XmlErrorReporter create(XmlPositioner positioner);
 
     }
 

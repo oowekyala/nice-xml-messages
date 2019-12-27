@@ -1,17 +1,14 @@
 package com.github.oowekyala.ooxml.messages
 
 import io.kotlintest.matchers.collections.shouldBeEmpty
-import org.w3c.dom.Document
 
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
-fun Document.toStr(): String = OoXml.getDefault().writeToString(this).trimIndent()
-
 
 fun String.parseStr(printer: MessagePrinter = TestMessagePrinter()): PositionedXmlDoc =
-        OoXml.getDefault().parse(reader()) {
-            DefaultErrorReporter(printer, it)
+        XmlErrorUtils.getDefault().parse(reader()) {
+            DefaultXmlErrorReporter(printer, it)
         }
 
 
