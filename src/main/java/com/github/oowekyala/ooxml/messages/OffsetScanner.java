@@ -4,34 +4,36 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import static com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
-/*
-    TODO support attribute nodes, don't do all that eagerly
- */
 class OffsetScanner {
 
     private static final String PREFIX = "ooxml:";
-    private static final String BEGIN_POS = PREFIX + "beginLoc";
+    private static final String START_OFFSET = PREFIX + "beginLoc";
 
     private final String systemId;
+    private final TextDoc textDoc;
 
-    OffsetScanner(String systemId) {
+    OffsetScanner(String systemId, TextDoc textDoc) {
         this.systemId = systemId;
+        this.textDoc = textDoc;
     }
 
-    int determineLocation(Node n, TextDoc positioner, int index) {
+    int determineLocation(Node n, int index) {
         int nextIndex = index;
         int nodeLength = 0;
         int textLength = 0;
-        String xmlString = positioner.getSourceCode();
+        String xmlString = textDoc.getTextString();
         if (n.getNodeType() == Node.DOCUMENT_TYPE_NODE) {
             nextIndex = xmlString.indexOf("<!DOCTYPE", nextIndex);
         } else if (n.getNodeType() == Node.COMMENT_NODE) {
@@ -59,14 +61,14 @@ class OffsetScanner {
         } else if (n.getNodeType() == Node.ENTITY_REFERENCE_NODE) {
             nextIndex = xmlString.indexOf("&" + n.getNodeName() + ";", nextIndex);
         }
-        setBeginLocation(n, nextIndex, positioner);
+        setStartOffset(n, nextIndex);
 
         nextIndex += nodeLength;
 
         if (n.hasChildNodes()) {
             NodeList childs = n.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
-                nextIndex = determineLocation(childs.item(i), positioner, nextIndex);
+                nextIndex = determineLocation(childs.item(i), nextIndex);
             }
         }
 
@@ -98,21 +100,54 @@ class OffsetScanner {
             ProcessingInstruction pi = (ProcessingInstruction) n;
             nextIndex += "<?".length() + pi.getTarget().length() + "?>".length() + pi.getData().length();
         }
-        setEndLocation(n, nextIndex - 1, positioner);
+        setEndLocation(n, nextIndex - 1);
         return nextIndex;
     }
 
-    private void setBeginLocation(Node n, int index, TextDoc textDoc) {
+    private void setStartOffset(Node n, int offset) {
         if (n != null) {
-            int line = textDoc.lineNumberFromOffset(index);
-            int column = textDoc.columnFromOffset(line, index);
-            n.setUserData(BEGIN_POS, new XmlPosition(systemId, line, column), null);
+            n.setUserData(START_OFFSET, offset, null);
         }
     }
 
     public XmlPosition beginPos(Node node) {
-        XmlPosition bline = (XmlPosition) node.getUserData(BEGIN_POS);
-        return bline == null ? XmlPosition.UNDEFINED : bline;
+        @ZeroBased
+        Integer offset = getStartOffset(node);
+        if (offset == null) {
+            return XmlPosition.undefinedIn(systemId);
+        }
+        int line = textDoc.lineNumberFromOffset(offset);
+        int column = textDoc.columnFromOffset(line, offset);
+        return new XmlPosition(systemId, line, column);
+    }
+
+    @ZeroBased
+    private Integer getStartOffset(Node node) {
+        if (node == null) {
+            return null;
+        } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+            return attributeOffset((Attr) node);
+        }
+        return (Integer) node.getUserData(START_OFFSET);
+    }
+
+    private Integer attributeOffset(Attr attr) {
+        Integer offset = getStartOffset(attr.getOwnerElement());
+        if (offset == null) {
+            return null;
+        }
+
+        String textString = textDoc.getTextString();
+        int searchEnd = textString.indexOf('>', offset);
+
+        Matcher matcher = Pattern.compile(attr.getName() + "\\s*=")
+                                 .matcher(textString)
+                                 .region(offset, searchEnd);
+
+        if (matcher.find()) {
+            return matcher.start();
+        }
+        return offset;
     }
 
     private static String unexpandEntities(Node n, String te, boolean withQuotes) {
@@ -153,7 +188,7 @@ class OffsetScanner {
         return result;
     }
 
-    private static void setEndLocation(Node n, int index, TextDoc textDoc) {
+    private static void setEndLocation(Node n, int index) {
         // do nothing for now
     }
 }

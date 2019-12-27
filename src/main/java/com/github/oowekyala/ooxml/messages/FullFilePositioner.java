@@ -17,11 +17,11 @@ class FullFilePositioner extends PartialFilePositioner implements XmlPositioner 
      * @param document     Document node of the XML document
      */
     public FullFilePositioner(String systemId, String fullFileText, Document document) {
-        super(fullFileText);
+        super(fullFileText, systemId);
 
-        this.scanner = new OffsetScanner(systemId);
+        this.scanner = new OffsetScanner(systemId, textDoc);
 
-        scanner.determineLocation(document.getDocumentElement(), textDoc, 0);
+        scanner.determineLocation(document.getDocumentElement(),0);
     }
 
     @Override

@@ -36,14 +36,14 @@ class TextDoc {
     }
 
     /** Returns the full source. */
-    public String getSourceCode() {
+    public String getTextString() {
         return sourceCode;
     }
 
-    MessageTextBuilder getLinesAround(@OneBased int line, int numLinesAround) {
-        @ZeroBased int zeroL = line - 1;
-        @ZeroBased int firstL = Math.max(0, zeroL - numLinesAround + 1);
-        @ZeroBased int lastL = Math.min(lines.size(), zeroL + numLinesAround);
+    MessageTextBuilder getLinesAround(@Annots.OneBased int line, int numLinesAround) {
+        @Annots.ZeroBased int zeroL = line - 1;
+        @Annots.ZeroBased int firstL = Math.max(0, zeroL - numLinesAround + 1);
+        @Annots.ZeroBased int lastL = Math.min(lines.size(), zeroL + numLinesAround);
 
         List<String> strings = lines.subList(firstL, lastL);
         return new MessageTextBuilder(strings, firstL, zeroL - firstL);
@@ -92,12 +92,12 @@ class TextDoc {
 
         private static final String CARET = "^ ";
         /** Line number of the first line of the list in the real document */
-        private final @OneBased int first;
+        private final @Annots.OneBased int first;
         /** Index in the list of the line that has the error. */
         private final int errorIdx;
         private List<String> lines;
 
-        MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
+        MessageTextBuilder(List<String> lines, @Annots.OneBased int first, int errorIdx) {
             this.lines = lines;
             this.first = first;
             this.errorIdx = errorIdx;
@@ -106,13 +106,6 @@ class TextDoc {
 
 
         public String make(boolean supportsAnsiColors, XmlMessageKind kind, Severity severity, XmlPosition position, String message) {
-
-
-            String url = position.getSystemId();
-            String header = kind.getHeader(severity);
-            if (url != null) {
-                header += " in " + url;
-            }
 
             List<String> withLineNums = IntStream.range(0, lines.size())
                                                  .mapToObj(this::addLineNum)
@@ -129,11 +122,23 @@ class TextDoc {
             withLineNums.add(errorIdx + 2, "\n"); // skip a line
 
 
-            return header + "\n" + String.join("\n", withLineNums);
+            return addHeader(kind, severity, position, String.join("\n", withLineNums));
         }
 
-        private String addLineNum(@ZeroBased int i) {
+        private String addLineNum(@Annots.ZeroBased int i) {
             return String.format("%5d| %s", 1 + i + first, lines.get(i));
+        }
+
+        public static String addHeader(XmlMessageKind kind, Severity severity, XmlPosition position, String message) {
+
+
+            String url = position.getSystemId();
+            String header = kind.getHeader(severity);
+            if (url != null) {
+                header += " in " + url;
+            }
+
+            return header + "\n" + message;
         }
     }
 }

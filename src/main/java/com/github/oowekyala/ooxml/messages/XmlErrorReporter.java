@@ -2,9 +2,14 @@ package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
  * Reports errors in an XML document. This is meant as a helper to
  * validate XML documents.
+ *
+ * <p>The formatter used to template messages is implementation dependent,
+ * as is the behaviour when the template argument array is null.
  */
 public interface XmlErrorReporter {
 
@@ -15,7 +20,7 @@ public interface XmlErrorReporter {
      * @param message Message, possibly templated
      * @param args    Formatter arguments
      */
-    void warn(Node node, String message, Object... args);
+    void warn(@Nullable Node node, String message, Object... args);
 
 
     /**
@@ -28,7 +33,7 @@ public interface XmlErrorReporter {
      *
      * @return An exception summarizing the error
      */
-    XmlException error(Node node, String message, Object... args);
+    XmlException error(@Nullable Node node, String message, Object... args);
 
 
     /**
@@ -39,7 +44,7 @@ public interface XmlErrorReporter {
      *
      * @return An exception summarizing the error
      */
-    XmlException error(Node node, Throwable ex);
+    XmlException error(@Nullable Node node, Throwable ex);
 
 
     /**
@@ -54,7 +59,7 @@ public interface XmlErrorReporter {
      *
      * @throws XmlException Always
      */
-    XmlException fatal(Node node, String message, Object... args);
+    XmlException fatal(@Nullable Node node, String message, Object... args);
 
 
     /**
@@ -68,7 +73,7 @@ public interface XmlErrorReporter {
      *
      * @throws XmlException Always
      */
-    XmlException fatal(Node node, Throwable ex);
+    XmlException fatal(@Nullable Node node, Throwable ex);
 
 
     /**

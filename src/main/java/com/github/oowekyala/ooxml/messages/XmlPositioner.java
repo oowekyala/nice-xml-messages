@@ -5,6 +5,8 @@ import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
  * Associates XML nodes with a position. This is a low-level utility,
  * created by this library (see {@link XmlErrorUtils#parse(DocumentBuilder, InputSource, XmlMessageHandler)
@@ -16,10 +18,9 @@ public interface XmlPositioner {
     /**
      * Returns an object describing the position in the file of the
      * given XML node. If no position is available, returns
-     * {@link XmlPosition#UNDEFINED}.
+     * {@linkplain XmlPosition#isUndefined() an undefined position}.
      */
-    // TODO support attribute nodes
-    XmlPosition startPositionOf(Node node);
+    XmlPosition startPositionOf(@Nullable Node node);
 
 
     /**

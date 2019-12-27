@@ -65,7 +65,7 @@ public final class XmlErrorUtils {
         builder.setErrorHandler(new MyErrorHandler(handler) {
             @Override
             XmlPositioner getPositioner() {
-                return new PartialFilePositioner(isource.getReadSoFar());
+                return new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
             }
         });
 
@@ -75,7 +75,7 @@ public final class XmlErrorUtils {
 
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
-            PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar());
+            PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
             XmlException ex = InternalUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
             handler.accept(ex);
             throw ex;

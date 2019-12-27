@@ -114,9 +114,9 @@ final class InternalUtil {
         }
 
 
-        if (pos.equals(XmlPosition.UNDEFINED)) {
+        if (pos.isUndefined()) {
             // unknown exception
-            return new XmlException(XmlPosition.UNDEFINED,
+            return new XmlException(pos,
                                     kind.getHeader(severity) + "\n" + simpleMessage,
                                     simpleMessage,
                                     kind,

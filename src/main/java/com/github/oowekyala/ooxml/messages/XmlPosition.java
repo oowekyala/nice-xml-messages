@@ -20,7 +20,7 @@ public final class XmlPosition {
         this(null, line, column);
     }
 
-    public XmlPosition(String systemId, @OneBased int line, @OneBased int column) {
+    public XmlPosition(String systemId, @Annots.OneBased int line, @Annots.OneBased int column) {
         this.systemId = systemId;
         this.line = line;
         this.column = column;
@@ -28,15 +28,17 @@ public final class XmlPosition {
 
     /**
      * Returns the (1-based) line number of the position.
+     * If this position is undefined, the result is garbage.
      */
-    public @OneBased int getLine() {
+    public @Annots.OneBased int getLine() {
         return line;
     }
 
     /**
      * Returns the (1-based) column number of the position.
+     * If this position is undefined, the result is garbage.
      */
-    public @OneBased int getColumn() {
+    public @Annots.OneBased int getColumn() {
         return column;
     }
 
@@ -47,6 +49,13 @@ public final class XmlPosition {
      */
     public String getSystemId() {
         return systemId;
+    }
+
+    /**
+     * If true, column and line numbers are unreliable
+     */
+    public boolean isUndefined() {
+        return line < 0 || column < 0;
     }
 
     @Override
@@ -72,5 +81,15 @@ public final class XmlPosition {
     @Override
     public int hashCode() {
         return Objects.hash(line, column, systemId);
+    }
+
+    /**
+     * Returns an undefined position in a document identified by the
+     * given system ID.
+     *
+     * @param systemId System ID
+     */
+    public static XmlPosition undefinedIn(String systemId) {
+        return new XmlPosition(systemId, -1, -1);
     }
 }
