@@ -6,6 +6,8 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.XmlException;
+import com.github.oowekyala.ooxml.messages.XmlMessageKind;
+import com.github.oowekyala.ooxml.messages.XmlPosition;
 import com.github.oowekyala.ooxml.messages.XmlPositioner;
 
 /**
@@ -23,25 +25,44 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        XmlException ex = positioner.createEntry(node, VALIDATION_WARNING, printer.supportsAnsiColors(), message, args);
+        XmlException ex = createEntry(node, VALIDATION_WARNING, printer.supportsAnsiColors(), template(message, args), null);
         printer.warn(ex.toString());
     }
 
 
     @Override
-    public XmlException error(Node node, String template, Object... args) {
-        XmlException ex = positioner.createEntry(node, VALIDATION_ERROR, printer.supportsAnsiColors(), template, args);
+    public XmlException error(Node node, String message, Object... args) {
+        XmlException ex = createEntry(node, VALIDATION_ERROR, printer.supportsAnsiColors(), template(message, args), null);
         printer.error(ex.toString());
         return ex;
     }
-
 
     @Override
     public XmlException error(Node node, Throwable cause) {
-        XmlException ex = positioner.createEntry(node, VALIDATION_ERROR, printer.supportsAnsiColors(), cause);
+        XmlException ex = createEntry(node, VALIDATION_ERROR, printer.supportsAnsiColors(), cause.getMessage(), cause);
         printer.error(ex.toString());
         return ex;
     }
+
+    private String template(String message, Object... args) {
+        return args == null || args.length == 0
+               ? message
+               : String.format(message, args);
+    }
+
+
+    private XmlException createEntry(Node node,
+                                     XmlMessageKind kind,
+                                     boolean useColors,
+                                     String message,
+                                     Throwable cause) {
+
+        XmlPosition pos = positioner.startPositionOf(node);
+        String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, message);
+
+        return new XmlException(pos, fullMessage, message, kind, cause);
+    }
+
 
     @Override
     public void close() {

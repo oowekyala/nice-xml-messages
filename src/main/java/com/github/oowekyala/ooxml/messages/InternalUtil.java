@@ -24,6 +24,7 @@ import java.io.Writer;
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
 
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 
@@ -84,6 +85,47 @@ final class InternalUtil {
 
         return XmlPosition.UNDEFINED;
     }
+
+    /**
+     * Creates an entry for the given exception. Tries to recover the
+     * position from the exception.
+     *
+     * @param kind      Kind of message
+     * @param useColors Use terminal colors to format the message
+     * @param exception Exception
+     *
+     * @return An exception, possibly enriched with context information
+     */
+    public static XmlException createEntryBestEffort(XmlPositioner positioner,
+                                                     XmlMessageKind kind,
+                                                     boolean useColors,
+                                                     Throwable exception) {
+
+        XmlPosition pos = InternalUtil.extractPosition(exception);
+
+        final String simpleMessage;
+        if (exception instanceof TransformerException
+            && exception.getCause() instanceof SAXException) {
+            simpleMessage = exception.getCause().getMessage();
+        } else {
+            simpleMessage = exception.getMessage();
+        }
+
+
+        if (pos.equals(XmlPosition.UNDEFINED)) {
+            // unknown exception
+            return new XmlException(XmlPosition.UNDEFINED,
+                                    kind.getHeader() + "\n" + simpleMessage,
+                                    simpleMessage,
+                                    kind,
+                                    exception);
+
+        } else {
+            String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, simpleMessage);
+            return new XmlException(pos, fullMessage, simpleMessage, kind, exception);
+        }
+    }
+
 
     static class TeeReader extends FilterReader {
 

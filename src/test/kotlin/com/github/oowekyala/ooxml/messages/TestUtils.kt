@@ -2,13 +2,14 @@ package com.github.oowekyala.ooxml.messages
 
 import com.github.oowekyala.ooxml.messages.more.MessagePrinter
 import io.kotlintest.matchers.collections.shouldBeEmpty
+import org.xml.sax.InputSource
 
 
 val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
 
 fun String.parseStr(handler: XmlMessageHandler = TestMessagePrinter()): PositionedXmlDoc =
-        XmlErrorUtils.getInstance().parse(reader(), handler)
+        XmlErrorUtils.getInstance().parse(InputSource(reader()), handler)
 
 
 class TestMessagePrinter : MessagePrinter, XmlMessageHandler {

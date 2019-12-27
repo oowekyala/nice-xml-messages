@@ -50,21 +50,4 @@ public interface XmlErrorReporter {
     void close();
 
 
-    /**
-     * Creates an error reporter.
-     */
-    interface ErrorReporterFactory {
-
-        /**
-         * Create a new error reporter from the given string
-         *
-         * @param positioner Xml positioner
-         *
-         * @return A new error reporter
-         */
-        XmlErrorReporter create(XmlPositioner positioner);
-
-    }
-
-
 }

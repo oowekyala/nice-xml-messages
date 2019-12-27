@@ -35,28 +35,31 @@ public class XmlErrorUtils {
     }
 
     /**
-     * Parses an XML document and creates an error reporter.
-     * Parse exceptions thrown by the parser are reported using the given
-     * reporter factory, on a best-effort basis.
+     * Parses an XML document and creates an associated {@link XmlPositioner}.
+     * Exceptions thrown by the parser (because of eg invalid XML syntax)
+     * are reported using the given message handler. Their position is
+     * recovered on a best-effort basis. Only fatal parsing exceptions
+     * are thrown.
      *
-     * @param inputSource         Source
+     * @param inputSource         Source for the XML document
      * @param parsingErrorHandler Exception handler for XML parsing errors.
-     *                            This is called when the
      */
     public PositionedXmlDoc parse(InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException {
         return parseImpl(spyOn(inputSource), parsingErrorHandler);
     }
 
     /**
-     * Parses an XML document and creates an error reporter.
+     * Returns a new input source with the given system id (typically
+     * a file name), and the given character stream.
      *
-     * @param reader              Source
-     * @param parsingErrorHandler Factory for error reporters
-     *
-     * @see #parse(InputSource, XmlMessageHandler)
+     * @param systemId System ID of the file (see {@link InputSource#setSystemId(String)})
+     * @param reader   Character stream
      */
-    public PositionedXmlDoc parse(Reader reader, XmlMessageHandler parsingErrorHandler) throws XmlException {
-        return parse(new InputSource(reader), parsingErrorHandler);
+    public static InputSource createInputSource(String systemId, Reader reader) {
+        InputSource source = new InputSource();
+        source.setSystemId(systemId);
+        source.setCharacterStream(reader);
+        return source;
     }
 
     private PositionedXmlDoc parseImpl(SpyInputSource isource, XmlMessageHandler handler) throws XmlException {
@@ -82,8 +85,8 @@ public class XmlErrorUtils {
 
             transformer.transform(saxSource, domResult);
         } catch (TransformerException e) {
-            throw new PartialFilePositioner(isource.getRead())
-                .createEntry(PARSING_ERROR, handler.supportsAnsiColors(), e);
+            PartialFilePositioner positioner = new PartialFilePositioner(isource.getRead());
+            throw InternalUtil.createEntryBestEffort(positioner, PARSING_ERROR, handler.supportsAnsiColors(), e);
         }
 
         Document document = (Document) domResult.getNode();
@@ -93,6 +96,7 @@ public class XmlErrorUtils {
         return new PositionedXmlDoc(document, positioner);
     }
 
+    /** Returns the singleton. */
     public static XmlErrorUtils getInstance() {
         return DEFAULT;
     }
@@ -184,7 +188,7 @@ public class XmlErrorUtils {
         }
 
         private XmlException parseException(TransformerException exception, XmlMessageKind kind, XmlPositioner positioner) {
-            return positioner.createEntry(kind, parseExceptionHandler.supportsAnsiColors(), exception);
+            return InternalUtil.createEntryBestEffort(positioner, kind, parseExceptionHandler.supportsAnsiColors(), exception);
         }
 
         @Override

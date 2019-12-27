@@ -9,18 +9,18 @@ public class XmlException extends RuntimeException {
     private final String simpleMessage;
     private final XmlMessageKind kind;
 
-    XmlException(XmlPosition position,
-                 String fullMessage,
-                 String simpleMessage,
-                 XmlMessageKind kind) {
+    public XmlException(XmlPosition position,
+                        String fullMessage,
+                        String simpleMessage,
+                        XmlMessageKind kind) {
         this(position, fullMessage, simpleMessage, kind, null);
     }
 
-    XmlException(XmlPosition position,
-                 String fullMessage,
-                 String simpleMessage,
-                 XmlMessageKind kind,
-                 Throwable cause) {
+    public XmlException(XmlPosition position,
+                        String fullMessage,
+                        String simpleMessage,
+                        XmlMessageKind kind,
+                        Throwable cause) {
         super(fullMessage, cause);
         this.position = position;
         this.simpleMessage = simpleMessage;
