@@ -5,7 +5,7 @@ import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 
 /*
-   Error messages are localized, locale is set to French in pom.xml
+   Error messages are localized, locale is set to english in pom.xml
  */
 
 
@@ -29,7 +29,7 @@ $HEADER
 
         val printer = TestMessagePrinter()
 
-        val ex = shouldThrow<XmlParseException> {
+        val ex = shouldThrow<XmlException> {
             expected.parseStr(printer)
         }
 
@@ -39,7 +39,7 @@ XML parsing error
     2| <list>
     3|     <list
     4|         <str>oha</str>
-               ^ Le type d'élément "list" doit être suivi des spécifications d'attribut, ">" ou "/>".
+               ^ Element type "list" must be followed by either attribute specifications, ">" or "/>".
 
 
     5|         <str>what</str>
@@ -48,10 +48,10 @@ XML parsing error
 
         )
 
-        printer.err.shouldBe(emptyList<String>())
+        printer.err.shouldBe(listOf(ex.toString()))
     }
 
-    test("f:Test malformed entities") {
+    test("Test malformed entities") {
 
         val expected = """
 $HEADER
@@ -62,7 +62,7 @@ $HEADER
 
         val printer = TestMessagePrinter()
 
-        val ex = shouldThrow<XmlParseException> {
+        val ex = shouldThrow<XmlException> {
             expected.parseStr(printer)
         }
 
@@ -72,7 +72,7 @@ XML parsing error
     1| $HEADER
     2| <list>
     3|     <list foo="&amb;"/>
-                           ^ L'entité "amb" était référencée, mais pas déclarée.
+                           ^ The entity "amb" was referenced, but not declared.
 
 
     4| </list>
@@ -80,7 +80,7 @@ XML parsing error
 
         )
 
-        printer.err.shouldBe(emptyList<String>())
+        printer.err.shouldBe(listOf(ex.toString()))
     }
 
     test("Test empty document") {
@@ -91,19 +91,19 @@ $HEADER
 
         val printer = TestMessagePrinter()
 
-        val ex = shouldThrow<XmlParseException> {
+        val ex = shouldThrow<XmlException> {
             expected.parseStr(printer)
         }
 
         ex.toString().shouldBe(
 """XML parsing error
     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-                                                             ^ Fin prématurée du fichier.
+                                                             ^ Premature end of file.
 
-"""
+""".trim()
         )
 
-        printer.err.shouldBe(emptyList<String>())
+        printer.err.shouldBe(listOf(ex.toString()))
     }
 
 })

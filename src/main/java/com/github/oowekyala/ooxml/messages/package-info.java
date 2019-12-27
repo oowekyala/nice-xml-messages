@@ -1,9 +1,14 @@
 /**
  * Simple API to produce nice error messages when reading an XML file.
  *
- * <p>Use {@link com.github.oowekyala.ooxml.messages.XmlErrorUtils#parse(org.xml.sax.InputSource, XmlErrorReporter.ErrorReporterFactory) XmlErrorUtils::parse}
- * and overloads to get an instance of an {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter}.
- * The default produces nice error messages, for example instead of
+ * <p>Use {@link com.github.oowekyala.ooxml.messages.XmlErrorUtils#parse(org.xml.sax.InputSource, XmlMessageHandler)
+ * XmlErrorUtils::parse}
+ * and overloads to get an instance of an {@link com.github.oowekyala.ooxml.messages.XmlPositioner}.
+ * This object is used to associate {@link org.w3c.dom.Node}s with their
+ * location, and create message entries (under the form of an {@link com.github.oowekyala.ooxml.messages.XmlException})
+ * featuring context information.
+ *
+ * <p>For example, if an XML parse exception occurs, instead of
  *
  * <pre>{@code
  * javax.xml.transform.TransformerException: The entity "amb" was referenced, but not declared.
@@ -22,17 +27,12 @@
  * }</pre>
  *
  *
- * <p>The {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter} can
- * be used to report an error against any {@link org.w3c.dom.Node}, which
- * is useful to enrich diagnostics eg when validating an XML config file.
- *
- *
- * <p>Key pieces of the API are {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter},
- * with a default implementation in {@link com.github.oowekyala.ooxml.messages.DefaultXmlErrorReporter},
- * which can be parameterized with a custom {@link com.github.oowekyala.ooxml.messages.MessagePrinter}.
- *
+ * <p>{@link com.github.oowekyala.ooxml.messages.XmlPositioner} is meant
+ * as a low-level utility, it is advised to use {@link com.github.oowekyala.ooxml.messages.more.XmlErrorReporter},
+ * or use a positioner as a backend for your own custom validation helper.
  *
  * @author Clément Fournier
  */
 
 package com.github.oowekyala.ooxml.messages;
+

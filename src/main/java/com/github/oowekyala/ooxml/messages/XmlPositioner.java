@@ -1,10 +1,16 @@
 package com.github.oowekyala.ooxml.messages;
 
+import javax.xml.transform.TransformerException;
+
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
+import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
 
 /**
- * Associates XML nodes with a position. Instances are created by this
- * library.
+ * Associates XML nodes with a position. This is a low-level utility,
+ * created by this library. It's meant as a back-end for a validation
+ * helper, for which {@link XmlErrorReporter} provides an example.
  */
 public interface XmlPositioner {
 
@@ -13,7 +19,7 @@ public interface XmlPositioner {
      * given XML node. If no position is available, returns
      * {@link XmlPosition#UNDEFINED}.
      */
-    // TODO support attributes
+    // TODO support attribute nodes
     XmlPosition startPositionOf(Node node);
 
 
@@ -35,6 +41,56 @@ public interface XmlPositioner {
         XmlMessageKind kind,
         String message
     );
+
+
+    default XmlException createEntry(Node node,
+                                     XmlMessageKind kind,
+                                     boolean useColors,
+                                     String message,
+                                     Object... args) {
+
+        XmlPosition pos = startPositionOf(node);
+        String simpleMessage = String.format(message, args);
+        String fullMessage = makePositionedMessage(pos, useColors, kind, simpleMessage);
+
+        return new XmlException(pos, fullMessage, simpleMessage, kind, null);
+    }
+
+
+    default XmlException createEntry(Node node, XmlMessageKind kind, boolean useColors, Throwable exception) {
+        XmlPosition pos = startPositionOf(node);
+        String simpleMessage = exception.getMessage();
+        String fullMessage = makePositionedMessage(pos, useColors, kind, simpleMessage);
+
+        return new XmlException(pos, fullMessage, simpleMessage, kind, exception);
+    }
+
+
+    default XmlException createEntry(XmlMessageKind kind, boolean useColors, Throwable exception) {
+        XmlPosition pos = InternalUtil.extractPosition(exception);
+
+        final String simpleMessage;
+        if (exception instanceof TransformerException
+            && exception.getCause() instanceof SAXException) {
+            simpleMessage = exception.getCause().getMessage();
+        } else {
+            simpleMessage = exception.getMessage();
+        }
+
+
+        if (pos.equals(XmlPosition.UNDEFINED)) {
+            // unknown exception
+            return new XmlException(XmlPosition.UNDEFINED,
+                                    kind.getHeader() + "\n" + simpleMessage,
+                                    simpleMessage,
+                                    kind,
+                                    exception);
+
+        } else {
+            String fullMessage = makePositionedMessage(pos, useColors, kind, simpleMessage);
+            return new XmlException(pos, fullMessage, simpleMessage, kind, exception);
+        }
+    }
 
 
 }

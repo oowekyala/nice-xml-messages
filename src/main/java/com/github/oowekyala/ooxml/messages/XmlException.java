@@ -3,24 +3,24 @@ package com.github.oowekyala.ooxml.messages;
 /**
  * Generic XML exception wrapper. Can occur during validation or parsing.
  */
-public class XmlParseException extends RuntimeException {
+public class XmlException extends RuntimeException {
 
     private final XmlPosition position;
     private final String simpleMessage;
     private final XmlMessageKind kind;
 
-    XmlParseException(XmlPosition position,
-                      String fullMessage,
-                      String simpleMessage,
-                      XmlMessageKind kind) {
+    XmlException(XmlPosition position,
+                 String fullMessage,
+                 String simpleMessage,
+                 XmlMessageKind kind) {
         this(position, fullMessage, simpleMessage, kind, null);
     }
 
-    XmlParseException(XmlPosition position,
-                      String fullMessage,
-                      String simpleMessage,
-                      XmlMessageKind kind,
-                      Throwable cause) {
+    XmlException(XmlPosition position,
+                 String fullMessage,
+                 String simpleMessage,
+                 XmlMessageKind kind,
+                 Throwable cause) {
         super(fullMessage, cause);
         this.position = position;
         this.simpleMessage = simpleMessage;

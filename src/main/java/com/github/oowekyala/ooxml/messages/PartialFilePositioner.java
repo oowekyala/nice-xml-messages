@@ -29,7 +29,8 @@ class PartialFilePositioner implements XmlPositioner {
             return message;
         }
         return textDoc.getLinesAround(position.getLine(), NUM_LINES_AROUND)
-                      .make(supportsAnsiColors, kind, position, message);
+                      .make(supportsAnsiColors, kind, position, message)
+                      .trim();
 
     }
 }

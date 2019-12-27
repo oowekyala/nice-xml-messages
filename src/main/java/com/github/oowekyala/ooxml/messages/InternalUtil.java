@@ -21,15 +21,6 @@ import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
 
@@ -75,8 +66,8 @@ final class InternalUtil {
      */
     public static XmlPosition extractPosition(Throwable throwable) {
 
-        if (throwable instanceof XmlParseException) {
-            return ((XmlParseException) throwable).getPosition();
+        if (throwable instanceof XmlException) {
+            return ((XmlException) throwable).getPosition();
         } else if (throwable instanceof SAXParseException) {
             SAXParseException e = (SAXParseException) throwable;
             return new XmlPosition(e.getSystemId(), e.getLineNumber(), e.getColumnNumber());

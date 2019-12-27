@@ -1,6 +1,8 @@
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml.messages.more;
 
 import java.io.PrintStream;
+
+import com.github.oowekyala.ooxml.messages.more.MessagePrinter;
 
 /**
  * Implements {@link MessagePrinter} with a pair of {@link PrintStream}s.

@@ -1,6 +1,9 @@
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml.messages.more;
 
 import org.w3c.dom.Node;
+
+import com.github.oowekyala.ooxml.messages.XmlException;
+import com.github.oowekyala.ooxml.messages.XmlPositioner;
 
 /**
  * Reports errors in an XML document. Implementations have a way to
@@ -9,7 +12,7 @@ import org.w3c.dom.Node;
 public interface XmlErrorReporter {
 
     /**
-     * Print a warning at the location of a node.
+     * Report a warning at the location of a node.
      *
      * @param node    XML node which owns the warning
      * @param message Message, possibly templated
@@ -26,7 +29,7 @@ public interface XmlErrorReporter {
      * @param message Message, possibly templated
      * @param args    Formatter arguments
      */
-    XmlParseException error(Node node, String message, Object... args);
+    XmlException error(Node node, String message, Object... args);
 
 
     /**
@@ -36,25 +39,7 @@ public interface XmlErrorReporter {
      * @param node XML node which owns the warning
      * @param ex   Cause exception
      */
-    XmlParseException error(Node node, Throwable ex);
-
-
-    /**
-     * An error occurring in the parsing phase. This is called when the
-     * XML document is not well-formed (eg missing closing tag).
-     *
-     * @param warn      Whether this is a warning
-     * @param throwable Cause
-     *
-     * @return An exception. If "warn" is true, the exception
-     *     is logged, otherwise it's thrown, and not logged directly.
-     *
-     * @throws XmlParseException If "warn" is false. In that case, to improve compiler
-     *                           control-flow analysis, you can call this method with
-     *                           a throw statement as well (eg {@code throw reporter.parseError(false, ex);},
-     *                           even though this method throws).
-     */
-    XmlParseException parseError(boolean warn, Throwable throwable);
+    XmlException error(Node node, Throwable ex);
 
 
     /**

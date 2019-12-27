@@ -4,6 +4,8 @@ import javax.management.modelmbean.XMLParseException;
 
 import org.w3c.dom.Node;
 
+import com.github.oowekyala.ooxml.messages.more.XmlErrorReporter;
+
 /**
  * Kind of a message (or {@linkplain XMLParseException exception}),
  * mostly just a formatting helper.
@@ -52,7 +54,8 @@ public interface XmlMessageKind {
 
         /**
          * An error thrown by the XML parser, this occurs when the XML
-         * is not well-formed or otherwise invalid.
+         * is not well-formed or otherwise invalid. The error may be
+         * recoverable.
          */
         PARSING_ERROR("XML parsing error", TerminalColor.COL_RED);
 
