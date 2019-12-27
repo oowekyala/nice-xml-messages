@@ -11,25 +11,21 @@ import java.io.InputStream;
 import java.io.Reader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.SourceLocator;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLFilterImpl;
 
 /**
  * Main entry point of the API.
  *
  * @author Clément Fournier
  */
-public class XmlErrorUtils {
+public final class XmlErrorUtils {
 
 
     private static final XmlErrorUtils DEFAULT = new XmlErrorUtils();
@@ -39,20 +35,20 @@ public class XmlErrorUtils {
 
     /**
      * Parses an XML document and creates an associated {@link XmlPositioner}.
-     * Exceptions thrown by the parser (because of eg invalid XML syntax)
+     * Exceptions thrown by the parser (eg because of invalid XML syntax)
      * are reported using the given message handler. Their position is
      * recovered on a best-effort basis. Only fatal parsing exceptions
-     * are thrown, and only non-fatal exceptions and warnings are handled
-     * by the parameter.
+     * are thrown, and only non-fatal exceptions and warnings are passed
+     * to the given {@link XmlMessageHandler}.
      *
      * <p>To validate the document against a schema, you must use either
-     * {@link DocumentBuilderFactory#setValidating(boolean)} or
-     * {@link DocumentBuilderFactory#setSchema(Schema)}. Text positions
-     * cannot be recovered by a {@link Validator} after the fact (this
-     * is a limitation of {@code java.xml}). Note that setting both may
-     * result in duplicate messages.
+     * {@link DocumentBuilderFactory#setValidating(boolean) setValidating} or
+     * {@link DocumentBuilderFactory#setSchema(Schema) setSchema} on the
+     * document builder factory. Text positions cannot be recovered by a
+     * {@link Validator} after the fact (this is a limitation of {@code java.xml}).
+     * Note that setting both may result in duplicate messages.
      *
-     * <p>For best messages please back your {@link InputSource} with an
+     * <p>For best messages back your {@link InputSource} with an
      * {@link InputStream}, or better, a {@link Reader}.
      *
      * @param domBuilder          Preconfigured DOM builder, the {@linkplain DocumentBuilder#setErrorHandler(ErrorHandler)
@@ -92,10 +88,6 @@ public class XmlErrorUtils {
     }
 
 
-    /*
-     TODO the whole string may be kept if we're parsing to DOM, for SAX
-       we should only keep the head of the stream
-     */
     private static SpyInputSource spyOn(InputSource inputSource) throws IOException {
         SpyInputSource is = new SpyInputSource();
         is.setSystemId(inputSource.getSystemId());
@@ -114,51 +106,6 @@ public class XmlErrorUtils {
         }
 
         return is;
-    }
-
-    private static class LocatorAdapter implements SourceLocator {
-
-        private final Locator locator;
-
-        private LocatorAdapter(Locator locator) {
-            this.locator = locator;
-        }
-
-        @Override
-        public String getPublicId() {
-            return locator.getPublicId();
-        }
-
-        @Override
-        public String getSystemId() {
-            return locator.getSystemId();
-        }
-
-        @Override
-        public int getLineNumber() {
-            return locator.getLineNumber();
-        }
-
-        @Override
-        public int getColumnNumber() {
-            return locator.getColumnNumber();
-        }
-    }
-
-    /** Transparent filter just to get a locator instance. */
-    private static class LocationFilter extends XMLFilterImpl {
-
-        Locator locator;
-
-        LocationFilter(XMLReader reader) {
-            super(reader);
-        }
-
-        @Override
-        public void setDocumentLocator(Locator locator) {
-            super.setDocumentLocator(locator);
-            this.locator = locator;
-        }
     }
 
     private static abstract class MyErrorHandler implements ErrorHandler {

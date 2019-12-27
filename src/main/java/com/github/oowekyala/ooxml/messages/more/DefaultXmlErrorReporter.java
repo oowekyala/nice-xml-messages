@@ -6,7 +6,6 @@ import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Severity;
 import com.github.oowekyala.ooxml.messages.XmlException;
-import com.github.oowekyala.ooxml.messages.XmlMessageHandler;
 import com.github.oowekyala.ooxml.messages.XmlPosition;
 import com.github.oowekyala.ooxml.messages.XmlPositioner;
 

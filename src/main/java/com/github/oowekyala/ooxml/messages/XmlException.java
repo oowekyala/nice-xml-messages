@@ -3,7 +3,7 @@ package com.github.oowekyala.ooxml.messages;
 /**
  * Generic XML exception wrapper. Can occur during validation or parsing.
  */
-public class XmlException extends RuntimeException {
+public final class XmlException extends RuntimeException {
 
     private final XmlPosition position;
     private final String simpleMessage;

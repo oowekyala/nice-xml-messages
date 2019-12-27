@@ -2,11 +2,13 @@ package com.github.oowekyala.ooxml.messages;
 
 import java.util.Objects;
 
+import org.xml.sax.Locator;
+
 
 /**
- * Represents a position in a file.
+ * Represents the location of an XML node in a file.
  */
-public class XmlPosition {
+public final class XmlPosition {
 
     public static final XmlPosition UNDEFINED = new XmlPosition(-1, -1);
 
@@ -24,14 +26,25 @@ public class XmlPosition {
         this.column = column;
     }
 
+    /**
+     * Returns the (1-based) line number of the position.
+     */
     public @OneBased int getLine() {
         return line;
     }
 
+    /**
+     * Returns the (1-based) column number of the position.
+     */
     public @OneBased int getColumn() {
         return column;
     }
 
+    /**
+     * The system ID of the file where the node is located.
+     *
+     * @see Locator#getSystemId()
+     */
     public String getSystemId() {
         return systemId;
     }

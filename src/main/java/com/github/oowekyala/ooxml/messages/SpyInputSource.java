@@ -16,15 +16,6 @@ class SpyInputSource extends InputSource {
 
     private Supplier<String> sup;
 
-    public SpyInputSource(String wholeText) {
-        if (wholeText != null) {
-            sup = () -> wholeText;
-        }
-    }
-
-    public SpyInputSource() {
-
-    }
 
     @Override
     public void setCharacterStream(Reader characterStream) {

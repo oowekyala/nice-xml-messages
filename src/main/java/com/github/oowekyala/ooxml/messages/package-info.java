@@ -34,4 +34,3 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import com.sun.org.apache.xml.internal.utils.DOMBuilder;
