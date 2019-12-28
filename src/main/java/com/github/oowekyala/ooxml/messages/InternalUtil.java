@@ -17,6 +17,9 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import static java.lang.Integer.max;
+import static java.lang.Integer.min;
+
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -28,33 +31,37 @@ import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.github.oowekyala.ooxml.messages.Annots.OneBased;
+
 
 final class InternalUtil {
 
     static final Object[] EMPTY_OBJ_ARRAY = new Object[0];
+    private static final char CARET = '^';
+    private static final char SPACE = ' ';
 
     private InternalUtil() {
 
     }
 
-    public static String addNSpacesLeft(String s, int n) {
+    public static String buildCaretLine(String message, @OneBased int column, int rangeLen) {
         StringBuilder builder = new StringBuilder();
-        builder.append(' ');
-        repeatChar(builder, ' ', n - 1);
-        builder.append(s);
-        return builder.toString();
+        repeatChar(builder, SPACE, column);
+        repeatChar(builder, CARET, max(rangeLen, 1));
+        return builder.append(SPACE).append(message).toString();
     }
 
     // input builder must not be empty
     private static void repeatChar(StringBuilder builder, char c, int n) {
+        int start = builder.length();
         while (n > 0) {
-            if (n < builder.length()) {
+            int lenAdded = builder.length() - start;
+            if (n >= lenAdded && lenAdded > 0) {
+                builder.append(builder, start, lenAdded);
+                n -= lenAdded;
+            } else {
                 builder.append(c);
                 n--;
-            } else {
-                int len = builder.length();
-                builder.append(builder);
-                n -= len;
             }
         }
     }

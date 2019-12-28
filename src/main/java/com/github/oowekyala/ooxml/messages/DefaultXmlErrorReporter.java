@@ -2,8 +2,6 @@ package com.github.oowekyala.ooxml.messages;
 
 import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.USER_VALIDATION;
 
-import java.util.Formatter;
-
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
@@ -64,7 +62,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     /**
      * Template the message with the given args. By default uses {@link String#format(String, Object...)
-     * String::format}. Override to use eg {@link Formatter}. If no arguments
+     * String::format}. Override to use a different method. If no arguments
      * are present, templating is applied regardless.
      *
      * @param message Template

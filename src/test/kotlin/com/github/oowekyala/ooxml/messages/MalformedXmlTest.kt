@@ -47,14 +47,13 @@ $HEADER
         ex.toString().shouldBe(
                 """
 Fatal error (XML parsing)
-    2| <list>
-    3|     <list
-    4|         <str>oha</str>
-               ^ Element type "list" must be followed by either attribute specifications, ">" or "/>".
+ 2| <list>
+ 3|     <list
+ 4|         <str>oha</str>
+            ^ Element type "list" must be followed by either attribute specifications, ">" or "/>".
 
-
-    5|         <str>what</str>
-    6|     </list>
+ 5|         <str>what</str>
+ 6|     </list>
 """.trimIndent()
 
         )
@@ -80,13 +79,12 @@ $HEADER
         ex.toString().shouldBe(
                 """
 Fatal error (XML parsing)
-    1| $HEADER
-    2| <list>
-    3|     <list foo="&amb;"/>
-                           ^ The entity "amb" was referenced, but not declared.
+ 1| $HEADER
+ 2| <list>
+ 3|     <list foo="&amb;"/>
+                        ^ The entity "amb" was referenced, but not declared.
 
-
-    4| </list>
+ 4| </list>
 """.trimIndent()
 
         )
@@ -109,8 +107,8 @@ $HEADER
 
         ex.toString().shouldBe(
 """Fatal error (XML parsing)
-    1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-                                                             ^ Premature end of file.
+ 1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                          ^ Premature end of file.
 
 """.trim()
         )
@@ -129,8 +127,8 @@ $HEADER
 
         ex.toString().shouldBe(
 """Fatal error (XML parsing)
-    1| 
-       ^ Premature end of file.
+ 1| 
+    ^ Premature end of file.
 
 """.trim()
         )

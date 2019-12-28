@@ -56,13 +56,12 @@ $HEADER
 
         printer.err[0].message shouldBe """
 Error (XML validation) in /test/File.xml
-    1| $HEADER
-    2| <list>
-    3|     <list foo="&amp;"/>
-                 ^ Give better names plz
+ 1| $HEADER
+ 2| <list>
+ 3|     <list foo="&amp;"/>
+              ^ Give better names plz
 
-
-    4| </list>
+ 4| </list>
 """.trimIndent()
 
 
@@ -100,13 +99,12 @@ $HEADER
 
         printer.err[0].message shouldBe """
 Error (XML validation) in /test/File.xml
-    3|     <list xmlns:xsi="fooo" xmlns:foo="ah!"
-    4|             foo:oha ='a'
-    5|         xsi:foo="&amp;" />
-               ^ Give better names plz
+ 3|     <list xmlns:xsi="fooo" xmlns:foo="ah!"
+ 4|             foo:oha ='a'
+ 5|         xsi:foo="&amp;" />
+            ^ Give better names plz
 
-
-    6| </list>
+ 6| </list>
 """.trimIndent()
 
 
@@ -141,13 +139,12 @@ $HEADER
 
         printer.err[0].message shouldBe """
 Error (XML validation) in /test/File.xml
-    1| $HEADER
-    2| <list>
-             ^ Give better names plz
+ 1| $HEADER
+ 2| <list>
+          ^ Give better names plz
 
-
-    3|     text
-    4|     <![CDATA[
+ 3|     text
+ 4|     <![CDATA[
 """.trimIndent()
 
 
@@ -183,14 +180,13 @@ $HEADER
 
         printer.err[0].message shouldBe """
 Error (XML validation) in /test/File.xml
-    2| <list>
-    3|     text
-    4|     <![CDATA[
-           ^ Give better names plz
+ 2| <list>
+ 3|     text
+ 4|     <![CDATA[
+        ^ Give better names plz
 
-
-    5|     cdata
-    6|     ]]>
+ 5|     cdata
+ 6|     ]]>
         """.trimIndent()
 
     }
@@ -232,13 +228,12 @@ $HEADER
 
         printer.err[0].message shouldBe """
 Error (XML validation) in /test/File.xml
-    5|     cdata
-    6|     ]]>
-    7|     <mixed />
-           ^ Give better names plz
+ 5|     cdata
+ 6|     ]]>
+ 7|     <mixed />
+        ^ Give better names plz
 
-
-    8| </list>
+ 8| </list>
 """.trimIndent()
 
     }

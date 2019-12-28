@@ -8,7 +8,8 @@ import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 
 
 /**
- * Represents the location of an XML node in a file.
+ * Represents the location of an XML node in a file. This is a text range,
+ * located on a single line.
  */
 public final class XmlPosition {
 
@@ -16,6 +17,7 @@ public final class XmlPosition {
 
     private final int line;
     private final int column;
+    private final int length;
     private final String systemId;
 
     private XmlPosition(int line, int column) {
@@ -26,10 +28,18 @@ public final class XmlPosition {
         this.systemId = systemId;
         this.line = line;
         this.column = column;
+        this.length = 0;
+    }
+
+    public XmlPosition(String systemId, @OneBased int line, @OneBased int column, int length) {
+        this.systemId = systemId;
+        this.line = line;
+        this.column = column;
+        this.length = length;
     }
 
     /**
-     * Returns the (1-based) line number of the position.
+     * Returns the (1-based) line number of this position.
      * If this position is undefined, the result is garbage.
      */
     public @OneBased int getLine() {
@@ -37,7 +47,7 @@ public final class XmlPosition {
     }
 
     /**
-     * Returns the (1-based) column number of the position.
+     * Returns the (1-based) column number of the start of this range.
      * If this position is undefined, the result is garbage.
      */
     public @OneBased int getColumn() {
@@ -58,6 +68,13 @@ public final class XmlPosition {
      */
     public boolean isUndefined() {
         return line < 0 || column < 0;
+    }
+
+    /**
+     * Returns the length of the text range.
+     */
+    public int getLength() {
+        return length;
     }
 
     @Override
