@@ -177,9 +177,4 @@ final class InternalUtil {
             return result;
         }
     }
-
-    /*
-        Those are here to clarify between 1 and 0 based offsets.
-     */
-
 }

@@ -18,6 +18,15 @@
     </description>
     <url>https://github.com/oowekyala/xml-node-locator</url>
 
+    <developers>
+        <developer>
+            <name>Clément Fournier</name>
+            <email>clement.fournier76@gmail.com</email>
+            <id>oowekyala</id>
+            <url>https://github.com/oowekyala</url>
+        </developer>
+    </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
