@@ -25,10 +25,7 @@ public final class XmlPosition {
     }
 
     public XmlPosition(String systemId, @OneBased int line, @OneBased int column) {
-        this.systemId = systemId;
-        this.line = line;
-        this.column = column;
-        this.length = 0;
+        this(systemId, line, column, 0);
     }
 
     public XmlPosition(String systemId, @OneBased int line, @OneBased int column, int length) {

@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DocumentType;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -19,7 +20,7 @@ import org.w3c.dom.ProcessingInstruction;
 class OffsetScanner {
 
     private static final String PREFIX = "ooxml:";
-    private static final String START_OFFSET = PREFIX + "beginLoc";
+    private static final String START_OFFSET = PREFIX + "startOffset";
 
     private final String systemId;
     private final TextDoc textDoc;
@@ -118,7 +119,17 @@ class OffsetScanner {
         }
         int line = textDoc.lineNumberFromOffset(offset);
         int column = textDoc.columnFromOffset(line, offset);
-        return new XmlPosition(systemId, line, column);
+        return new XmlPosition(systemId, line, column, length(node));
+    }
+
+    private int length(Node node) {
+        if (node instanceof Attr) {
+            return ((Attr) node).getName().length();
+        } else if (node instanceof Element) {
+            return ((Element) node).getTagName().length() + 1; // + '<'
+        }
+
+        return 0;
     }
 
     @ZeroBased
@@ -132,22 +143,22 @@ class OffsetScanner {
     }
 
     private Integer attributeOffset(Attr attr) {
-        Integer offset = getStartOffset(attr.getOwnerElement());
-        if (offset == null) {
+        Integer startOffset = getStartOffset(attr.getOwnerElement());
+        if (startOffset == null) {
             return null;
         }
 
         String textString = textDoc.getTextString();
-        int searchEnd = textString.indexOf('>', offset);
+        int searchEnd = textString.indexOf('>', startOffset);
 
         Matcher matcher = Pattern.compile(attr.getName() + "\\s*=")
                                  .matcher(textString)
-                                 .region(offset, searchEnd);
+                                 .region(startOffset, searchEnd);
 
         if (matcher.find()) {
             return matcher.start();
         }
-        return offset;
+        return startOffset;
     }
 
     private static String unexpandEntities(Node n, String te, boolean withQuotes) {

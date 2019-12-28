@@ -57,7 +57,7 @@ final class InternalUtil {
         while (n > 0) {
             int lenAdded = builder.length() - start;
             if (n >= lenAdded && lenAdded > 0) {
-                builder.append(builder, start, lenAdded);
+                builder.append(builder, start, builder.length());
                 n -= lenAdded;
             } else {
                 builder.append(c);
