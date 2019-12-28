@@ -21,7 +21,7 @@ class FullFilePositioner extends PartialFilePositioner implements XmlPositioner 
 
         this.scanner = new OffsetScanner(systemId, textDoc);
 
-        scanner.determineLocation(document.getDocumentElement(),0);
+        scanner.determineLocation(document.getDocumentElement(), 0);
     }
 
     @Override

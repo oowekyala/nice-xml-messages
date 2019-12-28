@@ -37,22 +37,34 @@ public final class XmlException extends RuntimeException {
         this.severity = severity;
     }
 
-
+    /**
+     * Returns the error message, without the surrounding line context.
+     * {@link #getMessage()} will return a fuller message.
+     */
     public String getSimpleMessage() {
         return simpleMessage;
     }
 
 
+    /**
+     * Returns the position where the error occurred. This may
+     * be {@linkplain XmlPosition#isUndefined() undefined}.
+     */
     public XmlPosition getPosition() {
         return position;
     }
 
 
-    /** Returns the message kind. */
+    /**
+     * Returns the message kind.
+     */
     public XmlMessageKind getKind() {
         return kind;
     }
 
+    /**
+     * Returns the severity of the message.
+     */
     public Severity getSeverity() {
         return severity;
     }

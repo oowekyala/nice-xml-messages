@@ -1,12 +1,10 @@
 package com.github.oowekyala.ooxml.messages;
 
-import javax.management.modelmbean.XMLParseException;
-
 import org.w3c.dom.Node;
 
 /**
- * Kind of a message (or {@linkplain XMLParseException exception}),
- * mostly just a formatting helper.
+ * Kind of a {@linkplain XmlException message}, mostly just a formatting
+ * helper.
  */
 public interface XmlMessageKind {
 
@@ -14,6 +12,8 @@ public interface XmlMessageKind {
     /**
      * Gets the descriptive header for this kind. This is what's displayed
      * before the exception description in full messages, for example "XML parsing error".
+     *
+     * @param severity Severity of the warning
      *
      * @return The header for messages of this kind
      */

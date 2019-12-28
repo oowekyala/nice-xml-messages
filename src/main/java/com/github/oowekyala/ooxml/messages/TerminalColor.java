@@ -50,6 +50,8 @@ public enum TerminalColor {
      * @param bright     Whether to use a bright version of this color
      * @param background Whether to set the color on the text background rather than on the color
      * @param bold       Whether to set the text as bold
+     *
+     * @return A string surrounded by escape sequences
      */
     public String apply(String text, boolean bright, boolean background, boolean bold) {
         return getEscape(bright, background, bold) + text + ANSI_RESET;
@@ -67,6 +69,8 @@ public enum TerminalColor {
      * @param brightFg   Whether text color is bright
      * @param brightBg   Whether background color is bright
      * @param boldText   Whether to set the text as bold
+     *
+     * @return A string surrounded by escape sequences
      */
     public static String style(String text,
                                TerminalColor foreground,

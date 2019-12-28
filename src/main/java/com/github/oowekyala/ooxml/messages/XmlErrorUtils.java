@@ -55,6 +55,9 @@ public final class XmlErrorUtils {
      *                            ID} should be set for better error messages.
      * @param parsingErrorHandler Exception handler for recoverable parsing or
      *                            schema validation errors.
+     *
+     * @throws IOException  If reading from the input source throws an IOException
+     * @throws XmlException If the parser throws a fatal exception
      */
     public PositionedXmlDoc parse(DocumentBuilder domBuilder, InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
         return parseImpl(domBuilder, spyOn(inputSource), parsingErrorHandler);

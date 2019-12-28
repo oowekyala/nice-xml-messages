@@ -69,6 +69,8 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
      *
      * @param message Template
      * @param args    Template arguments
+     *
+     * @return The templated string
      */
     protected String template(String message, Object... args) {
         return String.format(message, args);

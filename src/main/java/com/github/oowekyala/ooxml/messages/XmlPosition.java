@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import org.xml.sax.Locator;
 
+import com.github.oowekyala.ooxml.messages.Annots.OneBased;
+
 
 /**
  * Represents the location of an XML node in a file.
@@ -20,7 +22,7 @@ public final class XmlPosition {
         this(null, line, column);
     }
 
-    public XmlPosition(String systemId, @Annots.OneBased int line, @Annots.OneBased int column) {
+    public XmlPosition(String systemId, @OneBased int line, @OneBased int column) {
         this.systemId = systemId;
         this.line = line;
         this.column = column;
@@ -30,7 +32,7 @@ public final class XmlPosition {
      * Returns the (1-based) line number of the position.
      * If this position is undefined, the result is garbage.
      */
-    public @Annots.OneBased int getLine() {
+    public @OneBased int getLine() {
         return line;
     }
 
@@ -38,7 +40,7 @@ public final class XmlPosition {
      * Returns the (1-based) column number of the position.
      * If this position is undefined, the result is garbage.
      */
-    public @Annots.OneBased int getColumn() {
+    public @OneBased int getColumn() {
         return column;
     }
 
@@ -88,6 +90,8 @@ public final class XmlPosition {
      * given system ID.
      *
      * @param systemId System ID
+     *
+     * @return An undefined position
      */
     public static XmlPosition undefinedIn(String systemId) {
         return new XmlPosition(systemId, -1, -1);

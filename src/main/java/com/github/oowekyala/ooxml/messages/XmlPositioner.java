@@ -19,18 +19,23 @@ public interface XmlPositioner {
      * Returns an object describing the position in the file of the
      * given XML node. If no position is available, returns
      * {@linkplain XmlPosition#isUndefined() an undefined position}.
+     *
+     * @param node XML node
+     *
+     * @return A position
      */
     XmlPosition startPositionOf(@Nullable Node node);
 
 
     /**
-     * Enrich the given [message] with the context of the [position].
+     * Enrich the given message with the context of the position.
      * Typically this adds the source lines of the source file around
      * the error message.
      *
      * @param position           Position of the error
      * @param supportsAnsiColors Whether to use ANSI escape sequences to color the message
      * @param kind               Kind of error
+     * @param severity           Severity of the message
      * @param message            Error message
      *
      * @return The full message
@@ -39,7 +44,7 @@ public interface XmlPositioner {
         XmlPosition position,
         boolean supportsAnsiColors,
         XmlMessageKind kind,
-        Severity level,
+        Severity severity,
         String message
     );
 

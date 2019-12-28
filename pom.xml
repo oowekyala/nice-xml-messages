@@ -5,13 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.oowekyala.ooxml</groupId>
-    <artifactId>xml-positioner</artifactId>
+    <artifactId>xml-node-locator</artifactId>
     <packaging>jar</packaging>
     <version>7.0.0-SNAPSHOT</version>
 
-    <name>XML Error Positioner</name>
-    <description> Associates positions to XML nodes, to enrich error messages.</description>
-    <url>https://github.com/oowekyala/xml-positioner</url>
+    <name>XML Node Locator</name>
+    <description>
+        Associates XML DOM nodes to their position in source, to enrich error messages.
+        This builds on top of the standard org.w3c.dom API. Should probably not be used
+        in performance critical code, but can hopefully cleanup reporting logic in places
+        where user-friendly messages are important.
+    </description>
+    <url>https://github.com/oowekyala/xml-node-locator</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -166,6 +171,9 @@
                 <version>3.1.1</version>
                 <configuration>
                     <quiet>true</quiet>
+                    <links>
+                        <link>https://docs.oracle.com/javase/8/docs/api/</link>
+                    </links>
                     <additionalOptions>-Xdoclint:none</additionalOptions>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <additionalJOption>-html5</additionalJOption>
