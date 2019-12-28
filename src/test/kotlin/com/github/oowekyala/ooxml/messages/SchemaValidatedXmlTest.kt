@@ -49,9 +49,9 @@ $HEADER
         printer.err.map { it.toString() }.shouldContainExactly("""
             Error (XML parsing)
                 1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-                2| <note xmlns="https://com.github.oowekyala/ooxml/tests" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://com.github.oowekyala/ooxml/tests file:/home/clifrr/Documents/Git/ooxml/target/test-classes/com/github/oowekyala/ooxml/messages/SampleSchema.xsd">
+                2| <note xmlns="$schemaNs" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$schemaNs $schemaLoc">
                 3|     <foo />
-                              ^ cvc-complex-type.2.4.a: Invalid content was found starting with element '{"https://com.github.oowekyala/ooxml/tests":foo}'. One of '{to}' is expected.
+                              ^ cvc-complex-type.2.4.a: Invalid content was found starting with element 'foo'. One of '{to}' is expected.
 
 
                 4| 
