@@ -221,6 +221,9 @@ $HEADER
         val text =
                 xmlDoc.document
                         .documentElement
+                        .also {
+                            it.tagName shouldBe "list"
+                        }
                         .childNodes
                         .item(0)!!
 

@@ -74,7 +74,7 @@ public final class XmlErrorUtils {
 
         try {
             Document doc = builder.parse(isource);
-            FullFilePositioner positioner = new FullFilePositioner(isource.getReadSoFar(), isource.getSystemId(), doc);
+            FullFilePositioner positioner = new FullFilePositioner(isource.getReadSoFar(), isource.getSystemId());
 
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {

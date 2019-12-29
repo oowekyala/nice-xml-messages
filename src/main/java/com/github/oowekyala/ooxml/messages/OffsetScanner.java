@@ -63,6 +63,23 @@ class OffsetScanner {
             break;
         case Node.TEXT_NODE:
             // TODO coalescing CDATA sections affects this
+            //  - a text node cannot be followed by another text node
+            //  - can be followed by entity
+            //  - can be followed by CDATA
+            //  - but CDATA may be coalesced to the text node
+
+            Node nextSibling = n.getNextSibling();
+            switch (nextSibling.getNodeType()) {
+            case Node.ELEMENT_NODE:
+                nextIndex = xmlString.indexOf("<" + nextSibling.getNodeName(), nextIndex) - 1;
+                break;
+            case Node.COMMENT_NODE:
+                nextIndex = xmlString.indexOf("<!--", nextIndex);
+                break;
+            default:
+                nextIndex = xmlString.indexOf(">", nextIndex);
+                break;
+            }
 
             String te = unexpandEntities(n, n.getNodeValue(), true);
             int newIndex = xmlString.indexOf(te, nextIndex);
