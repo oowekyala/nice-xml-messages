@@ -17,6 +17,9 @@ import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
 
+/**
+ * Lazy offset scanner that only scans required nodes.
+ */
 class NewOffsetScanner {
 
     /*

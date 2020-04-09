@@ -59,7 +59,9 @@ public final class XmlErrorUtils {
      * @throws IOException  If reading from the input source throws an IOException
      * @throws XmlException If the parser throws a fatal exception
      */
-    public PositionedXmlDoc parse(DocumentBuilder domBuilder, InputSource inputSource, XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
+    public PositionedXmlDoc parse(DocumentBuilder domBuilder,
+                                  InputSource inputSource,
+                                  XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
         return parseImpl(domBuilder, spyOn(inputSource), parsingErrorHandler);
     }
 

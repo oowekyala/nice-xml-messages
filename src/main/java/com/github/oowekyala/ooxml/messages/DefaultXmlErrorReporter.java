@@ -22,7 +22,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public void warn(Node node, String message, Object... args) {
-        assert message != null : "Message is null!";
+        InternalUtil.assertParamNotNull("message", message);
         XmlException ex = createEntry(node, Severity.WARNING, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
     }
@@ -30,7 +30,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public XmlException error(Node node, String message, Object... args) {
-        assert message != null : "Message is null!";
+        InternalUtil.assertParamNotNull("message", message);
         XmlException ex = createEntry(node, Severity.ERROR, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
         return ex;
@@ -38,7 +38,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public XmlException error(Node node, Throwable cause) {
-        assert cause != null : "Cause is null!";
+        InternalUtil.assertParamNotNull("cause", cause);
         XmlException ex = createEntry(node, Severity.ERROR, printer.supportsAnsiColors(), cause.getMessage(), cause);
         printer.accept(ex);
         return ex;
@@ -46,7 +46,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public XmlException fatal(Node node, String message, Object... args) {
-        assert message != null : "Message is null!";
+        InternalUtil.assertParamNotNull("message", message);
         XmlException ex = createEntry(node, Severity.FATAL, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
         throw ex;
@@ -54,7 +54,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
     @Override
     public XmlException fatal(Node node, Throwable cause) {
-        assert cause != null : "Cause is null!";
+        InternalUtil.assertParamNotNull("cause", cause);
         XmlException ex = createEntry(node, Severity.FATAL, printer.supportsAnsiColors(), cause.getMessage(), cause);
         printer.accept(ex);
         throw ex;
@@ -63,7 +63,9 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     /**
      * Template the message with the given args. By default uses {@link String#format(String, Object...)
      * String::format}. Override to use a different method. If no arguments
-     * are present, templating is applied regardless.
+     * are present, templating is applied regardless. This avoids differences
+     * in special character escaping when arguments are added to a message
+     * that had none.
      *
      * @param message Template
      * @param args    Template arguments

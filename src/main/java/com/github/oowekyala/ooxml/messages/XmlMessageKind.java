@@ -38,7 +38,7 @@ public interface XmlMessageKind {
         PARSING("XML parsing"),
 
         /** A warning reported by a schema validator. */
-        SCHEMA_VALIDATION("XML validation"),
+        SCHEMA_VALIDATION("Schema validation"),
 
         ;
 

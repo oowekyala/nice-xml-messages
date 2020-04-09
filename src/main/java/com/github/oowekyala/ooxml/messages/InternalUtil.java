@@ -40,9 +40,18 @@ final class InternalUtil {
     private static final char CARET = '^';
     private static final char SPACE = ' ';
 
+
     private InternalUtil() {
 
     }
+
+
+    static void assertParamNotNull(String paramName, Object value) {
+        if (value == null) {
+            throw new NullPointerException(paramName + " should not be null");
+        }
+    }
+
 
     public static String buildCaretLine(String message, @OneBased int column, int rangeLen) {
         StringBuilder builder = new StringBuilder();
@@ -50,6 +59,7 @@ final class InternalUtil {
         repeatChar(builder, CARET, max(rangeLen, 1));
         return builder.append(SPACE).append(message).toString();
     }
+
 
     // input builder must not be empty
     private static void repeatChar(StringBuilder builder, char c, int n) {
