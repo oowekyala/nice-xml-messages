@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.w3c.dom.Node;
 
+import com.github.oowekyala.ooxml.xpath.MinXPath;
+
 /**
  * Adapter to support {@link MinXPath}.
  */

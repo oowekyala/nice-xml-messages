@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml;
+package com.github.oowekyala.ooxml.xpath;
 
 
 import java.util.ArrayDeque;

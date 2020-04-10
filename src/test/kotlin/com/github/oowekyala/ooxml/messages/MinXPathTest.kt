@@ -1,6 +1,6 @@
 package com.github.oowekyala.ooxml.messages
 
-import com.github.oowekyala.ooxml.MinXPath
+import com.github.oowekyala.ooxml.xpath.MinXPath
 import io.kotlintest.matchers.haveSize
 import io.kotlintest.matchers.numerics.shouldBeGreaterThan
 import io.kotlintest.matchers.withClue
