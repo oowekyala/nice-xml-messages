@@ -60,10 +60,8 @@ final class InternalUtil {
         return builder.append(SPACE).append(message).toString();
     }
 
-
-    // input builder must not be empty
     private static void repeatChar(StringBuilder builder, char c, int n) {
-        int start = builder.length();
+        final int start = builder.length();
         while (n > 0) {
             int lenAdded = builder.length() - start;
             if (n >= lenAdded && lenAdded > 0) {

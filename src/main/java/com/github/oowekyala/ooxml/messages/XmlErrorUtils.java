@@ -8,12 +8,19 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.AbstractList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -29,8 +36,35 @@ public final class XmlErrorUtils {
 
     private static final XmlErrorUtils DEFAULT = new XmlErrorUtils();
 
+
     XmlErrorUtils() {
     }
+
+
+    public static Map<String, Node> convertNodeMap(NamedNodeMap nodeList) {
+        Map<String, Node> map = new HashMap<>(nodeList.getLength());
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node item = nodeList.item(i);
+            map.put(item.getNodeName(), item);
+        }
+        return map;
+    }
+
+
+    public static List<Node> convertNodeList(NodeList nodeList) {
+        return new AbstractList<Node>() {
+            @Override
+            public Node get(int index) {
+                return nodeList.item(index);
+            }
+
+            @Override
+            public int size() {
+                return nodeList.getLength();
+            }
+        };
+    }
+
 
     /**
      * Parses an XML document and creates an associated {@link XmlPositioner}.
