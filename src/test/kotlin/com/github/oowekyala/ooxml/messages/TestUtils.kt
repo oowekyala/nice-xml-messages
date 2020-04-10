@@ -17,11 +17,11 @@ class TestMessagePrinter(private val useColors: Boolean = false) : XmlMessageHan
 
     override fun accept(entry: XmlException) {
         when (entry.severity) {
-            Severity.INFO -> out += entry
-            Severity.DEBUG -> debug += entry
-            Severity.WARNING -> warn += entry
-            Severity.ERROR -> err += entry
-            Severity.FATAL -> err += entry
+            XmlException.Severity.INFO -> out += entry
+            XmlException.Severity.DEBUG -> debug += entry
+            XmlException.Severity.WARNING -> warn += entry
+            XmlException.Severity.ERROR -> err += entry
+            XmlException.Severity.FATAL -> err += entry
             else -> fail("impossible")
         }
     }

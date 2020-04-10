@@ -4,6 +4,7 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 
 import org.w3c.dom.Node;
 
+import com.github.oowekyala.ooxml.internal_not_api.InternalUtil;
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
 /**
@@ -23,7 +24,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public void warn(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, Severity.WARNING, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.WARNING, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
     }
 
@@ -31,7 +32,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException error(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, Severity.ERROR, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.ERROR, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
         return ex;
     }
@@ -39,7 +40,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException error(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, Severity.ERROR, printer.supportsAnsiColors(), cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlException.Severity.ERROR, printer.supportsAnsiColors(), cause.getMessage(), cause);
         printer.accept(ex);
         return ex;
     }
@@ -47,7 +48,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException fatal(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, Severity.FATAL, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.FATAL, printer.supportsAnsiColors(), template(message, args), null);
         printer.accept(ex);
         throw ex;
     }
@@ -55,7 +56,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException fatal(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, Severity.FATAL, printer.supportsAnsiColors(), cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlException.Severity.FATAL, printer.supportsAnsiColors(), cause.getMessage(), cause);
         printer.accept(ex);
         throw ex;
     }
@@ -78,7 +79,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
 
     private XmlException createEntry(@Nullable Node node,
-                                     Severity level,
+                                     XmlException.Severity level,
                                      boolean useColors,
                                      String message,
                                      Throwable cause) {

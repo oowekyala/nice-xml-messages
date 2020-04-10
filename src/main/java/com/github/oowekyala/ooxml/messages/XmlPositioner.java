@@ -43,7 +43,7 @@ public interface XmlPositioner {
         XmlPosition position,
         boolean supportsAnsiColors,
         XmlMessageKind kind,
-        Severity severity,
+        XmlException.Severity severity,
         String message
     );
 

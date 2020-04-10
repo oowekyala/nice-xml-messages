@@ -52,6 +52,13 @@ public final class XmlPosition {
     }
 
     /**
+     * Returns the length of the text range.
+     */
+    public int getLength() {
+        return length;
+    }
+
+    /**
      * The system ID of the file where the node is located.
      *
      * @see Locator#getSystemId()
@@ -65,13 +72,6 @@ public final class XmlPosition {
      */
     public boolean isUndefined() {
         return line < 0 || column < 0;
-    }
-
-    /**
-     * Returns the length of the text range.
-     */
-    public int getLength() {
-        return length;
     }
 
     @Override

@@ -29,7 +29,7 @@ class PartialFilePositioner implements XmlPositioner {
     }
 
     @Override
-    public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, Severity severity, String message) {
+    public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, XmlException.Severity severity, String message) {
         if (position.isUndefined()) {
             return MessageTextBuilder.addHeader(kind, severity, position, message);
         }

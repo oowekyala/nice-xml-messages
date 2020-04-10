@@ -1,27 +1,21 @@
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml;
 
-import java.util.AbstractList;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.Annots.OneBased;
-import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.AttrStep;
-import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.ChildStep;
-import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.SelfStep;
-import com.github.oowekyala.ooxml.messages.MinXPath.Context.ContextImpl;
-import com.github.oowekyala.ooxml.messages.MinXPath.Filter.PositionFilter;
-import com.github.oowekyala.ooxml.messages.MinXPath.Filter.Predicate;
+import com.github.oowekyala.ooxml.MinXPath.AxisStep.AttrStep;
+import com.github.oowekyala.ooxml.MinXPath.AxisStep.ChildStep;
+import com.github.oowekyala.ooxml.MinXPath.AxisStep.SelfStep;
+import com.github.oowekyala.ooxml.MinXPath.Context.ContextImpl;
+import com.github.oowekyala.ooxml.MinXPath.Filter.PositionFilter;
+import com.github.oowekyala.ooxml.MinXPath.Filter.Predicate;
 
 /**
  * Minimal XPath engine. Not optimised or anything, just a
@@ -92,7 +86,7 @@ public final class MinXPath<N> {
      * @throws IllegalArgumentException If parsing fails
      */
     public static MinXPath<Node> parse(String expression) {
-        return parse(expression, DomNav.INSTANCE);
+        return parse(expression, Nav.W3C_DOM);
     }
 
 
@@ -301,127 +295,6 @@ public final class MinXPath<N> {
     }
 
 
-    interface Nav<N> {
-
-        short kind(N node);
-
-
-        String name(N node);
-
-
-        N parent(N node);
-
-
-        N nextSibling(N node);
-
-
-        N prevSibling(N node);
-
-
-        N attribute(N element, String name);
-
-
-        String attrValue(N element, String name);
-
-
-        List<N> attributes(N n);
-
-
-        List<N> children(N n);
-
-    }
-
-    static class DomNav implements Nav<Node> {
-
-        static final DomNav INSTANCE = new DomNav();
-
-
-        @Override
-        public short kind(Node node) {
-            return node.getNodeType();
-        }
-
-
-        @Override
-        public String name(Node node) {
-            return node.getNodeName();
-        }
-
-
-        @Override
-        public Node parent(Node node) {
-            return node.getParentNode();
-        }
-
-
-        @Override
-        public Node prevSibling(Node node) {
-            return node.getPreviousSibling();
-        }
-
-
-        @Override
-        public Node nextSibling(Node node) {
-            return node.getNextSibling();
-        }
-
-
-        @Override
-        public Node attribute(Node node, String name) {
-            if (!node.hasAttributes()) {
-                return null;
-            }
-            return node.getAttributes().getNamedItem(name);
-        }
-
-
-        @Override
-        public String attrValue(Node element, String name) {
-            Node attr = attribute(element, name);
-            return attr == null ? null : attr.getNodeValue();
-        }
-
-
-        @Override
-        public List<Node> attributes(Node node) {
-            if (!node.hasAttributes()) {
-                return Collections.emptyList();
-            }
-            NamedNodeMap attributes = node.getAttributes();
-            return new AbstractList<Node>() {
-                @Override
-                public Node get(int index) {
-                    return attributes.item(index);
-                }
-
-
-                @Override
-                public int size() {
-                    return attributes.getLength();
-                }
-            };
-        }
-
-
-        @Override
-        public List<Node> children(Node node) {
-            NodeList children = node.getChildNodes();
-            return new AbstractList<Node>() {
-                @Override
-                public Node get(int index) {
-                    return children.item(index);
-                }
-
-
-                @Override
-                public int size() {
-                    return children.getLength();
-                }
-            };
-        }
-    }
-
-
     abstract static class PathElement<N> {
 
 
@@ -468,11 +341,11 @@ public final class MinXPath<N> {
     static abstract class AxisStep<N> extends PathElement<N> {
 
         private final short kindTest;
-        private final @Nullable String nameTest;
+        private final String nameTest;
         private final List<Filter<N>> predicates = new ArrayList<>();
 
 
-        AxisStep(short kindTest, @Nullable String nameTest) {
+        AxisStep(short kindTest, String nameTest) {
             this.kindTest = kindTest;
             this.nameTest = nameTest;
         }
@@ -489,10 +362,10 @@ public final class MinXPath<N> {
         }
 
 
-        protected abstract Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest);
+        protected abstract Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, String nameTest);
 
 
-        protected Stream<N> defaultBaseFilter(Stream<N> nodes, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+        protected Stream<N> defaultBaseFilter(Stream<N> nodes, Nav<N> nav, short kindTest, String nameTest) {
             Stream<N> result = nodes;
             if (kindTest != 0) {
                 result = result.filter(it -> nav.kind(it) == kindTest);
@@ -560,7 +433,7 @@ public final class MinXPath<N> {
 
 
             @Override
-            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, String nameTest) {
                 Stream<N> children = StreamUtils.streamOf(nav.children(node));
                 return defaultBaseFilter(children, nav, kindTest, nameTest);
             }
@@ -581,7 +454,7 @@ public final class MinXPath<N> {
 
 
             @Override
-            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, String nameTest) {
                 assert kindTest == Node.ATTRIBUTE_NODE;
 
                 if (nav.kind(node) != Node.ELEMENT_NODE) {
@@ -605,13 +478,13 @@ public final class MinXPath<N> {
         static class SelfStep<N> extends AxisStep<N> {
 
 
-            SelfStep(short kindTest, @Nullable String nameTest) {
+            SelfStep(short kindTest, String nameTest) {
                 super(kindTest, nameTest);
             }
 
 
             @Override
-            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, String nameTest) {
                 return defaultBaseFilter(Stream.of(node), nav, kindTest, nameTest);
             }
 
@@ -646,7 +519,7 @@ public final class MinXPath<N> {
 
         static class PositionFilter<N> extends Filter<N> {
 
-            final @OneBased int pos;
+            final int pos;
 
 
             PositionFilter(int pos) {

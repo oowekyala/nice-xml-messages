@@ -1,35 +1,51 @@
 package com.github.oowekyala.ooxml.messages;
 
-import static com.github.oowekyala.ooxml.messages.Severity.ERROR;
-import static com.github.oowekyala.ooxml.messages.Severity.FATAL;
-import static com.github.oowekyala.ooxml.messages.Severity.WARNING;
+import static com.github.oowekyala.ooxml.messages.XmlException.Severity.ERROR;
+import static com.github.oowekyala.ooxml.messages.XmlException.Severity.FATAL;
+import static com.github.oowekyala.ooxml.messages.XmlException.Severity.WARNING;
 import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.AbstractList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * Main entry point of the API.
+ * Main entry point of the API. Example usage:
  *
- * @author Clément Fournier
+ * <pre>{@code
+ *    public AppConfig parseConfig(Path path) throws IOException, XmlException {
+ *        DocumentBuilder builder;
+ *        try {
+ *            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+ *        } catch (ParserConfigurationException e) {
+ *            throw new IllegalStateException("Platform does not support XML", e);
+ *        }
+ *
+ *        PositionedXmlDoc doc;
+ *        try (Reader reader = Files.newBufferedReader(path)) {
+ *            InputSource iSource = new InputSource();
+ *            iSource.setSystemId(path.toString());
+ *            iSource.setCharacterStream(reader);
+ *
+ *            doc = parse(builder, iSource, XmlMessageHandler.SYSTEM_ERR);
+ *        }
+ *
+ *        XmlErrorReporter reporter = new DefaultXmlErrorReporter(XmlMessageHandler.SYSTEM_ERR, doc.getPositioner());
+ *
+ *        return appSpecificParsing(doc.getDocument(), reporter);
+ *    }
+ *
+ * }</pre>
  */
 public final class XmlErrorUtils {
 
@@ -38,31 +54,6 @@ public final class XmlErrorUtils {
 
 
     XmlErrorUtils() {
-    }
-
-
-    public static Map<String, Node> convertNodeMap(NamedNodeMap nodeList) {
-        Map<String, Node> map = new HashMap<>(nodeList.getLength());
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node item = nodeList.item(i);
-            map.put(item.getNodeName(), item);
-        }
-        return map;
-    }
-
-
-    public static List<Node> convertNodeList(NodeList nodeList) {
-        return new AbstractList<Node>() {
-            @Override
-            public Node get(int index) {
-                return nodeList.item(index);
-            }
-
-            @Override
-            public int size() {
-                return nodeList.getLength();
-            }
-        };
     }
 
 
@@ -115,7 +106,7 @@ public final class XmlErrorUtils {
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
             PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
-            XmlException ex = InternalUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
+            XmlException ex = MessageUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
             handler.accept(ex);
             throw ex;
         }
@@ -141,7 +132,7 @@ public final class XmlErrorUtils {
         }
 
         if (is.getCharacterStream() != null) {
-            is.setFullText(InternalUtil.readFully(is.getCharacterStream()));
+            is.setFullText(MessageUtil.readFully(is.getCharacterStream()));
         }
 
         return is;
@@ -157,8 +148,8 @@ public final class XmlErrorUtils {
 
         abstract XmlPositioner getPositioner();
 
-        private XmlException parseException(SAXParseException exception, Severity severity) {
-            return InternalUtil.createEntryBestEffort(getPositioner(), PARSING, severity, handler.supportsAnsiColors(), exception);
+        private XmlException parseException(SAXParseException exception, XmlException.Severity severity) {
+            return MessageUtil.createEntryBestEffort(getPositioner(), PARSING, severity, handler.supportsAnsiColors(), exception);
         }
 
         @Override

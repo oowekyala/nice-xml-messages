@@ -17,11 +17,11 @@ final class Annots {
 
     @Target(ElementType.TYPE_USE)
     @Retention(RetentionPolicy.SOURCE)
-    @interface ZeroBased {
+    public @interface ZeroBased {
     }
 
     @Target(ElementType.TYPE_USE)
     @Retention(RetentionPolicy.SOURCE)
-    @interface OneBased {
+    public @interface OneBased {
     }
 }

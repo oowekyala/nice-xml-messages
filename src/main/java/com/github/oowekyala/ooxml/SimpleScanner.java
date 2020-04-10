@@ -1,8 +1,10 @@
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml;
 
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import com.github.oowekyala.ooxml.internal_not_api.InternalUtil;
 
 class SimpleScanner {
 

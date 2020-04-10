@@ -17,7 +17,7 @@ public interface XmlMessageKind {
      *
      * @return The header for messages of this kind
      */
-    String getHeader(Severity severity);
+    String getHeader(XmlException.Severity severity);
 
 
     /**
@@ -50,7 +50,7 @@ public interface XmlMessageKind {
 
 
         @Override
-        public String getHeader(Severity severity) {
+        public String getHeader(XmlException.Severity severity) {
             return severity.toString() + " (" + header + ")";
         }
     }

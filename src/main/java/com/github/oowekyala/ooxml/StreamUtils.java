@@ -1,4 +1,4 @@
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml;
 
 import java.util.ArrayList;
 import java.util.Arrays;

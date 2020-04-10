@@ -8,6 +8,7 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.github.oowekyala.ooxml.internal_not_api.InternalUtil;
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
 
@@ -113,7 +114,7 @@ class TextDoc {
                 : "Weird indices --- first=" + first + ", errorIdx=" + errorIdx + ", lines=" + lines;
         }
 
-        public String make(boolean supportsAnsiColors, XmlMessageKind kind, Severity severity, XmlPosition position, String message) {
+        public String make(boolean supportsAnsiColors, XmlMessageKind kind, XmlException.Severity severity, XmlPosition position, String message) {
 
             int pad = stringLengthOf(lines.size() + first);
 
@@ -146,7 +147,7 @@ class TextDoc {
             return String.format(" %" + pad + "d| %s", 1 + idx + first, lines.get(idx));
         }
 
-        public static String addHeader(XmlMessageKind kind, Severity severity, XmlPosition position, String message) {
+        public static String addHeader(XmlMessageKind kind, XmlException.Severity severity, XmlPosition position, String message) {
 
 
             String url = position.getSystemId();
