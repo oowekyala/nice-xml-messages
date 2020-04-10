@@ -22,19 +22,6 @@ import org.w3c.dom.UserDataHandler;
  */
 class NewOffsetScanner {
 
-    /*
-        START:
-        For some node, search start is
-        - END of previous sibling
-        - if prev sibling is null, start offset of parent content (eg closing > for elt header)
-        - adjust for ignorable whitespace
-
-        END:
-        - search start is END of last child
-
-
-     */
-
     private static final String PREFIX = "ooxml:";
     private static final String START_OFFSET = PREFIX + "startOffset";
     private static final String END_OFFSET = PREFIX + "endOffset";

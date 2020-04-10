@@ -309,6 +309,15 @@ public final class MinXPath<N> {
         String name(N node);
 
 
+        N parent(N node);
+
+
+        N nextSibling(N node);
+
+
+        N prevSibling(N node);
+
+
         N attribute(N element, String name);
 
 
@@ -336,6 +345,24 @@ public final class MinXPath<N> {
         @Override
         public String name(Node node) {
             return node.getNodeName();
+        }
+
+
+        @Override
+        public Node parent(Node node) {
+            return node.getParentNode();
+        }
+
+
+        @Override
+        public Node prevSibling(Node node) {
+            return node.getPreviousSibling();
+        }
+
+
+        @Override
+        public Node nextSibling(Node node) {
+            return node.getNextSibling();
         }
 
 
