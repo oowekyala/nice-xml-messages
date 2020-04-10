@@ -1,14 +1,21 @@
 package com.github.oowekyala.ooxml.messages;
 
+import java.util.AbstractList;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
+import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.AttrStep;
+import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.ChildStep;
 
 /**
  * Minimal XPath engine. Not optimised or anything, just a
@@ -64,7 +71,7 @@ public final class MinXPath {
      * @return A stream of nodes
      */
     public Stream<Node> evaluate(Node start) {
-        return path.evaluate(Stream.of(start));
+        return path.evaluate(StreamUtils.streamOf(start));
     }
 
 
@@ -115,7 +122,7 @@ public final class MinXPath {
             break;
         case '*':
             cur = b.consumeChar(cur, '*');
-            path = path.andThen(new ChildStep(Node.ELEMENT_NODE));
+            path = path.andThen(new ChildStep(Node.ELEMENT_NODE, null));
             break;
         case '.':
             cur = b.consumeChar(cur, '.');
@@ -124,8 +131,7 @@ public final class MinXPath {
         default:
             if (b.isIdentStart(cur)) {
                 cur = identifier(cur, b, "ident");
-                path = path.andThen(new ChildStep(Node.ELEMENT_NODE));
-                path = path.andThen(nameTest(b.popStr()));
+                path = path.andThen(new ChildStep(Node.ELEMENT_NODE, b.popStr()));
             } else {
                 throw b.expected("step (*, ., name, or @attr)", cur);
             }
@@ -139,6 +145,7 @@ public final class MinXPath {
             cur = b.skipWhitespace(cur);
             path = path.andThen(b.pop());
         }
+        b.push(path);
         return cur;
     }
 
@@ -160,7 +167,7 @@ public final class MinXPath {
 
     static int numberPredicate(final int start, XPathScanner b) {
         int cur = number(start, b);
-        b.push(new PosTest(Integer.parseInt(b.popStr())));
+        b.push(new Filter.Pos(Integer.parseInt(b.popStr())));
         return cur;
     }
 
@@ -229,7 +236,7 @@ public final class MinXPath {
 
 
     private static PathElement attrTest(String name, String value) {
-        return new FilterTest(n -> {
+        return new Filter.Pred(n -> {
             if (!n.hasAttributes()) {
                 return false;
             }
@@ -238,213 +245,285 @@ public final class MinXPath {
                 return false;
             }
             return value.equals(attr.getNodeValue());
-        });
+        }) {
+            @Override
+            public String toString() {
+                return "[@" + name + " = '" + value + "']";
+            }
+        };
     }
 
 
-    public static PathElement nameTest(String name) {
-        return new NameTest(name);
-    }
+    abstract static class PathElement {
 
 
-    interface PathElement {
-
-        Stream<Node> evaluate(Stream<Node> context);
+        public abstract Stream<Node> evaluate(Stream<Node> upstream);
 
 
         /**
          * Compose the given path element after this one. Implementations can override this with an optimised impl in
          * some cases.
          */
-        default PathElement andThen(PathElement p) {
-            return nodes -> p.evaluate(this.evaluate(nodes));
+        public PathElement andThen(PathElement downstream) {
+            if (downstream instanceof SelfStep) {
+                return this;
+            } else if (downstream instanceof Sink) {
+                return downstream;
+            }
+            return new PathElement() {
+                @Override
+                public Stream<Node> evaluate(Stream<Node> upstream) {
+                    return downstream.evaluate(PathElement.this.evaluate(upstream));
+                }
+
+
+                @Override
+                public String toString() {
+                    return PathElement.this + "/" + downstream;
+                }
+            };
         }
     }
 
-    static class SelfStep implements PathElement {
+    static abstract class AxisStep extends PathElement {
+
+        private final short kindTest;
+        private final @Nullable String nameTest;
+        private final List<Filter> predicates = new ArrayList<>();
+
+
+        AxisStep(short kindTest, @Nullable String nameTest) {
+            this.kindTest = kindTest;
+            this.nameTest = nameTest;
+        }
+
+
+        @Override
+        public PathElement andThen(PathElement downstream) {
+            if (downstream instanceof Filter) {
+                this.predicates.add((Filter) downstream);
+                return this;
+            }
+            return super.andThen(downstream);
+        }
+
+
+        protected abstract Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest);
+
+
+        protected Stream<Node> defaultBaseFilter(Stream<Node> nodes, short kindTest, @Nullable String nameTest) {
+            Stream<Node> result = nodes;
+            result = result.filter(it -> it.getNodeType() == kindTest);
+            if (nameTest != null) {
+                result = result.filter(it -> nameTest.equals(it.getNodeName()));
+            }
+            return result;
+        }
+
+
+        private String nameTestToString() {
+            return nameTest == null ? "" : nameTest;
+        }
+
+
+        protected abstract String axisName();
+
+
+        @Override
+        public String toString() {
+            return axisName() + "::" + nodeTestToString() + filtersToString();
+        }
+
+
+        protected String nodeTestToString() {
+            switch (kindTest) {
+            case Node.ELEMENT_NODE:
+                return "element-node(" + nameTestToString() + ")";
+            case Node.ATTRIBUTE_NODE:
+                return "attribute(" + nameTestToString() + ")";
+            default:
+                return "???(" + nameTestToString() + ")";
+            }
+        }
+
+
+        protected String filtersToString() {
+            return predicates.stream().map(it -> "[" + it + "]").collect(Collectors.joining());
+        }
+
+
+        @Override
+        public Stream<Node> evaluate(Stream<Node> upstream) {
+            return upstream.flatMap(n -> {
+                Stream<Node> result = iterateAxis(n, kindTest, nameTest);
+                result = result.filter(it -> it.getNodeType() == kindTest);
+                if (nameTest != null) {
+                    result = result.filter(it -> nameTest.equals(it.getNodeName()));
+                }
+
+                for (Filter pred : predicates) {
+                    result = pred.evaluate(result);
+                }
+                return result;
+            });
+        }
+
+
+        static class ChildStep extends AxisStep {
+
+
+            private ChildStep(short outputNodeType, String nameTest) {
+                super(outputNodeType, nameTest);
+            }
+
+
+            @Override
+            protected Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest) {
+                Stream<Node> children = StreamUtils.streamOf(XmlErrorUtils.convertNodeList(node.getChildNodes()));
+                return defaultBaseFilter(children, kindTest, nameTest);
+            }
+
+
+            @Override
+            protected String axisName() {
+                return "child";
+            }
+        }
+
+
+        static class AttrStep extends AxisStep {
+
+            AttrStep(String attrName) {
+                super(Node.ATTRIBUTE_NODE, attrName);
+            }
+
+
+            @Override
+            protected Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest) {
+                assert kindTest == Node.ATTRIBUTE_NODE;
+                if (!node.hasAttributes()) {
+                    return Stream.empty();
+                }
+
+                NamedNodeMap attributes = node.getAttributes();
+                if (nameTest == null) {
+                    return new AbstractList<Node>() {
+                        @Override
+                        public int size() {
+                            return attributes.getLength();
+                        }
+
+
+                        @Override
+                        public Node get(int index) {
+                            return attributes.item(index);
+                        }
+                    }.stream();
+                }
+
+
+                Node attr = attributes.getNamedItem(nameTest);
+                if (attr == null) {
+                    return Stream.empty();
+                }
+                return StreamUtils.streamOf(attr);
+            }
+
+
+            @Override
+            protected String axisName() {
+                return "attribute";
+            }
+        }
+    }
+
+    static abstract class Filter extends PathElement {
+
+        static class Pred extends Filter {
+
+            final Predicate<? super Node> predicate;
+
+
+            Pred(Predicate<? super Node> predicate) {this.predicate = predicate;}
+
+
+            @Override
+            public Stream<Node> evaluate(Stream<Node> upstream) {
+                return upstream.filter(predicate);
+            }
+        }
+
+        static class Pos extends Filter {
+
+            final @OneBased int pos;
+
+
+            Pos(int pos) {
+                this.pos = pos;
+            }
+
+
+            @Override
+            public String toString() {
+                return "[" + pos + "]";
+            }
+
+
+            @Override
+            public Stream<Node> evaluate(Stream<Node> upstream) {
+                return upstream.skip(pos - 1).limit(1);
+            }
+        }
+    }
+
+    static class SelfStep extends PathElement {
 
         static final SelfStep INSTANCE = new SelfStep();
 
 
-        private SelfStep() {
+        private SelfStep() { }
 
+
+        @Override
+        public Stream<Node> evaluate(Stream<Node> upstream) {
+            return upstream;
         }
 
 
         @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            return context;
+        public PathElement andThen(PathElement downstream) {
+            return downstream;
         }
 
 
         @Override
-        public PathElement andThen(PathElement p) {
-            return p;
+        public String toString() {
+            return "[ true() ]";
         }
     }
 
-    static class AttrStep implements PathElement {
-
-        private final String attrName;
-
-
-        AttrStep(String attrName) {
-            this.attrName = attrName;
-        }
-
-
-        @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            return context.flatMap(it -> {
-                if (!it.hasAttributes()) {
-                    return Stream.empty();
-                }
-                Node attr = it.getAttributes().getNamedItem(attrName);
-                if (attr == null) {
-                    return Stream.empty();
-                }
-                return Stream.of(attr);
-            });
-        }
-    }
-
-
-    static class ChildStep implements PathElement {
-
-        private final short outputNodeType;
-        private final @OneBased int positionFilter;
-
-
-        private ChildStep(short outputNodeType,
-                          @OneBased int position) {
-            this.outputNodeType = outputNodeType;
-            this.positionFilter = position;
-        }
-
-
-        ChildStep(short outputNodeType) {
-            this(outputNodeType, 0);
-        }
-
-
-        @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            if (positionFilter > 0) {
-                return context.flatMap(it -> {
-                    List<Node> children = XmlErrorUtils.convertNodeList(it.getChildNodes());
-                    if (children.size() < positionFilter) {
-                        int seen = 0;
-                        for (Node c : children) {
-                            if (c.getNodeType() == outputNodeType) {
-                                seen++;
-                            }
-                            if (seen == positionFilter) {
-                                return Stream.of(c);
-                            }
-                        }
-                    }
-                    return Stream.empty();
-                });
-            }
-
-            return context.flatMap(
-                it -> XmlErrorUtils.convertNodeList(it.getChildNodes())
-                                   .stream()
-                                   .filter(o -> o.getNodeType() == outputNodeType)
-            );
-        }
-
-
-        @Override
-        public PathElement andThen(PathElement p) {
-            if (p instanceof PosTest) {
-                @OneBased int pos = ((PosTest) p).position;
-                if (this.positionFilter == 0) {
-                    return new ChildStep(outputNodeType, pos);
-                } else if (pos == this.positionFilter) {
-                    return this;
-                } else {
-                    return Sink.INSTANCE;
-                }
-            }
-            return PathElement.super.andThen(p);
-        }
-    }
-
-
-    static @OneBased int indexInParent(Node n) {
-        Node p = n.getParentNode();
-        if (p == null) {
-            return 1;
-        }
-        return 1 + XmlErrorUtils.convertNodeList(p.getChildNodes()).indexOf(n);
-    }
-
-
-    static class Sink implements PathElement {
+    static class Sink extends PathElement {
 
         static final Sink INSTANCE = new Sink();
 
 
         @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
+        public Stream<Node> evaluate(Stream<Node> upstream) {
             return Stream.empty();
         }
 
 
         @Override
-        public PathElement andThen(PathElement p) {
+        public PathElement andThen(PathElement downstream) {
             return this;
         }
-    }
-
-    static class PosTest implements PathElement {
-
-        private final @OneBased int position;
-
-
-        PosTest(@OneBased int position) {
-            this.position = position;
-        }
 
 
         @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            return context.filter(n -> indexInParent(n) == position);
+        public String toString() {
+            return "[ false() ]";
         }
     }
-
-    static class NameTest implements PathElement {
-
-        private final @OneBased String name;
-
-
-        NameTest(String name) {
-            this.name = name;
-        }
-
-
-        @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            return context.filter(n -> name.equals(n.getNodeName()));
-        }
-    }
-
-
-    static class FilterTest implements PathElement {
-
-        private final Predicate<? super Node> filter;
-
-        FilterTest(Predicate<? super Node> filter) {
-            this.filter = filter;
-        }
-
-        @Override
-        public Stream<Node> evaluate(Stream<Node> context) {
-            return context.filter(filter);
-        }
-    }
-
 
     static class XPathScanner extends SimpleScanner {
 
