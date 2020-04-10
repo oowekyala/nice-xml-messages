@@ -1,7 +1,17 @@
 package com.github.oowekyala.ooxml.xpath;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.AT;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.IDENTIFIER;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.LBRACKET;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.LIT_DECIMAL;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.LIT_DOUBLE;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.LIT_INTEGER;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.LIT_STRING;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.OP;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.PATH;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.PERIOD;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.RBRACKET;
+import static com.github.oowekyala.ooxml.xpath.TokenKinds.STAR;
 
 import org.w3c.dom.Node;
 
@@ -10,46 +20,23 @@ import com.github.oowekyala.ooxml.xpath.AxisStep.ChildStep;
 import com.github.oowekyala.ooxml.xpath.AxisStep.SelfStep;
 import com.github.oowekyala.ooxml.xpath.Filter.PositionFilter;
 import com.github.oowekyala.ooxml.xpath.Filter.Predicate;
+import com.github.oowekyala.ooxml.xpath.XPathScanner.Token;
 
 
 class XPathParser {
 
 
-    static class XPathScanner<N> extends SimpleScanner {
-
-        private final Deque<PathElement<N>> stack = new ArrayDeque<>(1);
-
-
-        XPathScanner(String descriptor) {
-            super(descriptor);
-        }
-
-
-        void push(PathElement<N> p) {
-            stack.push(p);
-        }
-
-
-        PathElement<N> pop() {
-            return stack.removeFirst();
-        }
-    }
-
-
     static <N> int path(final int start, XPathScanner<N> b) {
 
         b.push(RootStep.INSTANCE);
-        int cur = b.skipWhitespace(start);
-        cur = step(cur, b);
+        int cur = step(start, b);
         assert b.stack.size() == 1;
-        cur = b.skipWhitespace(cur);
 
-        while (b.charAt(cur) == '/') {
-            cur = b.consumeChar(cur, '/');
+        while (b.isAt(cur, PATH)) {
+            cur = b.consumeChar(cur, PATH);
             assert b.stack.size() == 1 : b.stack;
             cur = step(cur, b);
             assert b.stack.size() == 1 : b.stack;
-            cur = b.skipWhitespace(cur);
         }
 
         return cur;
@@ -60,35 +47,31 @@ class XPathParser {
         int cur = start;
         PathElement<N> path = b.pop();
 
-        switch (b.charAt(cur)) {
-        case '@':
+        Token t = b.tokenAt(cur);
+        switch (t.kind) {
+        case AT:
             cur = attr(cur, b);
             String attrName = b.popStr();
             path = path.andThen(new AttrStep<>(attrName));
             break;
-        case '*':
-            cur = b.consumeChar(cur, '*');
+        case STAR:
+            cur = b.consumeChar(cur, STAR);
             path = path.andThen(new ChildStep<>(Node.ELEMENT_NODE, null));
             break;
-        case '.':
-            cur = b.consumeChar(cur, '.');
+        case PERIOD:
+            cur = b.consumeChar(cur, PERIOD);
             path = path.andThen(new SelfStep<>((short) 0, null));
             break;
-        default:
-            if (b.isIdentStart(cur)) {
-                cur = identifier(cur, b, "ident");
-                path = path.andThen(new ChildStep<>(Node.ELEMENT_NODE, b.popStr()));
-            } else {
-                throw b.expected("step (*, ., name, or @attr)", cur);
-            }
+        case IDENTIFIER:
+            cur = b.consumeChar(cur, IDENTIFIER);
+            path = path.andThen(new ChildStep<>(Node.ELEMENT_NODE, t.image()));
             break;
+        default:
+            throw b.expected("step (*, ., name, or @attr)", cur);
         }
 
-        cur = b.skipWhitespace(cur);
-
-        while (b.charAt(cur) == '[') {
+        while (b.tokenAt(cur).kind == LBRACKET) {
             cur = predicate(cur, b, path);
-            cur = b.skipWhitespace(cur);
         }
         b.push(path);
         return cur;
@@ -96,16 +79,18 @@ class XPathParser {
 
 
     private static <N> int predicate(final int start, XPathScanner<N> b, PathElement<N> owner) {
-        int cur = b.consumeChar(start, '[', "predicate");
-        cur = b.skipWhitespace(cur);
-        if (b.isDigit(cur)) {
+        int cur = b.consumeChar(start, LBRACKET, "predicate");
+        switch (b.tokenAt(cur).kind) {
+        case LIT_INTEGER:
             cur = numberPredicate(cur, b, owner);
-        } else if (b.charAt(cur) == '@') {
+            break;
+        case AT:
             cur = attrEqualsPredicate(cur, b, owner);
-        } else {
-            throw b.expected("attribute test, or number", cur);
+            break;
+        default:
+            throw b.expected("attribute test, or integer", cur);
         }
-        cur = b.consumeChar(cur, ']');
+        cur = b.consumeChar(cur, RBRACKET);
         return cur;
     }
 
@@ -120,13 +105,14 @@ class XPathParser {
     static <N> int attrEqualsPredicate(final int start, XPathScanner<N> b, PathElement<N> owner) {
         int cur = attr(start, b);
         String attrName = b.popStr();
+        cur = b.consumeChar(cur, OP, "operator");
+        if (b.isAt(cur, LIT_INTEGER)
+            || b.isAt(cur, LIT_DECIMAL)
+            || b.isAt(cur, LIT_DOUBLE)) {
 
-        cur = b.skipWhitespace(cur);
-        cur = b.consumeChar(cur, '=', "attribute comparison");
-        cur = b.skipWhitespace(cur);
-        if (b.isDigit(cur)) {
             cur = number(cur, b);
-        } else if (b.charAt(cur) == '\'') {
+
+        } else if (b.isAt(cur, LIT_STRING)) {
             cur = string(cur, b);
         } else {
             throw b.expected("string or number", cur);
@@ -137,45 +123,36 @@ class XPathParser {
     }
 
 
-    private static int attr(int start, SimpleScanner b) {
-        int cur = b.consumeChar(start, '@', "attribute");
+    private static <N> int attr(int start, XPathScanner<N> b) {
+        int cur = b.consumeChar(start, AT, "attribute");
         return identifier(cur, b, "attribute name");
     }
 
 
-    static int number(final int start, SimpleScanner b) {
-        int cur = start;
-        if (!b.isDigit(cur)) {
-            throw b.expected("number", cur);
+    static <N> int number(final int start, XPathScanner<N> b) {
+        Token t = b.tokenAt(start);
+        switch (t.kind) {
+        case LIT_INTEGER:
+        case LIT_DECIMAL:
+        case LIT_DOUBLE:
+            b.pushStr(t.image());
+            return start + 1;
+        default:
+            throw b.expected("number", start);
         }
-        do {
-            cur++;
-        } while (b.isDigit(cur) && b.isInRange(cur));
-        b.pushStr(b.bufferToString(start, cur));
+    }
+
+
+    static <N> int string(final int start, XPathScanner<N> b) {
+        int cur = b.consumeChar(start, LIT_STRING);
+        b.pushStr(b.tokenAt(start).image());
         return cur;
     }
 
 
-    static int string(final int start, SimpleScanner b) {
-        int cur = b.consumeChar(start, '\'', "string delimiter (single quote)");
-        do {
-            cur++;
-        } while (b.charAt(cur) != '\'' && b.isInRange(cur));
-        cur = b.consumeChar(cur, '\'', "closing string delimiter (single quote)");
-        b.pushStr(b.bufferToString(start + 1, cur - 1));
-        return cur;
-    }
-
-
-    static int identifier(final int start, SimpleScanner b, String name) {
-        int cur = start;
-        if (!b.isIdentStart(cur)) {
-            throw b.expected(name, cur);
-        }
-        do {
-            cur++;
-        } while (b.isIdentChar(cur) && b.isInRange(cur));
-        b.pushStr(b.bufferToString(start, cur));
+    static <N> int identifier(final int start, XPathScanner<N> b, String name) {
+        int cur = b.consumeChar(start, IDENTIFIER, name);
+        b.pushStr(b.tokenAt(start).image());
         return cur;
     }
 

@@ -6,7 +6,6 @@ import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.Nav;
 import com.github.oowekyala.ooxml.xpath.MinXPath.Context.ContextImpl;
-import com.github.oowekyala.ooxml.xpath.XPathParser.XPathScanner;
 
 /**
  * Minimal XPath engine. Not optimised or anything, just a
@@ -82,7 +81,7 @@ public final class MinXPath<N> {
 
     public static <N> MinXPath<N> parse(String expression, Nav<N> nav) {
         XPathScanner<N> scanner = new XPathScanner<>(expression);
-        int end = XPathParser.path(scanner.start, scanner);
+        int end = XPathParser.path(0, scanner);
         scanner.expectEoI(end);
         return new MinXPath<>(scanner.pop(), nav);
     }
