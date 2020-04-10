@@ -2,12 +2,15 @@ package com.github.oowekyala.ooxml.messages
 
 import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.matchers.haveSize
+import io.kotlintest.matchers.numerics.shouldBeGreaterThan
 import io.kotlintest.matchers.withClue
 import io.kotlintest.should
 import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
+import java.lang.IllegalArgumentException
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.streams.toList
 
@@ -63,12 +66,50 @@ class MinXPathTest : FunSpec({
 
         with(doc.parseStr()) {
 
-            val (book) = fetch("bookstore/book[1]", 1)
+            fetch("bookstore/book[1]", 1).let { (book) ->
+                book.childNodes.length shouldBe 0
+            }
 
-            book.childNodes.length shouldBe 0
+            fetch("bookstore/book[2]", 1).let { (book) ->
+                book.childNodes.length.shouldBeGreaterThan(0)
+            }
+
+            fetch("bookstore/book[@stub ='true']", 1).let { (book) ->
+                book.childNodes.length shouldBe 0
+            }
+        }
+    }
+
+
+    test("Test parse errors") {
+
+
+        withClue("Empty string") {
+            shouldThrow<IllegalArgumentException> {
+                MinXPath.parse("")
+            }
         }
 
-
+        withClue("Incomplete expr") {
+            shouldThrow<IllegalArgumentException> {
+                MinXPath.parse("a/")
+            }
+        }
+        withClue("Trailing stuff in expr") {
+            shouldThrow<IllegalArgumentException> {
+                MinXPath.parse("a $")
+            }
+        }
+        withClue("Unclosed string") {
+            shouldThrow<IllegalArgumentException> {
+                MinXPath.parse("a[@a='b]")
+            }
+        }
+        withClue("Unclosed predicate") {
+            shouldThrow<IllegalArgumentException> {
+                MinXPath.parse("a[@a='b'")
+            }
+        }
     }
 
 

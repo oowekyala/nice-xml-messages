@@ -3,27 +3,46 @@ package com.github.oowekyala.ooxml.messages;
 import java.util.AbstractList;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.AttrStep;
 import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.ChildStep;
+import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.SelfStep;
+import com.github.oowekyala.ooxml.messages.MinXPath.Context.ContextImpl;
+import com.github.oowekyala.ooxml.messages.MinXPath.Filter.PositionFilter;
+import com.github.oowekyala.ooxml.messages.MinXPath.Filter.Predicate;
 
 /**
  * Minimal XPath engine. Not optimised or anything, just a
- * convenient way to retrieve nodes (esp in tests). For
- * example:
+ * convenient way to retrieve nodes (especially for tests).
+ * For example:
  * <pre>{@code
  *
  * List<Node> nodes = MinXPath.parse(expr).evaluate(root).collect(Collectors.toList());
+ *
+ * }</pre>
+ *
+ *
+ * <p>What is supported:
+ * <pre>{@code
+ *
+ * a/b/c
+ * a/b[1]/c             (: select a child with a (1-based) index :)
+ * a/@attr              (: a path can contain an attribute (should really only end with it) :)
+ * a/*[@size = 1]       (: wildcard name test, number literals for attribute tests :)
+ * a/.[@size = 1]       (: . is shorthand for the self axis :)
+ * e/*[@a = 1][@b = 2]  (: multiple predicates mimic AND boolan expressions :)
  *
  * }</pre>
  *
@@ -39,39 +58,29 @@ import com.github.oowekyala.ooxml.messages.MinXPath.AxisStep.ChildStep;
  * delimiter escape or double quoted strings.
  * </ul>
  *
- * <p>So what is supported?
- * <pre>{@code
- *
- * a/b/c
- * a/b[1]/c             (: select a child with a 1-based index :)
- * a/@attr              (: a path can contain an attribute (should really only end with it) :)
- * a/*[@size = 1]       (: wildcard name test, number literals for attribute tests :)
- * a/.[@size = 1]       (: . is shorthand for the self axis :)
- * e/*[@a = 1][@b = 2]  (: multiple predicates mimic AND boolan expressions :)
- *
- * }</pre>
- *
- *
  */
-public final class MinXPath {
+public final class MinXPath<N> {
 
-    private final PathElement path;
+    private final PathElement<N> path;
+    private final Nav<N> nav;
 
 
-    public MinXPath(PathElement path) {
+    public MinXPath(PathElement<N> path, Nav<N> nav) {
         this.path = path;
+        this.nav = nav;
     }
 
 
     /**
-     * Evaluate this expression on the given node as the start
-     * element. Returns a stream of nodes that match the full path.
+     * Evaluate this expression on the given node as the start element. Returns a stream of nodes that match the full
+     * path.
      *
      * @param start Start context node
      * @return A stream of nodes
      */
-    public Stream<Node> evaluate(Node start) {
-        return path.evaluate(StreamUtils.streamOf(start));
+    public Stream<N> evaluate(N start) {
+        ContextImpl<N> ctx = new ContextImpl<>(nav, StreamUtils.streamOf(start));
+        return path.evaluate(ctx);
     }
 
 
@@ -82,17 +91,22 @@ public final class MinXPath {
      * @throws IllegalArgumentException If the string is empty or null, or whitespace
      * @throws IllegalArgumentException If parsing fails
      */
-    public static MinXPath parse(String expression) {
-        XPathScanner scanner = new XPathScanner(expression);
-        int end = path(scanner.start, scanner);
-        scanner.expectEoI(end);
-        return new MinXPath(scanner.pop());
+    public static MinXPath<Node> parse(String expression) {
+        return parse(expression, DomNav.INSTANCE);
     }
 
 
-    private static int path(final int start, XPathScanner b) {
+    public static <N> MinXPath<N> parse(String expression, Nav<N> nav) {
+        XPathScanner<N> scanner = new XPathScanner<>(expression);
+        int end = path(scanner.start, scanner);
+        scanner.expectEoI(end);
+        return new MinXPath<>(scanner.pop(), nav);
+    }
 
-        b.push(SelfStep.INSTANCE);
+
+    private static <N> int path(final int start, XPathScanner<N> b) {
+
+        b.push(RootStep.INSTANCE);
         int cur = b.skipWhitespace(start);
         cur = step(cur, b);
         assert b.stack.size() == 1;
@@ -110,28 +124,28 @@ public final class MinXPath {
     }
 
 
-    private static int step(final int start, XPathScanner b) {
+    private static <N> int step(final int start, XPathScanner<N> b) {
         int cur = start;
-        PathElement path = b.pop();
+        PathElement<N> path = b.pop();
 
         switch (b.charAt(cur)) {
         case '@':
             cur = attr(cur, b);
             String attrName = b.popStr();
-            path = path.andThen(new AttrStep(attrName));
+            path = path.andThen(new AttrStep<>(attrName));
             break;
         case '*':
             cur = b.consumeChar(cur, '*');
-            path = path.andThen(new ChildStep(Node.ELEMENT_NODE, null));
+            path = path.andThen(new ChildStep<>(Node.ELEMENT_NODE, null));
             break;
         case '.':
             cur = b.consumeChar(cur, '.');
-            path = path.andThen(SelfStep.INSTANCE);
+            path = path.andThen(new SelfStep<>((short) 0, null));
             break;
         default:
             if (b.isIdentStart(cur)) {
                 cur = identifier(cur, b, "ident");
-                path = path.andThen(new ChildStep(Node.ELEMENT_NODE, b.popStr()));
+                path = path.andThen(new ChildStep<>(Node.ELEMENT_NODE, b.popStr()));
             } else {
                 throw b.expected("step (*, ., name, or @attr)", cur);
             }
@@ -141,22 +155,21 @@ public final class MinXPath {
         cur = b.skipWhitespace(cur);
 
         while (b.charAt(cur) == '[') {
-            cur = predicate(cur, b);
+            cur = predicate(cur, b, path);
             cur = b.skipWhitespace(cur);
-            path = path.andThen(b.pop());
         }
         b.push(path);
         return cur;
     }
 
 
-    private static int predicate(final int start, XPathScanner b) {
+    private static <N> int predicate(final int start, XPathScanner<N> b, PathElement<N> owner) {
         int cur = b.consumeChar(start, '[', "predicate");
         cur = b.skipWhitespace(cur);
         if (b.isDigit(cur)) {
-            cur = numberPredicate(cur, b);
+            cur = numberPredicate(cur, b, owner);
         } else if (b.charAt(cur) == '@') {
-            cur = attrEqualsPredicate(cur, b);
+            cur = attrEqualsPredicate(cur, b, owner);
         } else {
             throw b.expected("attribute test, or number", cur);
         }
@@ -165,14 +178,14 @@ public final class MinXPath {
     }
 
 
-    static int numberPredicate(final int start, XPathScanner b) {
+    static <N> int numberPredicate(final int start, XPathScanner<N> b, PathElement<N> owner) {
         int cur = number(start, b);
-        b.push(new Filter.Pos(Integer.parseInt(b.popStr())));
+        owner.acceptFilter(new PositionFilter<>(Integer.parseInt(b.popStr())));
         return cur;
     }
 
 
-    static int attrEqualsPredicate(final int start, XPathScanner b) {
+    static <N> int attrEqualsPredicate(final int start, XPathScanner<N> b, PathElement<N> owner) {
         int cur = attr(start, b);
         String attrName = b.popStr();
 
@@ -187,18 +200,18 @@ public final class MinXPath {
             throw b.expected("string or number", cur);
         }
         String attrValue = b.popStr();
-        b.push(attrTest(attrName, attrValue));
+        owner.acceptFilter(attrTest(attrName, attrValue));
         return cur;
     }
 
 
-    private static int attr(int start, XPathScanner b) {
+    private static int attr(int start, SimpleScanner b) {
         int cur = b.consumeChar(start, '@', "attribute");
         return identifier(cur, b, "attribute name");
     }
 
 
-    static int number(final int start, XPathScanner b) {
+    static int number(final int start, SimpleScanner b) {
         int cur = start;
         if (!b.isDigit(cur)) {
             throw b.expected("number", cur);
@@ -211,7 +224,7 @@ public final class MinXPath {
     }
 
 
-    static int string(final int start, XPathScanner b) {
+    static int string(final int start, SimpleScanner b) {
         int cur = b.consumeChar(start, '\'', "string delimiter (single quote)");
         do {
             cur++;
@@ -222,7 +235,7 @@ public final class MinXPath {
     }
 
 
-    static int identifier(final int start, XPathScanner b, String name) {
+    static int identifier(final int start, SimpleScanner b, String name) {
         int cur = start;
         if (!b.isIdentStart(cur)) {
             throw b.expected(name, cur);
@@ -235,17 +248,8 @@ public final class MinXPath {
     }
 
 
-    private static PathElement attrTest(String name, String value) {
-        return new Filter.Pred(n -> {
-            if (!n.hasAttributes()) {
-                return false;
-            }
-            Node attr = n.getAttributes().getNamedItem(name);
-            if (attr == null) {
-                return false;
-            }
-            return value.equals(attr.getNodeValue());
-        }) {
+    private static <N> Filter<N> attrTest(String name, String value) {
+        return new Predicate<N>((n, nav) -> value.equals(nav.attrValue(n, name))) {
             @Override
             public String toString() {
                 return "[@" + name + " = '" + value + "']";
@@ -254,26 +258,175 @@ public final class MinXPath {
     }
 
 
-    abstract static class PathElement {
+    interface Context<N> {
+
+        Nav<N> nav();
 
 
-        public abstract Stream<Node> evaluate(Stream<Node> upstream);
+        Stream<N> upstream();
+
+
+        Context<N> withUpstream(Stream<N> n);
+
+
+        class ContextImpl<N> implements Context<N> {
+
+            private final Nav<N> nav;
+            private final Stream<N> upstream;
+
+
+            public ContextImpl(Nav<N> nav, Stream<N> upstream) {
+                this.nav = nav;
+                this.upstream = upstream;
+            }
+
+
+            @Override
+            public Nav<N> nav() {
+                return nav;
+            }
+
+
+            @Override
+            public Stream<N> upstream() {
+                return upstream;
+            }
+
+
+            @Override
+            public Context<N> withUpstream(Stream<N> n) {
+                return new ContextImpl<>(nav, n);
+            }
+        }
+    }
+
+
+    interface Nav<N> {
+
+        short kind(N node);
+
+
+        String name(N node);
+
+
+        N attribute(N element, String name);
+
+
+        String attrValue(N element, String name);
+
+
+        List<N> attributes(N n);
+
+
+        List<N> children(N n);
+
+    }
+
+    static class DomNav implements Nav<Node> {
+
+        static final DomNav INSTANCE = new DomNav();
+
+
+        @Override
+        public short kind(Node node) {
+            return node.getNodeType();
+        }
+
+
+        @Override
+        public String name(Node node) {
+            return node.getNodeName();
+        }
+
+
+        @Override
+        public Node attribute(Node node, String name) {
+            if (!node.hasAttributes()) {
+                return null;
+            }
+            return node.getAttributes().getNamedItem(name);
+        }
+
+
+        @Override
+        public String attrValue(Node element, String name) {
+            Node attr = attribute(element, name);
+            return attr == null ? null : attr.getNodeValue();
+        }
+
+
+        @Override
+        public List<Node> attributes(Node node) {
+            if (!node.hasAttributes()) {
+                return Collections.emptyList();
+            }
+            NamedNodeMap attributes = node.getAttributes();
+            return new AbstractList<Node>() {
+                @Override
+                public Node get(int index) {
+                    return attributes.item(index);
+                }
+
+
+                @Override
+                public int size() {
+                    return attributes.getLength();
+                }
+            };
+        }
+
+
+        @Override
+        public List<Node> children(Node node) {
+            NodeList children = node.getChildNodes();
+            return new AbstractList<Node>() {
+                @Override
+                public Node get(int index) {
+                    return children.item(index);
+                }
+
+
+                @Override
+                public int size() {
+                    return children.getLength();
+                }
+            };
+        }
+    }
+
+
+    abstract static class PathElement<N> {
+
+
+        public abstract Stream<N> evaluate(Context<N> ctx);
+
+
+        public abstract void acceptFilter(Filter<N> f);
 
 
         /**
          * Compose the given path element after this one. Implementations can override this with an optimised impl in
          * some cases.
          */
-        public PathElement andThen(PathElement downstream) {
+        public PathElement<N> andThen(PathElement<N> downstream) {
             if (downstream instanceof SelfStep) {
                 return this;
             } else if (downstream instanceof Sink) {
                 return downstream;
             }
-            return new PathElement() {
+
+            return new PathElement<N>() {
+
                 @Override
-                public Stream<Node> evaluate(Stream<Node> upstream) {
-                    return downstream.evaluate(PathElement.this.evaluate(upstream));
+                public void acceptFilter(Filter<N> f) {
+                    downstream.acceptFilter(f);
+                }
+
+
+                @Override
+                public Stream<N> evaluate(Context<N> ctx) {
+                    Stream<N> upstream = PathElement.this.evaluate(ctx);
+                    return downstream.evaluate(ctx.withUpstream(upstream));
                 }
 
 
@@ -285,11 +438,11 @@ public final class MinXPath {
         }
     }
 
-    static abstract class AxisStep extends PathElement {
+    static abstract class AxisStep<N> extends PathElement<N> {
 
         private final short kindTest;
         private final @Nullable String nameTest;
-        private final List<Filter> predicates = new ArrayList<>();
+        private final List<Filter<N>> predicates = new ArrayList<>();
 
 
         AxisStep(short kindTest, @Nullable String nameTest) {
@@ -299,23 +452,26 @@ public final class MinXPath {
 
 
         @Override
-        public PathElement andThen(PathElement downstream) {
-            if (downstream instanceof Filter) {
-                this.predicates.add((Filter) downstream);
-                return this;
-            }
+        public PathElement<N> andThen(PathElement<N> downstream) {
             return super.andThen(downstream);
         }
 
 
-        protected abstract Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest);
+        public void acceptFilter(Filter<N> f) {
+            this.predicates.add(f);
+        }
 
 
-        protected Stream<Node> defaultBaseFilter(Stream<Node> nodes, short kindTest, @Nullable String nameTest) {
-            Stream<Node> result = nodes;
-            result = result.filter(it -> it.getNodeType() == kindTest);
+        protected abstract Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest);
+
+
+        protected Stream<N> defaultBaseFilter(Stream<N> nodes, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+            Stream<N> result = nodes;
+            if (kindTest != 0) {
+                result = result.filter(it -> nav.kind(it) == kindTest);
+            }
             if (nameTest != null) {
-                result = result.filter(it -> nameTest.equals(it.getNodeName()));
+                result = result.filter(it -> nameTest.equals(nav.name(it)));
             }
             return result;
         }
@@ -337,6 +493,8 @@ public final class MinXPath {
 
         protected String nodeTestToString() {
             switch (kindTest) {
+            case 0:
+                return "node(" + nameTestToString() + ")";
             case Node.ELEMENT_NODE:
                 return "element-node(" + nameTestToString() + ")";
             case Node.ATTRIBUTE_NODE:
@@ -353,23 +511,20 @@ public final class MinXPath {
 
 
         @Override
-        public Stream<Node> evaluate(Stream<Node> upstream) {
-            return upstream.flatMap(n -> {
-                Stream<Node> result = iterateAxis(n, kindTest, nameTest);
-                result = result.filter(it -> it.getNodeType() == kindTest);
-                if (nameTest != null) {
-                    result = result.filter(it -> nameTest.equals(it.getNodeName()));
-                }
-
-                for (Filter pred : predicates) {
-                    result = pred.evaluate(result);
-                }
-                return result;
-            });
+        public Stream<N> evaluate(Context<N> ctx) {
+            return ctx.upstream()
+                      .flatMap(n -> {
+                          Nav<N> nav = ctx.nav();
+                          Stream<N> result = iterateAxis(n, nav, kindTest, nameTest);
+                          for (Filter<N> pred : predicates) {
+                              result = pred.filter(ctx.withUpstream(result));
+                          }
+                          return result;
+                      });
         }
 
 
-        static class ChildStep extends AxisStep {
+        static class ChildStep<N> extends AxisStep<N> {
 
 
             private ChildStep(short outputNodeType, String nameTest) {
@@ -378,9 +533,9 @@ public final class MinXPath {
 
 
             @Override
-            protected Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest) {
-                Stream<Node> children = StreamUtils.streamOf(XmlErrorUtils.convertNodeList(node.getChildNodes()));
-                return defaultBaseFilter(children, kindTest, nameTest);
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+                Stream<N> children = StreamUtils.streamOf(nav.children(node));
+                return defaultBaseFilter(children, nav, kindTest, nameTest);
             }
 
 
@@ -391,7 +546,7 @@ public final class MinXPath {
         }
 
 
-        static class AttrStep extends AxisStep {
+        static class AttrStep<N> extends AxisStep<N> {
 
             AttrStep(String attrName) {
                 super(Node.ATTRIBUTE_NODE, attrName);
@@ -399,34 +554,18 @@ public final class MinXPath {
 
 
             @Override
-            protected Stream<Node> iterateAxis(Node node, short kindTest, @Nullable String nameTest) {
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
                 assert kindTest == Node.ATTRIBUTE_NODE;
-                if (!node.hasAttributes()) {
+
+                if (nav.kind(node) != Node.ELEMENT_NODE) {
                     return Stream.empty();
                 }
 
-                NamedNodeMap attributes = node.getAttributes();
                 if (nameTest == null) {
-                    return new AbstractList<Node>() {
-                        @Override
-                        public int size() {
-                            return attributes.getLength();
-                        }
-
-
-                        @Override
-                        public Node get(int index) {
-                            return attributes.item(index);
-                        }
-                    }.stream();
+                    return nav.attributes(node).stream();
+                } else {
+                    return StreamUtils.streamOfNullable(nav.attribute(node, nameTest));
                 }
-
-
-                Node attr = attributes.getNamedItem(nameTest);
-                if (attr == null) {
-                    return Stream.empty();
-                }
-                return StreamUtils.streamOf(attr);
             }
 
 
@@ -435,30 +574,55 @@ public final class MinXPath {
                 return "attribute";
             }
         }
-    }
 
-    static abstract class Filter extends PathElement {
-
-        static class Pred extends Filter {
-
-            final Predicate<? super Node> predicate;
+        static class SelfStep<N> extends AxisStep<N> {
 
 
-            Pred(Predicate<? super Node> predicate) {this.predicate = predicate;}
+            SelfStep(short kindTest, @Nullable String nameTest) {
+                super(kindTest, nameTest);
+            }
 
 
             @Override
-            public Stream<Node> evaluate(Stream<Node> upstream) {
-                return upstream.filter(predicate);
+            protected Stream<N> iterateAxis(N node, Nav<N> nav, short kindTest, @Nullable String nameTest) {
+                return defaultBaseFilter(Stream.of(node), nav, kindTest, nameTest);
+            }
+
+
+            @Override
+            protected String axisName() {
+                return "self";
+            }
+        }
+    }
+
+    static abstract class Filter<N> {
+
+        abstract Stream<N> filter(Context<N> ctx);
+
+
+        static class Predicate<N> extends Filter<N> {
+
+            final BiPredicate<? super N, Nav<N>> predicate;
+
+
+            Predicate(BiPredicate<? super N, Nav<N>> predicate) {
+                this.predicate = predicate;
+            }
+
+
+            @Override
+            public Stream<N> filter(Context<N> ctx) {
+                return ctx.upstream().filter(n -> predicate.test(n, ctx.nav()));
             }
         }
 
-        static class Pos extends Filter {
+        static class PositionFilter<N> extends Filter<N> {
 
             final @OneBased int pos;
 
 
-            Pos(int pos) {
+            PositionFilter(int pos) {
                 this.pos = pos;
             }
 
@@ -470,28 +634,35 @@ public final class MinXPath {
 
 
             @Override
-            public Stream<Node> evaluate(Stream<Node> upstream) {
-                return upstream.skip(pos - 1).limit(1);
+            public Stream<N> filter(Context<N> ctx) {
+                return ctx.upstream().skip(pos - 1).limit(1);
             }
         }
     }
 
-    static class SelfStep extends PathElement {
 
-        static final SelfStep INSTANCE = new SelfStep();
+    static class RootStep<N> extends PathElement<N> {
+
+        static final RootStep INSTANCE = new RootStep();
 
 
-        private SelfStep() { }
+        private RootStep() { }
 
 
         @Override
-        public Stream<Node> evaluate(Stream<Node> upstream) {
-            return upstream;
+        public Stream<N> evaluate(Context<N> ctx) {
+            return ctx.upstream();
         }
 
 
         @Override
-        public PathElement andThen(PathElement downstream) {
+        public void acceptFilter(Filter<N> f) {
+            throw new IllegalStateException("Root step should not receive filters, by construction of the parser");
+        }
+
+
+        @Override
+        public PathElement<N> andThen(PathElement<N> downstream) {
             return downstream;
         }
 
@@ -502,19 +673,28 @@ public final class MinXPath {
         }
     }
 
-    static class Sink extends PathElement {
+    static class Sink<N> extends PathElement<N> {
 
         static final Sink INSTANCE = new Sink();
 
 
+        private Sink() {}
+
+
         @Override
-        public Stream<Node> evaluate(Stream<Node> upstream) {
+        public Stream<N> evaluate(Context<N> ctx) {
             return Stream.empty();
         }
 
 
         @Override
-        public PathElement andThen(PathElement downstream) {
+        public void acceptFilter(Filter<N> f) {
+            // nothing to do
+        }
+
+
+        @Override
+        public PathElement<N> andThen(PathElement<N> downstream) {
             return this;
         }
 
@@ -525,32 +705,22 @@ public final class MinXPath {
         }
     }
 
-    static class XPathScanner extends SimpleScanner {
+    static class XPathScanner<N> extends SimpleScanner {
 
-        private final Deque<PathElement> stack = new ArrayDeque<>(1);
-        private final Deque<String> stringStack = new ArrayDeque<>(1);
-
+        private final Deque<PathElement<N>> stack = new ArrayDeque<>(1);
 
         XPathScanner(String descriptor) {
             super(descriptor);
         }
 
-        void push(PathElement p) {
+
+        void push(PathElement<N> p) {
             stack.push(p);
         }
 
-        PathElement pop() {
+
+        PathElement<N> pop() {
             return stack.removeFirst();
         }
-
-        void pushStr(String p) {
-            stringStack.push(p);
-        }
-
-        String popStr() {
-            return stringStack.removeFirst();
-        }
     }
-
-
 }

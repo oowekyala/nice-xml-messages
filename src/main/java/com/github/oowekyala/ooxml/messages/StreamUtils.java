@@ -42,6 +42,7 @@ final class StreamUtils {
         return StrictStream.withElements(c);
     }
 
+
     @SafeVarargs
     public static <T> Stream<T> streamOf(T... c) {
         return Stream.of(c);
@@ -50,6 +51,11 @@ final class StreamUtils {
 
     public static <T> Stream<T> streamOf(T c) {
         return StrictStream.withElements(c);
+    }
+
+
+    public static <T> Stream<T> streamOfNullable(T c) {
+        return c == null ? Stream.empty() : StrictStream.withElements(c);
     }
 
 

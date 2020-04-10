@@ -1,11 +1,16 @@
 package com.github.oowekyala.ooxml.messages;
 
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 class SimpleScanner {
 
     protected final char[] chars;
     protected final int start;
     protected final int end;
+
+    private final Deque<String> stringStack = new ArrayDeque<>(1);
 
 
     SimpleScanner(String descriptor) {
@@ -62,14 +67,19 @@ class SimpleScanner {
     }
 
     public RuntimeException expected(String expectedWhat, int pos) {
-        String prefix = "In:  ";
+        String prefix = "Parse exception in:  ";
         String messageLine = InternalUtil.buildCaretLine(
             "Expected " + expectedWhat,
             prefix.length() + pos - start,
             1
         );
         String fullMessage = prefix + bufferToString() + "\n" + messageLine + "\n";
-        return new IllegalArgumentException(fullMessage);
+        return new IllegalArgumentException(fullMessage) {
+            @Override
+            public String toString() {
+                return getMessage();
+            }
+        };
     }
 
 
@@ -90,6 +100,14 @@ class SimpleScanner {
         return new String(chars, start, end - start);
     }
 
+
+    void pushStr(String p) {
+        stringStack.push(p);
+    }
+
+    String popStr() {
+        return stringStack.removeFirst();
+    }
 
     @Override
     public String toString() {
