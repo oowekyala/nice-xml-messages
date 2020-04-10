@@ -19,12 +19,9 @@ package com.github.oowekyala.ooxml.internal_not_api;
 
 import static java.lang.Integer.max;
 
-import com.github.oowekyala.ooxml.messages.Annots.OneBased;
-
 
 public final class InternalUtil {
 
-    static final Object[] EMPTY_OBJ_ARRAY = new Object[0];
     private static final char CARET = '^';
     private static final char SPACE = ' ';
 
@@ -41,7 +38,7 @@ public final class InternalUtil {
     }
 
 
-    public static String buildCaretLine(String message, @OneBased int column, int rangeLen) {
+    public static String buildCaretLine(String message,/* @OneBased */int column, int rangeLen) {
         StringBuilder builder = new StringBuilder();
         repeatChar(builder, SPACE, column);
         repeatChar(builder, CARET, max(rangeLen, 1));
@@ -61,6 +58,4 @@ public final class InternalUtil {
             }
         }
     }
-
-
 }

@@ -315,26 +315,39 @@ public final class MinXPath<N> {
                 return downstream;
             }
 
-            return new PathElement<N>() {
-
-                @Override
-                public void acceptFilter(Filter<N> f) {
-                    downstream.acceptFilter(f);
-                }
+            return new PipedElement<>(this, downstream);
+        }
 
 
-                @Override
-                public Stream<N> evaluate(Context<N> ctx) {
-                    Stream<N> upstream = PathElement.this.evaluate(ctx);
-                    return downstream.evaluate(ctx.withUpstream(upstream));
-                }
+        private static class PipedElement<N> extends PathElement<N> {
+
+            private final PathElement<N> downstream;
+            private final PathElement<N> upstream;
 
 
-                @Override
-                public String toString() {
-                    return PathElement.this + "/" + downstream;
-                }
-            };
+            public PipedElement(PathElement<N> upstream, PathElement<N> downstream) {
+                this.upstream = upstream;
+                this.downstream = downstream;
+            }
+
+
+            @Override
+            public void acceptFilter(Filter<N> f) {
+                downstream.acceptFilter(f);
+            }
+
+
+            @Override
+            public Stream<N> evaluate(Context<N> ctx) {
+                Stream<N> upstream = upstream.evaluate(ctx);
+                return downstream.evaluate(ctx.withUpstream(upstream));
+            }
+
+
+            @Override
+            public String toString() {
+                return upstream + "/" + downstream;
+            }
         }
     }
 
