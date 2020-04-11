@@ -1,5 +1,7 @@
 package com.github.oowekyala.ooxml.messages;
 
+import java.util.logging.Level;
+
 /**
  * Generic XML exception wrapper. Can occur during validation or parsing.
  */
@@ -102,18 +104,50 @@ public final class XmlException extends RuntimeException {
 
         private final String displayName;
 
+
         Severity(String displayName) {
             this.displayName = displayName;
         }
+
+
+        Level toJutilLevel() {
+            switch (this) {
+            case INFO:
+                return Level.INFO;
+            case DEBUG:
+                return Level.FINE;
+            case WARNING:
+                return Level.WARNING;
+            case ERROR:
+            case FATAL:
+                return Level.SEVERE;
+            default:
+                throw new AssertionError();
+            }
+        }
+
+
+        Severity fromJutilLevel(Level level) {
+            if (level == Level.INFO || level == Level.ALL) {
+                return INFO;
+            } else if (level == Level.FINE) {
+                return DEBUG;
+            } else if (level == Level.WARNING) {
+                return WARNING;
+            } else if (level == Level.SEVERE) {
+                return ERROR;
+            }
+            return DEBUG;
+        }
+
 
         /**
          * Add a color relevant to this kind to the given string. This uses
          * ANSI escape sequences.
          *
          * @param toColor String to surround with escape sequences
-         *
          * @return The string, prefixed with an ANSI color, and suffixed
-         *     with {@value TerminalColor#ANSI_RESET}
+         * with {@value TerminalColor#ANSI_RESET}
          */
         public String withColor(String toColor) {
             return toColor;

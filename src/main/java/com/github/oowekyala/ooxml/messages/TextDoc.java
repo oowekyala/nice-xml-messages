@@ -98,12 +98,11 @@ class TextDoc {
      */
     static class MessageTextBuilder {
 
-        private static final String CARET = "^ ";
         /** Line number of the first line of the list in the real document */
         private final @OneBased int first;
         /** Index in the list of the line that has the error. */
         private final @ZeroBased int errorIdx;
-        private List<String> lines;
+        private final List<String> lines;
 
         MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
             this.lines = lines;
