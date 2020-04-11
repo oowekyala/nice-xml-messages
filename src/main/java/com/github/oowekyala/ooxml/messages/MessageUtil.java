@@ -1,6 +1,10 @@
 package com.github.oowekyala.ooxml.messages;
 
 
+import static com.github.oowekyala.ooxml.messages.ErrorCleaner.isSchemaValidationMessage;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
+import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
@@ -9,6 +13,9 @@ import javax.xml.transform.TransformerException;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind;
 
 class MessageUtil {
 
@@ -44,16 +51,16 @@ class MessageUtil {
     /**
      * Creates an entry for the given exception. Tries to recover the position from the exception.
      *
-     * @param kind      Kind of message
      * @param useColors Use terminal colors to format the message
      * @param exception Exception
      * @return An exception, possibly enriched with context information
      */
     static XmlException createEntryBestEffort(XmlPositioner positioner,
-                                              XmlMessageKind kind,
-                                              XmlException.Severity severity,
+                                              Severity severity,
                                               boolean useColors,
                                               Throwable exception) {
+
+        StdMessageKind kind = exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage()) ? SCHEMA_VALIDATION : PARSING;
 
         XmlPosition pos = extractPosition(exception);
 

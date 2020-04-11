@@ -20,7 +20,7 @@ class MalformedXmlTest : FunSpec({
             DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
     fun String.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
-            XmlErrorUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler)
+            XmlMessageUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler)
 
     test("Test malformed xml 1") {
 

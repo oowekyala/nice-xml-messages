@@ -24,7 +24,7 @@ class UserValidationTest : FunSpec({
             systemId = "/test/File.xml"
         }
 
-        return XmlErrorUtils.getInstance().parse(builder, isource, handler)
+        return XmlMessageUtils.getInstance().parse(builder, isource, handler)
     }
 
     test("Test attribute node") {

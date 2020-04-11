@@ -3,7 +3,6 @@ package com.github.oowekyala.ooxml.messages;
 import static com.github.oowekyala.ooxml.messages.XmlException.Severity.ERROR;
 import static com.github.oowekyala.ooxml.messages.XmlException.Severity.FATAL;
 import static com.github.oowekyala.ooxml.messages.XmlException.Severity.WARNING;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,13 +46,13 @@ import org.xml.sax.SAXParseException;
  *
  * }</pre>
  */
-public final class XmlErrorUtils {
+public final class XmlMessageUtils {
 
 
-    private static final XmlErrorUtils DEFAULT = new XmlErrorUtils();
+    private static final XmlMessageUtils DEFAULT = new XmlMessageUtils();
 
 
-    XmlErrorUtils() {
+    XmlMessageUtils() {
     }
 
 
@@ -106,14 +105,14 @@ public final class XmlErrorUtils {
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
             PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
-            XmlException ex = MessageUtil.createEntryBestEffort(positioner, PARSING, FATAL, handler.supportsAnsiColors(), e);
+            XmlException ex = MessageUtil.createEntryBestEffort(positioner, FATAL, handler.supportsAnsiColors(), e);
             handler.accept(ex);
             throw ex;
         }
     }
 
     /** Returns the singleton. */
-    public static XmlErrorUtils getInstance() {
+    public static XmlMessageUtils getInstance() {
         return DEFAULT;
     }
 
@@ -125,10 +124,8 @@ public final class XmlErrorUtils {
         is.setEncoding(is.getEncoding());
         if (inputSource.getCharacterStream() != null) {
             is.setCharacterStream(inputSource.getCharacterStream());
-        } else {
-            if (inputSource.getByteStream() != null) {
-                is.setByteStream(inputSource.getByteStream());
-            }
+        } else if (inputSource.getByteStream() != null) {
+            is.setByteStream(inputSource.getByteStream());
         }
 
         if (is.getCharacterStream() != null) {
@@ -149,7 +146,7 @@ public final class XmlErrorUtils {
         abstract XmlPositioner getPositioner();
 
         private XmlException parseException(SAXParseException exception, XmlException.Severity severity) {
-            return MessageUtil.createEntryBestEffort(getPositioner(), PARSING, severity, handler.supportsAnsiColors(), exception);
+            return MessageUtil.createEntryBestEffort(getPositioner(), severity, handler.supportsAnsiColors(), exception);
         }
 
         @Override
