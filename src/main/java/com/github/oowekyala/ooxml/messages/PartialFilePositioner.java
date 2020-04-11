@@ -29,13 +29,13 @@ class PartialFilePositioner implements XmlPositioner {
     }
 
     @Override
-    public String makePositionedMessage(XmlPosition position, boolean supportsAnsiColors, XmlMessageKind kind, XmlException.Severity severity, String message) {
+    public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlException.Severity severity, String message) {
         if (position.isUndefined()) {
             return MessageTextBuilder.addHeader(kind, severity, position, message);
         }
 
         return textDoc.getLinesAround(position.getLine(), NUM_LINES_AROUND)
-                      .make(supportsAnsiColors, kind, severity, position, message)
+                      .make(useAnsiColors, kind, severity, position, message)
                       .trim();
 
     }

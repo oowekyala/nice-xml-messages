@@ -15,12 +15,12 @@
  */
 
 
-package com.github.oowekyala.ooxml.internal_not_api;
+package com.github.oowekyala.ooxml.messages;
 
 import static java.lang.Integer.max;
 
 
-public final class InternalUtil {
+final class InternalUtil {
 
     private static final char CARET = '^';
     private static final char SPACE = ' ';

@@ -4,7 +4,6 @@ import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.internal_not_api.InternalUtil;
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
 /**

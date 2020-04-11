@@ -120,19 +120,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>de.jflex</groupId>
-                <artifactId>jflex-maven-plugin</artifactId>
-                <version>1.8.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- Kotlin compiler for test-compile -->
             <!-- The kotlin plugin has to run before the java plugin-->
             <plugin>

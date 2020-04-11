@@ -16,8 +16,8 @@ public interface XmlPositioner {
 
     /**
      * Returns an object describing the position in the file of the
-     * given XML node. If no position is available, returns
-     * {@linkplain XmlPosition#isUndefined() an undefined position}.
+     * given XML node. If no position is available, or if the parameter
+     * is null, returns {@linkplain XmlPosition#isUndefined() an undefined position}.
      *
      * @param node XML node
      *
@@ -32,7 +32,7 @@ public interface XmlPositioner {
      * the error message.
      *
      * @param position           Position of the error
-     * @param supportsAnsiColors Whether to use ANSI escape sequences to color the message
+     * @param useAnsiColors Whether to use ANSI escape sequences to color the message
      * @param kind               Kind of error
      * @param severity           Severity of the message
      * @param message            Error message
@@ -41,7 +41,7 @@ public interface XmlPositioner {
      */
     String makePositionedMessage(
         XmlPosition position,
-        boolean supportsAnsiColors,
+        boolean useAnsiColors,
         XmlMessageKind kind,
         XmlException.Severity severity,
         String message

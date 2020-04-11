@@ -8,7 +8,6 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.github.oowekyala.ooxml.internal_not_api.InternalUtil;
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
 
