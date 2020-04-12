@@ -2,6 +2,8 @@ package com.github.oowekyala.ooxml.messages;
 
 import java.util.logging.Logger;
 
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+
 /**
  * Implements {@link XmlMessageHandler} with a {@link Logger}
  * as back-end.
@@ -25,7 +27,8 @@ public class LoggerMessageHandler implements XmlMessageHandler {
 
 
     @Override
-    public void accept(XmlException entry) {
-        logger.log(entry.getSeverity().toJutilLevel(), entry.toString());
+    public void printMessageLn(XmlMessageKind kind, Severity severity, String message) {
+        logger.log(severity.toJutilLevel(), message);
+
     }
 }

@@ -2,6 +2,8 @@ package com.github.oowekyala.ooxml.messages;
 
 import java.io.PrintStream;
 
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+
 /**
  * Implements {@link XmlMessageHandler} with a pair of {@link PrintStream}s.
  */
@@ -31,11 +33,12 @@ public class PrintStreamMessageHandler implements XmlMessageHandler {
         return supportsColor;
     }
 
+
     @Override
-    public void accept(XmlException entry) {
-        switch (entry.getSeverity()) {
+    public void printMessageLn(XmlMessageKind kind, Severity severity, String message) {
+        switch (severity) {
         case INFO:
-            out.println(entry.toString());
+            out.println(message);
             break;
         case DEBUG:
             if (!debugEnabled) {
@@ -43,11 +46,8 @@ public class PrintStreamMessageHandler implements XmlMessageHandler {
             }
         case WARNING:
         case ERROR:
-            err.println(entry.toString());
-            break;
         case FATAL:
-            err.println(entry.toString());
-            throw entry;
+            err.println(message);
         }
     }
 }

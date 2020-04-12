@@ -1,11 +1,11 @@
 package com.github.oowekyala.ooxml.messages;
 
-import java.util.function.Consumer;
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
 
 /**
  * Handles XML messages, for example forwarding them to a print stream.
  */
-public interface XmlMessageHandler extends Consumer<XmlException> {
+public interface XmlMessageHandler {
 
     /**
      * Outputs messages to {@link System#err}, with colors enabled, and
@@ -27,7 +27,11 @@ public interface XmlMessageHandler extends Consumer<XmlException> {
      *
      * @param entry Message to handle
      */
-    @Override
-    void accept(XmlException entry);
+    default void accept(XmlException entry) {
+        printMessageLn(entry.getKind(), entry.getSeverity(), entry.toString());
+    }
+
+
+    void printMessageLn(XmlMessageKind kind, Severity severity, String message);
 
 }
