@@ -16,7 +16,7 @@ class SchemaValidatedXmlTest : FunSpec({
 
     val schemaNs = "https://com.github.oowekyala/ooxml/tests"
 
-    val schemaLoc = SchemaValidatedXmlTest::class.java.getResource("SampleSchema.xsd")
+    val schemaLoc = javaClass.getResource("SampleSchema.xsd")
 
     fun domBuilder(): DocumentBuilder =
             DocumentBuilderFactory.newInstance().apply {
