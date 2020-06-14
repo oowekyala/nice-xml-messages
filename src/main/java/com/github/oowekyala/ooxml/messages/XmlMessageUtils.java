@@ -22,7 +22,7 @@ import org.xml.sax.SAXParseException;
  * Main entry point of the API. Example usage:
  *
  * <pre>{@code
- *    public AppConfig parseConfig(Path path) throws IOException, XmlException {
+ *    public AppConfig parseConfigFile(Path path) throws IOException, XmlException {
  *        DocumentBuilder builder;
  *        try {
  *            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -32,14 +32,23 @@ import org.xml.sax.SAXParseException;
  *
  *        PositionedXmlDoc doc;
  *        try (Reader reader = Files.newBufferedReader(path)) {
+ *            // configure the input source's system ID to have
+ *            // a file path in the messages
  *            InputSource iSource = new InputSource();
  *            iSource.setSystemId(path.toString());
  *            iSource.setCharacterStream(reader);
  *
- *            doc = parse(builder, iSource, XmlMessageHandler.SYSTEM_ERR);
+ *            // Here we go
+ *            doc = XmlMessageUtils.parse(builder, iSource, XmlMessageHandler.SYSTEM_ERR);
  *        }
  *
- *        XmlErrorReporter reporter = new DefaultXmlErrorReporter(XmlMessageHandler.SYSTEM_ERR, doc.getPositioner());
+ *        // This is the object that maps DOM nodes to file
+ *        // positions, and can render it
+ *        XmlPositioner positioner = doc.getPositioner();
+ *
+ *        // Create the reporter, which you can use during parsing
+ *        // to report messages on specific nodes
+ *        XmlErrorReporter reporter = new DefaultXmlErrorReporter(XmlMessageHandler.SYSTEM_ERR, positioner));
  *
  *        return appSpecificParsing(doc.getDocument(), reporter);
  *    }

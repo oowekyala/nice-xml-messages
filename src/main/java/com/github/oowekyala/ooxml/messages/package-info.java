@@ -17,7 +17,7 @@
  * the exception has the following message:
  *
  * <pre>{@code
- * XML parsing error
+ * XML parsing error (in /some/file.xml)
  *     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
  *     2| <list>
  *     3|     <list foo="&amb;"/>
@@ -25,6 +25,14 @@
  *
  *     4| </list>
  * }</pre>
+ *
+ * or
+ *
+ * <pre>{@code
+ * Error at /some/file.xml:3:21 - The entity "amb" was referenced, but not declared.
+ * }</pre>
+ *
+ * if you use {@link com.github.oowekyala.ooxml.messages.XmlPositioner#withShortMessages()}.
  *
  * <p>This API is also useful to validate an XML file after
  * it's parsed, and emit targeted error messages that come with

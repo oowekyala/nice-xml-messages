@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
 
 class TextDoc {
 
@@ -134,7 +135,7 @@ class TextDoc {
             withLineNums.add(errorIdx + 2, ""); // skip a line
 
 
-            return addHeader(kind, severity, position, String.join("\n", withLineNums));
+            return addHeader(kind, severity, position, String.join("\n", withLineNums), false);
         }
 
         private int stringLengthOf(int i) {
@@ -145,7 +146,8 @@ class TextDoc {
             return String.format(" %" + pad + "d| %s", 1 + idx + first, lines.get(idx));
         }
 
-        public static String addHeader(XmlMessageKind kind, XmlException.Severity severity, XmlPosition position, String message) {
+
+        public static String addHeader(XmlMessageKind kind, Severity severity, XmlPosition position, String message, boolean singleLine) {
 
 
             String url = position.getSystemId();
@@ -154,7 +156,11 @@ class TextDoc {
                 header += " in " + url;
             }
 
-            return header + "\n" + message;
+            if (singleLine) {
+                return header + "\t" + message;
+            } else {
+                return header + "\n" + message;
+            }
         }
     }
 }
