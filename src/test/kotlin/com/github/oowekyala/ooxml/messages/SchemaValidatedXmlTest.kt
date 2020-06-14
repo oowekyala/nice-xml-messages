@@ -49,7 +49,7 @@ Error (Schema validation)
  1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
  2| <note xmlns="$schemaNs" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="$schemaNs $schemaLoc">
  3|     <foo />
-               ^ cvc-complex-type.2.4.a: Invalid content was found starting with element '{"$schemaNs":foo}'. One of '{to}' is expected.
+               ^ cvc-complex-type.2.4.a: Invalid content was found starting with element 'foo'. One of '{to}' is expected.
 
  4| 
  5| </note>

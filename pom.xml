@@ -190,7 +190,7 @@
                     <source>${java.version}</source>
                     <additionalOptions>-Xdoclint:none</additionalOptions>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
-                    <additionalJOption>-html5</additionalJOption>
+                    <!-- <additionalJOption>-html5</additionalJOption>-->
                 </configuration>
             </plugin>
             <plugin>
