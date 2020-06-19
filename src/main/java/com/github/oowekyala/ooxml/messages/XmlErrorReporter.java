@@ -91,4 +91,18 @@ public interface XmlErrorReporter extends AutoCloseable {
     void close();
 
 
+    /**
+     * Returns an error reporter that doesn't print messages
+     * (but throws exceptions). In that case, the exceptions
+     * mention the provided systemId as position information,
+     * if it is not null.
+     *
+     * @param systemId Optional system id
+     * @return A new reporter
+     */
+    static XmlErrorReporter noop(@Nullable String systemId) {
+        return new DefaultXmlErrorReporter(XmlMessageHandler.NOOP,
+                                           XmlPositioner.noPositioner(systemId));
+    }
+
 }

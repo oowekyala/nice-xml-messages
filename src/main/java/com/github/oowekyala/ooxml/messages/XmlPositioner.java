@@ -50,6 +50,29 @@ public interface XmlPositioner {
 
 
     /**
+     * A positioner that returns undefined positions.
+     *
+     * @param systemId Optional system id, if it is known (but not line/columns)
+     * @return A new positioner
+     */
+    static XmlPositioner noPositioner(@Nullable String systemId) {
+        return new XmlPositioner() {
+
+            @Override
+            public XmlPosition startPositionOf(@Nullable Node node) {
+                return XmlPosition.undefinedIn(systemId);
+            }
+
+
+            @Override
+            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, Severity severity, String message) {
+                return withShortMessages().makePositionedMessage(position, useAnsiColors, kind, severity, message);
+            }
+        };
+    }
+
+
+    /**
      * Decorates this positioner, so that the messages are shorter.
      *
      * @return A new positioner

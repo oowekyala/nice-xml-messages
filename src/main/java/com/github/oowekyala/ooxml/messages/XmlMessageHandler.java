@@ -13,6 +13,22 @@ public interface XmlMessageHandler {
      */
     XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(true, false);
 
+    /**
+     * Ignores all messages.
+     */
+    XmlMessageHandler NOOP = new XmlMessageHandler() {
+        @Override
+        public boolean supportsAnsiColors() {
+            return true;
+        }
+
+
+        @Override
+        public void printMessageLn(XmlMessageKind kind, Severity severity, String message) {
+            // do nothing
+        }
+    };
+
 
     /**
      * Returns true if error messages may be colored with
