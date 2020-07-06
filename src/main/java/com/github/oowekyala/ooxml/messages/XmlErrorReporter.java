@@ -35,7 +35,8 @@ public interface XmlErrorReporter extends AutoCloseable {
 
 
     /**
-     * Report an error at the location of a node. Whether this throws the exception is an implementation detail.
+     * Report an error at the location of a node. Whether this
+     * throws the exception is an implementation detail.
      *
      * @param node    XML node which owns the warning
      * @param message Message, possibly templated
@@ -47,9 +48,23 @@ public interface XmlErrorReporter extends AutoCloseable {
 
 
     /**
+     * Report an error at the location of a node. Whether this
+     * throws the exception is an implementation detail.
+     *
+     * @param node    XML node which owns the error
+     * @param ex      Cause of the error
+     * @param message Message, possibly templated
+     * @param args    Formatter arguments
+     * @return An exception summarizing the error
+     * @throws IllegalArgumentException If the message is null
+     */
+    XmlException error(@Nullable Node node, Throwable ex, String message, Object... args);
+
+
+    /**
      * Report an external error at the location of a node.
      *
-     * @param node XML node which owns the warning
+     * @param node XML node which owns the error
      * @param ex   Cause exception
      * @return An exception summarizing the error
      * @throws IllegalArgumentException If the exception is null
@@ -58,11 +73,13 @@ public interface XmlErrorReporter extends AutoCloseable {
 
 
     /**
-     * Report an error at the location of a node. The exception is thrown. The method is declared as if it returned the
-     * exception, but it always throws. This allows you to write {@code throw reporter.fatal(...)}, to tell the compiler
+     * Report an error at the location of a node. The exception
+     * is thrown. The method is declared as if it returned the
+     * exception, but it always throws. This allows you to write
+     * {@code throw reporter.fatal(...)}, to tell the compiler
      * that this is an exit point.
      *
-     * @param node    XML node which owns the warning
+     * @param node    XML node which owns the error
      * @param message Message, possibly templated
      * @param args    Formatter arguments
      * @return Never
@@ -73,9 +90,10 @@ public interface XmlErrorReporter extends AutoCloseable {
 
 
     /**
-     * Report an external error at the location of a node. The exception is thrown.
+     * Report an external error at the location of a node.
+     * The exception is thrown.
      *
-     * @param node XML node which owns the warning
+     * @param node XML node which owns the error
      * @param ex   Exception to set as the cause of the thrown exception
      * @return Never
      * @throws XmlException Always

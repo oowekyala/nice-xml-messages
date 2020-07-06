@@ -28,14 +28,14 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public void warn(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.WARNING, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.WARNING, template(message, args), null);
         handle(ex, message);
     }
 
     @Override
     public XmlException error(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.ERROR, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.ERROR, template(message, args), null);
         handle(ex, message);
         return ex;
     }
@@ -43,15 +43,25 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException error(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, XmlException.Severity.ERROR, printer.supportsAnsiColors(), cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlException.Severity.ERROR, cause.getMessage(), cause);
         handle(ex, cause.getMessage());
         return ex;
     }
 
+
+    @Override
+    public XmlException error(@Nullable Node node, Throwable cause, String message, Object... args) {
+        InternalUtil.assertParamNotNull("cause", cause);
+        XmlException ex = createEntry(node, XmlException.Severity.ERROR, template(message, newArr(args, cause.getMessage())), cause);
+        handle(ex, cause.getMessage());
+        return ex;
+    }
+
+
     @Override
     public XmlException fatal(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.FATAL, printer.supportsAnsiColors(), template(message, args), null);
+        XmlException ex = createEntry(node, XmlException.Severity.FATAL, template(message, args), null);
         handle(ex, message);
         throw ex;
     }
@@ -59,7 +69,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException fatal(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, XmlException.Severity.FATAL, printer.supportsAnsiColors(), cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlException.Severity.FATAL, cause.getMessage(), cause);
         handle(ex, cause.getMessage());
         throw ex;
     }
@@ -81,14 +91,24 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     }
 
 
+    private static Object[] newArr(Object[] fst, Object other, Object... rem) {
+        Object[] res = new Object[fst.length + 1 + rem.length];
+        System.arraycopy(fst, 0, res, 0, fst.length);
+        res[fst.length] = other;
+        if (rem.length > 0) {
+            System.arraycopy(rem, 0, res, fst.length + 1, rem.length);
+        }
+        return res;
+    }
+
+
     private XmlException createEntry(@Nullable Node node,
                                      XmlException.Severity level,
-                                     boolean useColors,
                                      String message,
                                      Throwable cause) {
 
         XmlPosition pos = positioner.startPositionOf(node);
-        String fullMessage = positioner.makePositionedMessage(pos, useColors, USER_VALIDATION, level, message);
+        String fullMessage = positioner.makePositionedMessage(pos, printer.supportsAnsiColors(), USER_VALIDATION, level, message);
 
         return new XmlException(pos, fullMessage, message, USER_VALIDATION, level, cause);
     }
