@@ -104,7 +104,7 @@ public interface XmlPositioner {
                     }
                 }
 
-                header += "\t- " + message;
+                header += " - " + message;
                 return header;
             }
         };

@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+import com.github.oowekyala.ooxml.messages.XmlException.Severity;
 
 /**
  * Simple implementation of an error reporter. Only needs a
@@ -112,9 +113,12 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
         XmlPosition pos = positioner.startPositionOf(node);
         String fullMessage = positioner.makePositionedMessage(pos, printer.supportsAnsiColors(), USER_VALIDATION, level, message);
 
-        return new XmlException(pos, fullMessage, message, USER_VALIDATION, level, cause);
+        return createException(pos, fullMessage, message, level, cause);
     }
 
+    protected XmlException createException(XmlPosition position, String fullMessage, String simpleMessage, Severity severity, Throwable cause) {
+        return new XmlException(position, fullMessage, simpleMessage, USER_VALIDATION, severity, cause);
+    }
 
     @Override
     public void close() {
