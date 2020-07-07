@@ -93,6 +93,10 @@ public interface XmlPositioner {
                     header = severity.withColor(header);
                 }
                 String url = position.getSystemId();
+                if (!position.isUndefined() && url == null) {
+                    url = "(unknown file)";
+                }
+
                 if (url != null) {
                     header += " at " + url;
                     if (!position.isUndefined()) {
