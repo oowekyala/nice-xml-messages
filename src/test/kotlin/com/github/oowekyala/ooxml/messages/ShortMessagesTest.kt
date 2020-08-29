@@ -54,7 +54,7 @@ $HEADER
         reporter.error(attr, "Give better names plz")
 
 
-        printer.err[0].message shouldBe "Error at /test/File.xml:3:11\t- Give better names plz"
+        printer.err[0].message shouldBe "Error at /test/File.xml:3:11 - Give better names plz"
     }
 
 
@@ -87,7 +87,7 @@ $HEADER
         reporter.error(attr, "Give better names plz")
 
 
-        printer.err[0].message shouldBe "Error at /test/File.xml:5:9\t- Give better names plz"
+        printer.err[0].message shouldBe "Error at /test/File.xml:5:9 - Give better names plz"
     }
 
 })

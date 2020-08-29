@@ -33,7 +33,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
 
         <java.version>8</java.version>
-        <kotlin.version>1.2.61</kotlin.version>
+        <kotlin.version>1.4.0</kotlin.version>
     </properties>
 
     <dependencies>
@@ -116,8 +116,8 @@
             <!-- Kotlin compiler for test-compile -->
             <!-- The kotlin plugin has to run before the java plugin-->
             <plugin>
-                <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
                 <executions>
                     <execution>
