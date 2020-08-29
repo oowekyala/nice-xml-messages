@@ -1,7 +1,7 @@
 package com.github.oowekyala.ooxml.messages
 
-import io.kotlintest.fail
-import io.kotlintest.matchers.collections.shouldBeEmpty
+import io.kotest.assertions.fail
+import io.kotest.matchers.collections.shouldBeEmpty
 
 
 const val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"

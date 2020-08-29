@@ -1,9 +1,7 @@
 package com.github.oowekyala.ooxml.messages
 
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FunSpec
-import org.w3c.dom.Element
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import org.xml.sax.InputSource
 import javax.xml.parsers.DocumentBuilderFactory
 

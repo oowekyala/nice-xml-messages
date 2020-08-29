@@ -1,8 +1,7 @@
 package com.github.oowekyala.ooxml.messages
 
-import io.kotlintest.matchers.collections.shouldContainExactly
-import io.kotlintest.matchers.string.shouldStartWith
-import io.kotlintest.specs.FunSpec
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.string.shouldStartWith
 import org.xml.sax.InputSource
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
