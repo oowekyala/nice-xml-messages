@@ -95,10 +95,11 @@ public final class DomUtils {
 
     /**
      * Returns a new map of nodes built from the given node map.
-     * This uses local names.
+     * This uses local names to index the nodes. The returned map
+     * is modifiable.
      *
      * @param nodeList A node map
-     * @return A list view
+     * @return A new, modifiable map
      */
     public static Map<String, Node> toMap(NamedNodeMap nodeList) {
         Map<String, Node> map = new HashMap<>(nodeList.getLength());

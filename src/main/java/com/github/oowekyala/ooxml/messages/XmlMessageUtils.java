@@ -144,7 +144,7 @@ public final class XmlMessageUtils {
         return is;
     }
 
-    private static abstract class MyErrorHandler implements ErrorHandler {
+    private abstract static class MyErrorHandler implements ErrorHandler {
 
         private final XmlMessageHandler handler;
 
