@@ -184,10 +184,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.2</version>
-            </plugin>
-            <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.1.1</version>
                 <executions>
@@ -203,10 +199,13 @@
                         <link>https://docs.oracle.com/javase/8/docs/api/</link>
                     </links>
                     <source>${java.version}</source>
-                    <additionalOptions>-Xdoclint:none</additionalOptions>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <!-- <additionalJOption>-html5</additionalJOption>-->
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
             </plugin>
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
@@ -215,15 +214,6 @@
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.8.2</version>
-            </plugin>
-            <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
-            <plugin>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.7.1</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.0.0</version>
             </plugin>
         </plugins>
     </build>
