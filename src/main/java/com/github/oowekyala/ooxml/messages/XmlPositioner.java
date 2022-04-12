@@ -30,8 +30,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.TextDoc.MessageTextBuilder;
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Associates XML nodes with a position. This is a low-level utility,
@@ -68,7 +67,7 @@ public interface XmlPositioner {
         XmlPosition position,
         boolean useAnsiColors,
         XmlMessageKind kind,
-        XmlException.Severity severity,
+        XmlSeverity severity,
         String message
     );
 
@@ -89,7 +88,7 @@ public interface XmlPositioner {
 
 
             @Override
-            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, Severity severity, String message) {
+            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
                 return withShortMessages().makePositionedMessage(position, useAnsiColors, kind, severity, message);
             }
         };
@@ -110,7 +109,7 @@ public interface XmlPositioner {
 
 
             @Override
-            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, Severity severity, String message) {
+            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
 
                 String header = severity.toString();
                 if (useAnsiColors) {

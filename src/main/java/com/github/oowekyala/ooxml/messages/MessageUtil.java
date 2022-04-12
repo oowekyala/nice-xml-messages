@@ -38,7 +38,7 @@ import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 import com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind;
 
 class MessageUtil {
@@ -80,7 +80,7 @@ class MessageUtil {
      * @return An exception, possibly enriched with context information
      */
     static XmlException createEntryBestEffort(XmlPositioner positioner,
-                                              Severity severity,
+                                              XmlSeverity severity,
                                               boolean useColors,
                                               Throwable exception) {
 

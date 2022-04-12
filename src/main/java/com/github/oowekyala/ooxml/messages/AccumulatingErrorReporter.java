@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Accumulates messages and does not display them until the
@@ -39,13 +39,13 @@ import com.github.oowekyala.ooxml.messages.XmlException.Severity;
  */
 public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
 
-    private final EnumMap<Severity, Map<String, List<XmlException>>> entries = new EnumMap<>(Severity.class);
-    private final Severity minSeverity;
+    private final EnumMap<XmlSeverity, Map<String, List<XmlException>>> entries = new EnumMap<>(XmlSeverity.class);
+    private final XmlSeverity minSeverity;
 
 
     public AccumulatingErrorReporter(XmlMessageHandler printer,
                                      XmlPositioner positioner,
-                                     Severity minSeverity) {
+                                     XmlSeverity minSeverity) {
         super(printer, positioner);
         this.minSeverity = minSeverity;
     }
@@ -69,10 +69,10 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      * Close the reporter and print the accumulated exceptions.
      * The two parameters select how entries are printed to
      * the {@link #printer}, they are dispatched to the methods
-     * {@link #dontPrint(Severity, Map)}, {@link #printFully(Severity, String, List)}
-     * and {@link #printSummary(Severity, String, List)}.
+     * {@link #dontPrint(XmlSeverity, Map)}, {@link #printFully(XmlSeverity, String, List)}
+     * and {@link #printSummary(XmlSeverity, String, List)}.
      */
-    public void close(Severity minSeverityToPrintSummary, Severity minSeverityToPrintFully) {
+    public void close(XmlSeverity minSeverityToPrintSummary, XmlSeverity minSeverityToPrintFully) {
         entries.forEach(((severity, entriesByMessage) -> {
             if (severity.compareTo(minSeverityToPrintFully) >= 0) {
                 entriesByMessage.forEach((message, entry) -> printFully(severity, message, entry));
@@ -93,7 +93,7 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      * @param message  Message with which the entry was reported
      * @param entry    A nonempty list
      */
-    protected void printFully(Severity severity, String message, List<XmlException> entry) {
+    protected void printFully(XmlSeverity severity, String message, List<XmlException> entry) {
         for (XmlException e : entry) {
             printer.accept(e);
         }
@@ -107,7 +107,7 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      * @param message  Message with which the entry was reported
      * @param entry    A nonempty list
      */
-    protected void printSummary(Severity severity, String message, List<XmlException> entry) {
+    protected void printSummary(XmlSeverity severity, String message, List<XmlException> entry) {
         if (entry.size() > 1) {
             XmlException first = entry.get(0);
             XmlMessageKind kind = first.getKind();
@@ -129,7 +129,7 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      * @param entriesByMessage Entries for the given severity,
      *                         indexed by their message
      */
-    protected void dontPrint(Severity severity, Map<String, List<XmlException>> entriesByMessage) {
+    protected void dontPrint(XmlSeverity severity, Map<String, List<XmlException>> entriesByMessage) {
         // do nothing by default
     }
 

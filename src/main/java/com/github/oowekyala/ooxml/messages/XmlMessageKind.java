@@ -26,7 +26,7 @@ package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Kind of a {@linkplain XmlException message}, mostly just a formatting
@@ -43,7 +43,7 @@ public interface XmlMessageKind {
      *
      * @return The header for messages of this kind
      */
-    String getHeader(Severity severity);
+    String getHeader(XmlSeverity severity);
 
 
     /**
@@ -76,7 +76,7 @@ public interface XmlMessageKind {
 
 
         @Override
-        public String getHeader(Severity severity) {
+        public String getHeader(XmlSeverity severity) {
             return severity.toString() + " (" + header + ")";
         }
     }

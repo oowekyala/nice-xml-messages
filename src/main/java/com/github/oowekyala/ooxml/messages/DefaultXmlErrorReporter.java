@@ -31,7 +31,7 @@ import java.text.MessageFormat;
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Simple implementation of an error reporter. Only needs a
@@ -55,14 +55,14 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public void warn(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.WARNING, template(message, args), null);
+        XmlException ex = createEntry(node, XmlSeverity.WARNING, template(message, args), null);
         handle(ex, message);
     }
 
     @Override
     public XmlException error(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.ERROR, template(message, args), null);
+        XmlException ex = createEntry(node, XmlSeverity.ERROR, template(message, args), null);
         handle(ex, message);
         return ex;
     }
@@ -70,7 +70,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException error(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, XmlException.Severity.ERROR, cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlSeverity.ERROR, cause.getMessage(), cause);
         handle(ex, cause.getMessage());
         return ex;
     }
@@ -79,7 +79,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException error(@Nullable Node node, Throwable cause, String message, Object... args) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, XmlException.Severity.ERROR, template(message, newArr(args, cause.getMessage())), cause);
+        XmlException ex = createEntry(node, XmlSeverity.ERROR, template(message, newArr(args, cause.getMessage())), cause);
         handle(ex, cause.getMessage());
         return ex;
     }
@@ -88,7 +88,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException fatal(Node node, String message, Object... args) {
         InternalUtil.assertParamNotNull("message", message);
-        XmlException ex = createEntry(node, XmlException.Severity.FATAL, template(message, args), null);
+        XmlException ex = createEntry(node, XmlSeverity.FATAL, template(message, args), null);
         handle(ex, message);
         throw ex;
     }
@@ -96,7 +96,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
     @Override
     public XmlException fatal(Node node, Throwable cause) {
         InternalUtil.assertParamNotNull("cause", cause);
-        XmlException ex = createEntry(node, XmlException.Severity.FATAL, cause.getMessage(), cause);
+        XmlException ex = createEntry(node, XmlSeverity.FATAL, cause.getMessage(), cause);
         handle(ex, cause.getMessage());
         throw ex;
     }
@@ -130,7 +130,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
 
 
     private XmlException createEntry(@Nullable Node node,
-                                     XmlException.Severity level,
+                                     XmlSeverity level,
                                      String message,
                                      Throwable cause) {
 
@@ -140,7 +140,7 @@ public class DefaultXmlErrorReporter implements XmlErrorReporter {
         return createException(pos, fullMessage, message, level, cause);
     }
 
-    protected XmlException createException(XmlPosition position, String fullMessage, String simpleMessage, Severity severity, Throwable cause) {
+    protected XmlException createException(XmlPosition position, String fullMessage, String simpleMessage, XmlSeverity severity, Throwable cause) {
         return new XmlException(position, fullMessage, simpleMessage, USER_VALIDATION, severity, cause);
     }
 

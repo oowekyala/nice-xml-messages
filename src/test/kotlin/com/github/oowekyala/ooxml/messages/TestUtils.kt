@@ -39,18 +39,18 @@ class TestMessagePrinter(private val useColors: Boolean = false) : XmlMessageHan
     val debug = mutableListOf<XmlException>()
 
 
-    override fun printMessageLn(kind: XmlMessageKind, severity: XmlException.Severity, message: String) {
+    override fun printMessageLn(kind: XmlMessageKind, severity: XmlException.XmlSeverity, message: String) {
         TODO()
     }
 
     override fun accept(entry: XmlException) {
         when (entry.severity) {
-            XmlException.Severity.INFO -> out += entry
-            XmlException.Severity.DEBUG -> debug += entry
-            XmlException.Severity.WARNING -> warn += entry
-            XmlException.Severity.ERROR -> err += entry
-            XmlException.Severity.FATAL -> err += entry
-            else -> fail("impossible")
+            XmlException.XmlSeverity.INFO    -> out += entry
+            XmlException.XmlSeverity.DEBUG   -> debug += entry
+            XmlException.XmlSeverity.WARNING -> warn += entry
+            XmlException.XmlSeverity.ERROR   -> err += entry
+            XmlException.XmlSeverity.FATAL   -> err += entry
+            else                                                                                    -> fail("impossible")
         }
     }
 

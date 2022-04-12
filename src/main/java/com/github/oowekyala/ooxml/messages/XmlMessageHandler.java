@@ -24,7 +24,7 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import com.github.oowekyala.ooxml.messages.XmlException.Severity;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Handles XML messages, for example forwarding them to a print stream.
@@ -48,7 +48,7 @@ public interface XmlMessageHandler {
 
 
         @Override
-        public void printMessageLn(XmlMessageKind kind, Severity severity, String message) {
+        public void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message) {
             // do nothing
         }
     };
@@ -72,6 +72,6 @@ public interface XmlMessageHandler {
     }
 
 
-    void printMessageLn(XmlMessageKind kind, Severity severity, String message);
+    void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message);
 
 }

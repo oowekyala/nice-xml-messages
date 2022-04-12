@@ -34,13 +34,13 @@ public final class XmlException extends RuntimeException {
     private final XmlPosition position;
     private final String simpleMessage;
     private final XmlMessageKind kind;
-    private final Severity severity;
+    private final XmlSeverity severity;
 
     public XmlException(XmlPosition position,
                         String fullMessage,
                         String simpleMessage,
                         XmlMessageKind kind,
-                        Severity severity) {
+                        XmlSeverity severity) {
         this(position, fullMessage, simpleMessage, kind, severity, null);
     }
 
@@ -48,7 +48,7 @@ public final class XmlException extends RuntimeException {
                         String fullMessage,
                         String simpleMessage,
                         XmlMessageKind kind,
-                        Severity severity,
+                        XmlSeverity severity,
                         Throwable cause) {
 
         super(fullMessage, cause);
@@ -91,7 +91,7 @@ public final class XmlException extends RuntimeException {
     /**
      * Returns the severity of the message.
      */
-    public Severity getSeverity() {
+    public XmlSeverity getSeverity() {
         return severity;
     }
 
@@ -104,7 +104,7 @@ public final class XmlException extends RuntimeException {
     /**
      * Severity of a message.
      */
-    public enum Severity {
+    public enum XmlSeverity {
         DEBUG("Debug info"),
         INFO("Info"),
         WARNING("Warning") {
@@ -129,7 +129,7 @@ public final class XmlException extends RuntimeException {
         private final String displayName;
 
 
-        Severity(String displayName) {
+        XmlSeverity(String displayName) {
             this.displayName = displayName;
         }
 
@@ -151,7 +151,7 @@ public final class XmlException extends RuntimeException {
         }
 
 
-        Severity fromJutilLevel(Level level) {
+        XmlSeverity fromJutilLevel(Level level) {
             if (level == Level.INFO || level == Level.ALL) {
                 return INFO;
             } else if (level == Level.FINE) {

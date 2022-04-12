@@ -28,6 +28,7 @@ import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 import com.github.oowekyala.ooxml.messages.TextDoc.MessageTextBuilder;
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * @author Clément Fournier
@@ -53,7 +54,7 @@ class PartialFilePositioner implements XmlPositioner {
     }
 
     @Override
-    public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlException.Severity severity, String message) {
+    public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
         if (position.isUndefined()) {
             return MessageTextBuilder.addHeader(kind, severity, position, message, false);
         }

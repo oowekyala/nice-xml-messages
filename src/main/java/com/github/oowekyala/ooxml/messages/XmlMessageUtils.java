@@ -24,9 +24,9 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import static com.github.oowekyala.ooxml.messages.XmlException.Severity.ERROR;
-import static com.github.oowekyala.ooxml.messages.XmlException.Severity.FATAL;
-import static com.github.oowekyala.ooxml.messages.XmlException.Severity.WARNING;
+import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.ERROR;
+import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.FATAL;
+import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.WARNING;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +41,8 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Main entry point of the API. Example usage:
@@ -178,7 +180,7 @@ public final class XmlMessageUtils {
 
         abstract XmlPositioner getPositioner();
 
-        private XmlException parseException(SAXParseException exception, XmlException.Severity severity) {
+        private XmlException parseException(SAXParseException exception, XmlSeverity severity) {
             return MessageUtil.createEntryBestEffort(getPositioner(), severity, handler.supportsAnsiColors(), exception);
         }
 
