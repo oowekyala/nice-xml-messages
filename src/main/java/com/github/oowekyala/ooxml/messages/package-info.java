@@ -25,7 +25,7 @@
 /**
  * Simple API to produce nice error messages when reading an XML file.
  *
- * <p>Use {@link com.github.oowekyala.ooxml.messages.XmlMessageUtils#parse(javax.xml.parsers.DocumentBuilder,
+ * <p>Use {@link com.github.oowekyala.ooxml.messages.OoxmlFacade#parse(javax.xml.parsers.DocumentBuilder,
  * org.xml.sax.InputSource, com.github.oowekyala.ooxml.messages.XmlMessageHandler)
  * XmlErrorUtils::parse} to get an instance of an {@link com.github.oowekyala.ooxml.messages.XmlPositioner}.
  * This object is used to associate {@link org.w3c.dom.Node}s with their

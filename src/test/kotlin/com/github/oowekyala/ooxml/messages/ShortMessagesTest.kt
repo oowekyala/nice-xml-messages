@@ -29,25 +29,7 @@ import io.kotest.matchers.shouldBe
 import org.xml.sax.InputSource
 import javax.xml.parsers.DocumentBuilderFactory
 
-
-class ShortMessagesTest : FunSpec({
-
-    fun String.parseStr(handler: TestMessagePrinter,
-                        builderConfig: DocumentBuilderFactory.() -> Unit = {}): PositionedXmlDoc {
-
-
-        val builder =
-                DocumentBuilderFactory.newInstance()
-                        .apply(builderConfig)
-                        .newDocumentBuilder()
-
-
-        val isource = InputSource(reader()).apply {
-            systemId = "/test/File.xml"
-        }
-
-        return XmlMessageUtils.getInstance().parse(builder, isource, handler)
-    }
+class ShortMessagesTest : IntelliMarker, FunSpec({
 
     test("Test attribute node") {
 
@@ -58,25 +40,29 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
+            ooxml.withFormatter(NiceXmlMessageFormatter.HEADER_ONLY)
 
-        val xmlDoc = expected.parseStr(printer)
-
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner.withShortMessages())
+            val xmlDoc = expected.parseStr()
 
 
-        val attr =
+            val reporter = newReporter(xmlDoc.positioner)
+
+
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
-                        .attributes
-                        .getNamedItem("foo")
+                    .documentElement
+                    .childNodes
+                    .item(1)
+                    .attributes
+                    .getNamedItem("foo")
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe "Error at /test/File.xml:3:11 - Give better names plz"
+            printer.err[0].message shouldBe "Error at /test/File.xml:3:11 - Give better names plz"
+
+        }
     }
 
 
@@ -91,25 +77,26 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
+            ooxml.withFormatter(NiceXmlMessageFormatter.HEADER_ONLY)
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner.withShortMessages())
+            val reporter = newReporter(xmlDoc.positioner)
 
-
-        val attr =
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
-                        .attributes
-                        .getNamedItem("xsi:foo")!!
+                    .documentElement
+                    .childNodes
+                    .item(1)
+                    .attributes
+                    .getNamedItem("xsi:foo")!!
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
-
-        printer.err[0].message shouldBe "Error at /test/File.xml:5:9 - Give better names plz"
+            printer.err[0].message shouldBe "Error at /test/File.xml:5:9 - Give better names plz"
+        }
     }
 
 })
+

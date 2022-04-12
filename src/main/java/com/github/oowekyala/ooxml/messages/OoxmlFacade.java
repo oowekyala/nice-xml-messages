@@ -24,9 +24,9 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.ERROR;
-import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.FATAL;
-import static com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity.WARNING;
+import static com.github.oowekyala.ooxml.messages.XmlSeverity.ERROR;
+import static com.github.oowekyala.ooxml.messages.XmlSeverity.FATAL;
+import static com.github.oowekyala.ooxml.messages.XmlSeverity.WARNING;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,8 +41,6 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Main entry point of the API. Example usage:
@@ -81,13 +79,58 @@ import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
  *
  * }</pre>
  */
-public final class XmlMessageUtils {
+public final class OoxmlFacade {
 
 
-    private static final XmlMessageUtils DEFAULT = new XmlMessageUtils();
+    private XmlMessageHandler printer = PrintStreamMessageHandler.SYSTEM_ERR;
+    private NiceXmlMessageFormatter formatter = NiceXmlMessageFormatter.FULL_MESSAGE;
+    private boolean useAnsiColors = false;
+    private int numContextLines = 3;
 
 
-    XmlMessageUtils() {
+    public OoxmlFacade() {
+    }
+
+
+    public OoxmlFacade withFormatter(NiceXmlMessageFormatter formatter) {
+        this.formatter = formatter;
+        return this;
+    }
+
+
+    public OoxmlFacade withPrinter(XmlMessageHandler printer) {
+        this.printer = printer;
+        return this;
+    }
+
+    public OoxmlFacade withAnsiColors(boolean useAnsiColors) {
+        this.useAnsiColors = useAnsiColors;
+        return this;
+    }
+
+
+    public OoxmlFacade withContextLines(int numContextLines) {
+        this.numContextLines = numContextLines;
+        return this;
+    }
+
+
+    public NiceXmlMessageFormatter getFormatter() {
+        return formatter;
+    }
+
+
+    public XmlMessageHandler getPrinter() {
+        return printer;
+    }
+
+
+    public boolean isUseAnsiColors() {
+        return useAnsiColors;
+    }
+
+    public int getNumContextLines() {
+        return numContextLines;
     }
 
 
@@ -112,21 +155,19 @@ public final class XmlMessageUtils {
      *                            error handler} is set by this method.
      * @param inputSource         Source for the XML document. The {@linkplain InputSource#setSystemId(String) system
      *                            ID} should be set for better error messages.
-     * @param parsingErrorHandler Exception handler for recoverable parsing or
-     *                            schema validation errors.
      *
      * @throws IOException  If reading from the input source throws an IOException
      * @throws XmlException If the parser throws a fatal exception
      */
     public PositionedXmlDoc parse(DocumentBuilder domBuilder,
-                                  InputSource inputSource,
-                                  XmlMessageHandler parsingErrorHandler) throws XmlException, IOException {
-        return parseImpl(domBuilder, spyOn(inputSource), parsingErrorHandler);
+                                  InputSource inputSource) throws XmlException, IOException {
+        return parseImpl(domBuilder, spyOn(inputSource));
     }
 
-    private PositionedXmlDoc parseImpl(DocumentBuilder builder, SpyInputSource isource, XmlMessageHandler handler) throws XmlException, IOException {
 
-        builder.setErrorHandler(new MyErrorHandler(handler) {
+    private PositionedXmlDoc parseImpl(DocumentBuilder builder, SpyInputSource isource) throws XmlException, IOException {
+
+        builder.setErrorHandler(new MyErrorHandler(getPrinter()) {
             @Override
             XmlPositioner getPositioner() {
                 return new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
@@ -140,15 +181,10 @@ public final class XmlMessageUtils {
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
             PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
-            XmlException ex = MessageUtil.createEntryBestEffort(positioner, FATAL, handler.supportsAnsiColors(), e);
-            handler.accept(ex);
+            XmlException ex = MessageUtil.createEntryBestEffort(this, positioner, FATAL, e);
+            getPrinter().accept(ex);
             throw ex;
         }
-    }
-
-    /** Returns the singleton. */
-    public static XmlMessageUtils getInstance() {
-        return DEFAULT;
     }
 
 
@@ -170,7 +206,7 @@ public final class XmlMessageUtils {
         return is;
     }
 
-    private abstract static class MyErrorHandler implements ErrorHandler {
+    private abstract class MyErrorHandler implements ErrorHandler {
 
         private final XmlMessageHandler handler;
 
@@ -181,7 +217,7 @@ public final class XmlMessageUtils {
         abstract XmlPositioner getPositioner();
 
         private XmlException parseException(SAXParseException exception, XmlSeverity severity) {
-            return MessageUtil.createEntryBestEffort(getPositioner(), severity, handler.supportsAnsiColors(), exception);
+            return MessageUtil.createEntryBestEffort(OoxmlFacade.this, getPositioner(), severity, exception);
         }
 
         @Override

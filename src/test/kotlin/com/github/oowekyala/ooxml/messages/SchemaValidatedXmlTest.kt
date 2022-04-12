@@ -51,7 +51,7 @@ class SchemaValidatedXmlTest : FunSpec({
             }.newDocumentBuilder()
 
     fun String.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
-            XmlMessageUtils.getInstance().parse(domBuilder(), InputSource(reader()), handler)
+        OoxmlFacade().withPrinter(handler).parse(domBuilder(), InputSource(reader()))
 
 
     test("Test wrong schema") {

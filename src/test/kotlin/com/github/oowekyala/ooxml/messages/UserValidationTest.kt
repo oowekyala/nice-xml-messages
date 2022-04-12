@@ -28,28 +28,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.w3c.dom.Element
-import org.xml.sax.InputSource
-import javax.xml.parsers.DocumentBuilderFactory
 
 
-class UserValidationTest : FunSpec({
+class UserValidationTest : IntelliMarker, FunSpec({
 
-    fun String.parseStr(handler: TestMessagePrinter,
-                        builderConfig: DocumentBuilderFactory.() -> Unit = {}): PositionedXmlDoc {
-
-
-        val builder =
-                DocumentBuilderFactory.newInstance()
-                        .apply(builderConfig)
-                        .newDocumentBuilder()
-
-
-        val isource = InputSource(reader()).apply {
-            systemId = "/test/File.xml"
-        }
-
-        return XmlMessageUtils.getInstance().parse(builder, isource, handler)
-    }
 
     test("Test attribute node") {
 
@@ -60,26 +42,26 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
 
-        val attr =
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
-                        .attributes
-                        .getNamedItem("foo")
+                    .documentElement
+                    .childNodes
+                    .item(1)
+                    .attributes
+                    .getNamedItem("foo")
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml:3:11
  1| $HEADER
  2| <list>
  3|     <list foo="&amp;"/>
@@ -87,6 +69,7 @@ Error (XML validation) in /test/File.xml
 
  4| </list>
 """.trimIndent()
+        }
 
 
     }
@@ -103,26 +86,26 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
 
-        val attr =
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
-                        .attributes
-                        .getNamedItem("xsi:foo")!!
+                    .documentElement
+                    .childNodes
+                    .item(1)
+                    .attributes
+                    .getNamedItem("xsi:foo")!!
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml:5:9
  3|     <list xmlns:xsi="fooo" xmlns:foo="ah!"
  4|             foo:oha ='a'
  5|         xsi:foo="&amp;" />
@@ -131,9 +114,8 @@ Error (XML validation) in /test/File.xml
  6| </list>
 """.trimIndent()
 
-
+        }
     }
-
 
 
 
@@ -149,26 +131,26 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
 
-        val attr =
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
-                        .attributes
-                        .getNamedItem("foo")!!
+                    .documentElement
+                    .childNodes
+                    .item(1)
+                    .attributes
+                    .getNamedItem("foo")!!
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml
  4|           xmlns="ah!"
  5|           foo:oha ='a'
  6|           foo="&amp;" />
@@ -176,7 +158,7 @@ Error (XML validation) in /test/File.xml
 
  7| </list>
 """.trimIndent()
-
+        }
 
     }
 
@@ -193,24 +175,24 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
 
-        val attr =
+            val attr =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)!!
+                    .documentElement
+                    .childNodes
+                    .item(1)!!
 
-        reporter.error(attr, "Give better names plz")
+            reporter.at(attr).error("Give better names plz")
 
 
         printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+Error at /test/File.xml
  1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
  2| <list xmlns:xsi="fooo" xmlns:foo="ah!">
  3|     <foo:list 
@@ -221,6 +203,7 @@ Error (XML validation) in /test/File.xml
 """.trimIndent()
 
 
+        }
     }
 
 
@@ -236,25 +219,25 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
-        val text =
+            val text =
                 xmlDoc.document
-                        .documentElement
-                        .also {
-                            it.tagName shouldBe "list"
-                        }
-                        .childNodes
-                        .item(0)!!
+                    .documentElement
+                    .also {
+                        it.tagName shouldBe "list"
+                    }
+                    .childNodes
+                    .item(0)!!
 
-        reporter.error(text, "Give better names plz")
+            reporter.at(text).error("Give better names plz")
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml
  1| $HEADER
  2| <list>
           ^ Give better names plz
@@ -263,7 +246,7 @@ Error (XML validation) in /test/File.xml
  4|     <![CDATA[
 """.trimIndent()
 
-
+        }
     }
 
 
@@ -279,23 +262,23 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc = expected.parseStr(printer)
+            val xmlDoc = expected.parseStr()
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
-        val text =
+            val text =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)!!
+                    .documentElement
+                    .childNodes
+                    .item(1)!!
 
-        reporter.error(text, "Give better names plz")
+            reporter.at(text).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml
  2| <list>
  3|     text
  4|     <![CDATA[
@@ -305,8 +288,8 @@ Error (XML validation) in /test/File.xml
  6|     ]]>
         """.trimIndent()
 
+        }
     }
-
 
 
     test("Test coalescing cdata sections") {
@@ -322,28 +305,27 @@ $HEADER
 </list>
         """.trimIndent()
 
-        val printer = TestMessagePrinter()
+        with(OoxmlFixture()) {
 
-        val xmlDoc =
-                expected.parseStr(printer) {
-                    isCoalescing = true
-                }
+            val xmlDoc = expected.parseStr {
+                isCoalescing = true
+            }
 
-        val reporter = DefaultXmlErrorReporter(printer, xmlDoc.positioner)
+            val reporter = newReporter(xmlDoc.positioner)
 
-        val mixedElt =
+            val mixedElt =
                 xmlDoc.document
-                        .documentElement
-                        .childNodes
-                        .item(1)
+                    .documentElement
+                    .childNodes
+                    .item(1)
 
-        mixedElt.shouldBeInstanceOf<Element>()
+            mixedElt.shouldBeInstanceOf<Element>()
 
-        reporter.error(mixedElt, "Give better names plz")
+            reporter.at(mixedElt).error("Give better names plz")
 
 
-        printer.err[0].message shouldBe """
-Error (XML validation) in /test/File.xml
+            printer.err[0].message shouldBe """
+Error at /test/File.xml
  5|     cdata
  6|     ]]>
  7|     <mixed />
@@ -351,7 +333,7 @@ Error (XML validation) in /test/File.xml
 
  8| </list>
 """.trimIndent()
-
+        }
     }
 
 

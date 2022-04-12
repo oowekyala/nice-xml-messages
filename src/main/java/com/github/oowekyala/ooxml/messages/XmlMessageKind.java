@@ -26,8 +26,6 @@ package com.github.oowekyala.ooxml.messages;
 
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
-
 /**
  * Kind of a {@linkplain XmlException message}, mostly just a formatting
  * helper.

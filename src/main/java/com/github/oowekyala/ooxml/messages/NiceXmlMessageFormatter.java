@@ -24,34 +24,26 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-/**
- * Handles XML messages, for example forwarding them to a print stream.
- */
-public interface XmlMessageHandler {
+import java.util.List;
 
-    /**
-     * Outputs messages to {@link System#err}, with colors enabled, and
-     * debug off.
-     */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(true);
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
-    /**
-     * Ignores all messages.
-     */
-    XmlMessageHandler NOOP = (kind, severity, message) -> { /* do nothing*/};
+public interface NiceXmlMessageFormatter {
+
+    String formatSpec(NiceXmlMessageSpec spec, XmlPositioner positioner);
 
 
-    /**
-     * Handle an XML message. May throw, ignore, or print
-     * to an external stream.
-     *
-     * @param entry Message to handle
-     */
-    default void accept(XmlException entry) {
-        printMessageLn(entry.getKind(), entry.getSeverity(), entry.toString());
-    }
+    NiceXmlMessageFormatter HEADER_ONLY =
+        (spec, positioner) -> MessageUtil.headerOnly(spec, spec.getSimpleMessage(), true);
 
 
-    void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message);
+    NiceXmlMessageFormatter FULL_MESSAGE = (spec, positioner) -> {
+        @Nullable ContextLines linesAround =
+            positioner.getLinesAround(spec.getPosition(), spec.getNumLinesAround());
+
+        return linesAround == null ? HEADER_ONLY.formatSpec(spec, positioner)
+                                   : linesAround.make(spec);
+
+    };
 
 }

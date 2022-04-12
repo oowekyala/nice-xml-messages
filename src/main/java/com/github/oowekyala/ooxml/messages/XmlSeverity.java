@@ -24,34 +24,54 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import java.util.logging.Level;
+
 /**
- * Handles XML messages, for example forwarding them to a print stream.
+ * Severity of a message.
  */
-public interface XmlMessageHandler {
+public enum XmlSeverity {
+    INFO("Info"),
+    WARNING("Warning") {
+        @Override
+        public String withColor(String toColor) {
+            return TerminalColor.COL_YELLOW.apply(toColor, false, false, false);
+        }
+    },
+    ERROR("Error") {
+        @Override
+        public String withColor(String toColor) {
+            return TerminalColor.COL_RED.apply(toColor, false, false, false);
+        }
+    },
+    FATAL("Fatal error") {
+        @Override
+        public String withColor(String toColor) {
+            return TerminalColor.COL_RED.apply(toColor, false, false, true);
+        }
+    };
 
-    /**
-     * Outputs messages to {@link System#err}, with colors enabled, and
-     * debug off.
-     */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(true);
-
-    /**
-     * Ignores all messages.
-     */
-    XmlMessageHandler NOOP = (kind, severity, message) -> { /* do nothing*/};
+    private final String displayName;
 
 
-    /**
-     * Handle an XML message. May throw, ignore, or print
-     * to an external stream.
-     *
-     * @param entry Message to handle
-     */
-    default void accept(XmlException entry) {
-        printMessageLn(entry.getKind(), entry.getSeverity(), entry.toString());
+    XmlSeverity(String displayName) {
+        this.displayName = displayName;
     }
 
 
-    void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message);
+    /**
+     * Add a color relevant to this kind to the given string. This uses
+     * ANSI escape sequences.
+     *
+     * @param toColor String to surround with escape sequences
+     * @return The string, prefixed with an ANSI color, and suffixed
+     * with {@value TerminalColor#ANSI_RESET}
+     */
+    public String withColor(String toColor) {
+        return toColor;
+    }
 
+
+    public String toString() {
+        return displayName;
+    }
 }

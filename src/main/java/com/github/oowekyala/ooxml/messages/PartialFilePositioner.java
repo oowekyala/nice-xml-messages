@@ -27,8 +27,6 @@ package com.github.oowekyala.ooxml.messages;
 import org.w3c.dom.Node;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.TextDoc.MessageTextBuilder;
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * @author Clément Fournier
@@ -48,20 +46,17 @@ class PartialFilePositioner implements XmlPositioner {
         this.systemId = systemId;
     }
 
+
     @Override
     public XmlPosition startPositionOf(@Nullable Node node) {
         return XmlPosition.undefinedIn(systemId);
     }
 
+
     @Override
-    public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
-        if (position.isUndefined()) {
-            return MessageTextBuilder.addHeader(kind, severity, position, message, false);
-        }
-
-        return textDoc.getLinesAround(position.getLine(), NUM_LINES_AROUND)
-                      .make(useAnsiColors, kind, severity, position, message)
-                      .trim();
-
+    public @Nullable ContextLines getLinesAround(XmlPosition position, int numContextLines) {
+        return position.isUndefined() ? null : textDoc.getLinesAround(position.getLine(), numContextLines);
     }
+
+
 }

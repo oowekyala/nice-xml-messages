@@ -38,7 +38,7 @@ import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 import com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind;
 
 class MessageUtil {
@@ -75,16 +75,17 @@ class MessageUtil {
     /**
      * Creates an entry for the given exception. Tries to recover the position from the exception.
      *
-     * @param useColors Use terminal colors to format the message
      * @param exception Exception
      * @return An exception, possibly enriched with context information
      */
-    static XmlException createEntryBestEffort(XmlPositioner positioner,
+    static XmlException createEntryBestEffort(OoxmlFacade ooxml,
+                                              XmlPositioner positioner,
                                               XmlSeverity severity,
-                                              boolean useColors,
                                               Throwable exception) {
 
-        StdMessageKind kind = exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage()) ? SCHEMA_VALIDATION : PARSING;
+        StdMessageKind kind =
+            exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage())
+            ? SCHEMA_VALIDATION : PARSING;
 
         XmlPosition pos = extractPosition(exception);
 
@@ -107,8 +108,15 @@ class MessageUtil {
                                     exception);
 
         } else {
-            String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, severity, simpleMessage);
-            return new XmlException(pos, fullMessage, simpleMessage, kind, severity, exception);
+            ContextLines linesAround = positioner.getLinesAround(pos, ooxml.getNumContextLines());
+            NiceXmlMessageSpec spec = new NiceXmlMessageSpec(pos, simpleMessage)
+                .withAnsiColors(ooxml.isUseAnsiColors())
+                .withKind(kind)
+                .withSeverity(severity)
+                .withContextLines(ooxml.getNumContextLines())
+                .withCause(exception);
+            String fullMessage = linesAround.make(spec);
+            return new XmlException(spec, fullMessage);
         }
     }
 
@@ -125,5 +133,47 @@ class MessageUtil {
         }
 
         return writer.toString();
+    }
+
+
+    public static String addHeader(XmlMessageKind kind, XmlSeverity severity, XmlPosition position, String message, boolean singleLine) {
+
+
+        String url = position.getSystemId();
+        String header = kind.getHeader(severity);
+        if (url != null) {
+            header += " in " + url;
+        }
+
+        if (singleLine) {
+            return header + "\t" + message;
+        } else {
+            return header + "\n" + message;
+        }
+    }
+
+
+    public static String headerOnly(NiceXmlMessageSpec spec, String message, boolean singleLine) {
+
+        @Nullable String url = spec.getPosition().getSystemId();
+
+        String header = spec.getSeverity().toString();
+        XmlMessageKind kind = spec.getKind();
+        if (kind != null) {
+            header += " (" + kind + ")";
+        }
+        if (url != null) {
+            if (spec.getPosition().isUndefined()) {
+                header += " in " + url;
+            } else {
+                header += " at " + url + ":" + spec.getPosition().getLine() + ":" + spec.getPosition().getColumn();
+            }
+        }
+
+        if (singleLine) {
+            return header + " - " + message;
+        } else {
+            return header + "\n" + message;
+        }
     }
 }
