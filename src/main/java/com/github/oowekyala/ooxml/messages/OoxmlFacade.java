@@ -25,7 +25,6 @@
 package com.github.oowekyala.ooxml.messages;
 
 import static com.github.oowekyala.ooxml.messages.XmlSeverity.ERROR;
-import static com.github.oowekyala.ooxml.messages.XmlSeverity.FATAL;
 import static com.github.oowekyala.ooxml.messages.XmlSeverity.WARNING;
 
 import java.io.IOException;
@@ -63,11 +62,11 @@ import org.xml.sax.SAXParseException;
  *            iSource.setCharacterStream(reader);
  *
  *            // Here we go
- *            doc = XmlMessageUtils.parse(builder, iSource, XmlMessageHandler.SYSTEM_ERR);
+ *            doc = new OoxmlFacade().parse(builder, iSource);
  *        }
  *
  *        // This is the object that maps DOM nodes to file
- *        // positions, and can render it
+ *        // positions
  *        XmlPositioner positioner = doc.getPositioner();
  *
  *        // Create the reporter, which you can use during parsing
@@ -181,7 +180,7 @@ public final class OoxmlFacade {
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {
             PartialFilePositioner positioner = new PartialFilePositioner(isource.getReadSoFar(), isource.getSystemId());
-            XmlException ex = MessageUtil.createEntryBestEffort(this, positioner, FATAL, e);
+            XmlException ex = MessageUtil.createEntryBestEffort(this, positioner, ERROR, e);
             getPrinter().accept(ex);
             throw ex;
         }
@@ -232,7 +231,7 @@ public final class OoxmlFacade {
 
         @Override
         public void fatalError(SAXParseException exception) {
-            XmlException ex = parseException(exception, FATAL);
+            XmlException ex = parseException(exception, ERROR);
             handler.accept(ex);
             throw ex;
         }

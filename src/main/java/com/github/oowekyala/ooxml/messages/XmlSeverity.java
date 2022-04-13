@@ -24,29 +24,26 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import java.util.logging.Level;
-
 /**
  * Severity of a message.
  */
 public enum XmlSeverity {
-    INFO("Info"),
+    /**
+     * A warning, with a yellow color.
+     */
     WARNING("Warning") {
         @Override
         public String withColor(String toColor) {
             return TerminalColor.COL_YELLOW.apply(toColor, false, false, false);
         }
     },
+    /**
+     * An error, with a red color.
+     */
     ERROR("Error") {
         @Override
         public String withColor(String toColor) {
             return TerminalColor.COL_RED.apply(toColor, false, false, false);
-        }
-    },
-    FATAL("Fatal error") {
-        @Override
-        public String withColor(String toColor) {
-            return TerminalColor.COL_RED.apply(toColor, false, false, true);
         }
     };
 

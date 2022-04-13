@@ -24,6 +24,8 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
  * Generic XML exception wrapper. Can occur during validation or parsing.
  */
@@ -31,39 +33,20 @@ public final class XmlException extends RuntimeException {
 
     private final XmlPosition position;
     private final String simpleMessage;
-    private final XmlMessageKind kind;
+    private final @Nullable String kind;
     private final XmlSeverity severity;
 
-    public XmlException(XmlPosition position,
-                        String fullMessage,
-                        String simpleMessage,
-                        XmlMessageKind kind,
-                        XmlSeverity severity) {
-        this(position, fullMessage, simpleMessage, kind, severity, null);
-    }
 
-    public XmlException(XmlPosition position,
-                        String fullMessage,
-                        String simpleMessage,
-                        XmlMessageKind kind,
-                        XmlSeverity severity,
-                        Throwable cause) {
-
-        super(fullMessage, cause);
-
-        assert severity != null;
-        assert kind != null;
-        assert position != null;
-
-        this.position = position;
-        this.simpleMessage = simpleMessage;
-        this.kind = kind;
-        this.severity = severity;
-    }
-
-
+    /**
+     * Create a new exception from the given spec.
+     *
+     * @param spec        A non-null spec
+     * @param fullMessage Used as the {@link #toString()}. If null,
+     *                    the spec's {@link NiceXmlMessageSpec#getSimpleMessage()} is used.
+     * @throws NullPointerException If the spec is null
+     */
     public XmlException(NiceXmlMessageSpec spec,
-                        String fullMessage) {
+                        @Nullable String fullMessage) {
 
         super(fullMessage == null ? spec.getSimpleMessage() : fullMessage, spec.getCause());
 
@@ -98,7 +81,7 @@ public final class XmlException extends RuntimeException {
     /**
      * Returns the message kind.
      */
-    public XmlMessageKind getKind() {
+    public @Nullable String getKind() {
         return kind;
     }
 

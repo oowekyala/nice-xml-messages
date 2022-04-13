@@ -30,11 +30,9 @@ public class NiceXmlMessageSpec {
 
     private final XmlPosition position;
     private Throwable cause;
-    private boolean useAnsiColors;
-    private XmlMessageKind kind;
+    private @Nullable String kind;
     private XmlSeverity severity;
-    private String simpleMessage;
-    private boolean shortMessage;
+    private final String simpleMessage;
     private int numLinesAround = 2;
 
 
@@ -53,12 +51,7 @@ public class NiceXmlMessageSpec {
     }
 
 
-    public boolean isUseAnsiColors() {
-        return useAnsiColors;
-    }
-
-
-    public @Nullable XmlMessageKind getKind() {
+    public @Nullable String getKind() {
         return kind;
     }
 
@@ -78,21 +71,12 @@ public class NiceXmlMessageSpec {
     }
 
 
-    public boolean isShortMessage() {
-        return shortMessage;
-    }
-
     public @Nullable Throwable getCause() {
         return cause;
     }
 
-    public NiceXmlMessageSpec withAnsiColors(boolean useAnsiColors) {
-        this.useAnsiColors = useAnsiColors;
-        return this;
-    }
 
-
-    public NiceXmlMessageSpec withKind(XmlMessageKind kind) {
+    public NiceXmlMessageSpec withKind(String kind) {
         this.kind = kind;
         return this;
     }
@@ -100,18 +84,6 @@ public class NiceXmlMessageSpec {
 
     public NiceXmlMessageSpec withSeverity(XmlSeverity severity) {
         this.severity = severity;
-        return this;
-    }
-
-
-    public NiceXmlMessageSpec setSimpleMessage(String simpleMessage) {
-        this.simpleMessage = simpleMessage;
-        return this;
-    }
-
-
-    public NiceXmlMessageSpec setShortMessage(boolean shortMessage) {
-        this.shortMessage = shortMessage;
         return this;
     }
 
@@ -126,5 +98,4 @@ public class NiceXmlMessageSpec {
         this.cause = cause;
         return this;
     }
-
 }

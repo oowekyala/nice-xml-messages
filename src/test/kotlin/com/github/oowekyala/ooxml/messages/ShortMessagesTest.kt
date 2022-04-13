@@ -26,8 +26,6 @@ package com.github.oowekyala.ooxml.messages
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import org.xml.sax.InputSource
-import javax.xml.parsers.DocumentBuilderFactory
 
 class ShortMessagesTest : IntelliMarker, FunSpec({
 
@@ -41,7 +39,7 @@ $HEADER
         """.trimIndent()
 
         with(OoxmlFixture()) {
-            ooxml.withFormatter(NiceXmlMessageFormatter.HEADER_ONLY)
+            ooxml.withFormatter(NiceXmlMessageFormatter.SINGLE_LINE)
 
             val xmlDoc = expected.parseStr()
 
@@ -78,7 +76,7 @@ $HEADER
         """.trimIndent()
 
         with(OoxmlFixture()) {
-            ooxml.withFormatter(NiceXmlMessageFormatter.HEADER_ONLY)
+            ooxml.withFormatter(NiceXmlMessageFormatter.SINGLE_LINE)
 
             val xmlDoc = expected.parseStr()
 

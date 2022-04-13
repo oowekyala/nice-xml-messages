@@ -105,7 +105,7 @@ public abstract class AccumulatingMessageHandler implements XmlMessageHandler, A
     protected void printSummary(XmlSeverity severity, String message, List<XmlException> entry) {
         XmlException first = entry.get(0);
         if (entry.size() > 1) {
-            XmlMessageKind kind = first.getKind();
+            String kind = first.getKind();
             basePrinter.printMessageLn(kind,
                                               severity,
                                               "There were " + entry.size() + " "

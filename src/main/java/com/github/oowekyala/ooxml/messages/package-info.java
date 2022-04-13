@@ -56,14 +56,14 @@
  * Error at /some/file.xml:3:21 - The entity "amb" was referenced, but not declared.
  * }</pre>
  *
- * if you use {@link com.github.oowekyala.ooxml.messages.XmlPositioner#withShortMessages()}.
+ * if you use eg {@link com.github.oowekyala.ooxml.messages.NiceXmlMessageFormatter#SINGLE_LINE}.
  *
  * <p>This API is also useful to validate an XML file after
  * it's parsed, and emit targeted error messages that come with
- * the same kind of file help. See {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter}.
+ * the same kind of file help. See {@link com.github.oowekyala.ooxml.messages.XmlMessageReporter}.
  *
  * <p>{@link com.github.oowekyala.ooxml.messages.XmlPositioner} is meant
- * as a low-level utility, to build helpers such as {@link com.github.oowekyala.ooxml.messages.XmlErrorReporter}.
+ * as a low-level utility, to build helpers such as {@link com.github.oowekyala.ooxml.messages.XmlMessageReporter}.
  *
  * @author Clément Fournier
  */

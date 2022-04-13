@@ -34,7 +34,7 @@ import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 /**
  * Associates XML nodes with a position. This is a low-level utility,
  * created by this library (see {@link OoxmlFacade#parse(DocumentBuilder, InputSource) XmlErrorUtils::parse}).
- * It's meant as a back-end for a validation helper, like {@link XmlErrorReporter}.
+ * It's meant as a back-end for a validation helper, like {@link XmlMessageReporter}.
  */
 public interface XmlPositioner {
 

@@ -24,26 +24,41 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import java.util.List;
-
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
+/**
+ * Formats a {@link NiceXmlMessageSpec} to make the full message
+ * of an {@link XmlException}.
+ *
+ * @see OoxmlFacade#withFormatter(NiceXmlMessageFormatter)
+ */
 public interface NiceXmlMessageFormatter {
 
-    String formatSpec(NiceXmlMessageSpec spec, XmlPositioner positioner);
+    String formatSpec(OoxmlFacade ooxml, NiceXmlMessageSpec spec, XmlPositioner positioner);
 
 
-    NiceXmlMessageFormatter HEADER_ONLY =
-        (spec, positioner) -> MessageUtil.headerOnly(spec, spec.getSimpleMessage(), true);
+    NiceXmlMessageFormatter SINGLE_LINE =
+        (ooxml, spec, positioner) -> MessageUtil.headerOnly(spec, spec.getSimpleMessage(), true);
 
 
-    NiceXmlMessageFormatter FULL_MESSAGE = (spec, positioner) -> {
+    /**
+     * Formats errors like:
+     * <pre>{@code
+     * Error (XML parsing) at /some/file.xml:3:15
+     *     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+     *     2| <list>
+     *     3|     <list foo="&amb;"/>
+     *                            ^ The entity "amb" was referenced, but not declared.
+     *
+     *     4| </list>
+     * }</pre>
+     */
+    NiceXmlMessageFormatter FULL_MESSAGE = (ooxml, spec, positioner) -> {
         @Nullable ContextLines linesAround =
             positioner.getLinesAround(spec.getPosition(), spec.getNumLinesAround());
 
-        return linesAround == null ? HEADER_ONLY.formatSpec(spec, positioner)
-                                   : linesAround.make(spec);
-
+        return linesAround == null ? SINGLE_LINE.formatSpec(ooxml, spec, positioner)
+                                   : linesAround.make(ooxml, spec);
     };
 
 }

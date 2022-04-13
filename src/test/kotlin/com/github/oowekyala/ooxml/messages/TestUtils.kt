@@ -95,19 +95,16 @@ class TestMessagePrinter : XmlMessageHandler {
 
     val warn = mutableListOf<XmlException>()
     val err = mutableListOf<XmlException>()
-    val out = mutableListOf<XmlException>()
 
 
-    override fun printMessageLn(kind: XmlMessageKind, severity: XmlSeverity, message: String) {
+    override fun printMessageLn(kind: @Annots.Nullable String, severity: XmlSeverity, message: String) {
         TODO()
     }
 
     override fun accept(entry: XmlException) {
         when (entry.severity) {
-            INFO    -> out += entry
             WARNING -> warn += entry
             ERROR   -> err += entry
-            FATAL   -> err += entry
             else    -> fail("impossible")
         }
     }
@@ -116,7 +113,6 @@ class TestMessagePrinter : XmlMessageHandler {
     fun shouldBeEmpty() {
         warn.shouldBeEmpty()
         err.shouldBeEmpty()
-        out.shouldBeEmpty()
     }
 }
 

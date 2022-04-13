@@ -24,6 +24,8 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
  * Handles XML messages, for example forwarding them to a print stream.
  */
@@ -33,7 +35,7 @@ public interface XmlMessageHandler {
      * Outputs messages to {@link System#err}, with colors enabled, and
      * debug off.
      */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(true);
+    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler();
 
     /**
      * Ignores all messages.
@@ -52,6 +54,6 @@ public interface XmlMessageHandler {
     }
 
 
-    void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message);
+    void printMessageLn(@Nullable String kind, XmlSeverity severity, String message);
 
 }

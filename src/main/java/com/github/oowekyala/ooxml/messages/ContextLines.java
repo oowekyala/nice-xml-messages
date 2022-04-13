@@ -33,7 +33,7 @@ import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
 
 /**
- * Helper object.
+ * Helper object that contains the lines around a specific {@link XmlPosition}.
  */
 public class ContextLines {
 
@@ -57,13 +57,15 @@ public class ContextLines {
     }
 
 
-    String make(NiceXmlMessageSpec spec) {
+    String make(OoxmlFacade ooxml, NiceXmlMessageSpec spec) {
 
+        // width of largest line number
         int pad = stringLengthOf(lines.size() + first);
 
-        List<String> withLineNums = IntStream.range(0, lines.size())
-                                             .mapToObj(i -> addLineNum(i, pad))
-                                             .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
+        List<String> withLineNums =
+            IntStream.range(0, lines.size())
+                     .mapToObj(i -> addLineNum(i, pad))
+                     .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
 
         String errorLine = addLineNum(errorIdx, pad);
         // diff added by line numbers
@@ -73,7 +75,7 @@ public class ContextLines {
                                                          spec.getPosition().getColumn() + offset - 1,
                                                          spec.getPosition().getLength());
 
-        String colored = spec.isUseAnsiColors() ? spec.getSeverity().withColor(messageLine) : messageLine;
+        String colored = ooxml.isUseAnsiColors() ? spec.getSeverity().withColor(messageLine) : messageLine;
 
         withLineNums.add(errorIdx + 1, colored);
         withLineNums.add(errorIdx + 2, ""); // skip a line

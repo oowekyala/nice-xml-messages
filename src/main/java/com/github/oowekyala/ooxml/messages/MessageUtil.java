@@ -26,8 +26,6 @@ package com.github.oowekyala.ooxml.messages;
 
 
 import static com.github.oowekyala.ooxml.messages.ErrorCleaner.isSchemaValidationMessage;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -39,9 +37,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind;
 
 class MessageUtil {
+
+
+    private static final String KIND_SCHEMA_VALIDATION = "Schema validation";
+    private static final String KIND_PARSING = "XML parsing";
+
 
     static String enquote(String it) {return "'" + it + "'";}
 
@@ -83,12 +85,26 @@ class MessageUtil {
                                               XmlSeverity severity,
                                               Throwable exception) {
 
-        StdMessageKind kind =
-            exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage())
-            ? SCHEMA_VALIDATION : PARSING;
-
+        String kind = extractKind(exception);
         XmlPosition pos = extractPosition(exception);
+        String simpleMessage = extractSimpleMessage(exception);
 
+        NiceXmlMessageSpec spec = new NiceXmlMessageSpec(pos, simpleMessage)
+            .withKind(kind)
+            .withSeverity(severity)
+            .withCause(exception);
+
+        String fullMessage = ooxml.getFormatter().formatSpec(ooxml, spec, positioner);
+        return new XmlException(spec, fullMessage);
+    }
+
+
+    private static String extractKind(Throwable exception) {
+        return exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage())
+               ? KIND_SCHEMA_VALIDATION : KIND_PARSING;
+    }
+
+    private static String extractSimpleMessage(Throwable exception) {
         final String simpleMessage;
         if (exception instanceof TransformerException
             && exception.getCause() instanceof SAXException) {
@@ -96,28 +112,7 @@ class MessageUtil {
         } else {
             simpleMessage = exception.getMessage();
         }
-
-
-        if (pos.isUndefined()) {
-            // unknown exception
-            return new XmlException(pos,
-                                    kind.getHeader(severity) + "\n" + simpleMessage,
-                                    simpleMessage,
-                                    kind,
-                                    severity,
-                                    exception);
-
-        } else {
-            ContextLines linesAround = positioner.getLinesAround(pos, ooxml.getNumContextLines());
-            NiceXmlMessageSpec spec = new NiceXmlMessageSpec(pos, simpleMessage)
-                .withAnsiColors(ooxml.isUseAnsiColors())
-                .withKind(kind)
-                .withSeverity(severity)
-                .withContextLines(ooxml.getNumContextLines())
-                .withCause(exception);
-            String fullMessage = linesAround.make(spec);
-            return new XmlException(spec, fullMessage);
-        }
+        return simpleMessage;
     }
 
 
@@ -136,29 +131,12 @@ class MessageUtil {
     }
 
 
-    public static String addHeader(XmlMessageKind kind, XmlSeverity severity, XmlPosition position, String message, boolean singleLine) {
-
-
-        String url = position.getSystemId();
-        String header = kind.getHeader(severity);
-        if (url != null) {
-            header += " in " + url;
-        }
-
-        if (singleLine) {
-            return header + "\t" + message;
-        } else {
-            return header + "\n" + message;
-        }
-    }
-
-
     public static String headerOnly(NiceXmlMessageSpec spec, String message, boolean singleLine) {
 
         @Nullable String url = spec.getPosition().getSystemId();
 
         String header = spec.getSeverity().toString();
-        XmlMessageKind kind = spec.getKind();
+        String kind = spec.getKind();
         if (kind != null) {
             header += " (" + kind + ")";
         }
