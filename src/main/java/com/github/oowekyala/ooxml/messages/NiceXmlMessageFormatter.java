@@ -55,7 +55,7 @@ public interface NiceXmlMessageFormatter {
      */
     NiceXmlMessageFormatter FULL_MESSAGE = (ooxml, spec, positioner) -> {
         @Nullable ContextLines linesAround =
-            positioner.getLinesAround(spec.getPosition(), spec.getNumLinesAround());
+            positioner.getLinesAround(spec.getPosition(), ooxml.getNumContextLines());
 
         return linesAround == null ? SINGLE_LINE.formatSpec(ooxml, spec, positioner)
                                    : linesAround.make(ooxml, spec);

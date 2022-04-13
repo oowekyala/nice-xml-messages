@@ -37,7 +37,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 
 
-class MalformedXmlTest : FunSpec({
+class MalformedXmlTest : IntelliMarker, FunSpec({
 
 
     fun domBuilder(): DocumentBuilder =
@@ -71,7 +71,7 @@ $HEADER
 
         ex.toString().shouldBe(
                 """
-Fatal error (XML parsing)
+Error (XML parsing)
  2| <list>
  3|     <list
  4|         <str>oha</str>
@@ -103,7 +103,7 @@ $HEADER
 
         ex.toString().shouldBe(
                 """
-Fatal error (XML parsing)
+Error (XML parsing)
  1| $HEADER
  2| <list>
  3|     <list foo="&amb;"/>
@@ -131,11 +131,11 @@ $HEADER
         }
 
         ex.toString().shouldBe(
-"""Fatal error (XML parsing)
+"""Error (XML parsing)
  1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
                                                           ^ Premature end of file.
 
-""".trim()
+""".trimIndent()
         )
 
         printer.err.shouldContainExactly(ex)
@@ -151,11 +151,11 @@ $HEADER
         }
 
         ex.toString().shouldBe(
-"""Fatal error (XML parsing)
+"""Error (XML parsing)
  1| 
     ^ Premature end of file.
 
-""".trim()
+""".trimIndent()
         )
 
         printer.err.shouldContainExactly(ex)

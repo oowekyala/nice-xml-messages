@@ -33,7 +33,6 @@ public class NiceXmlMessageSpec {
     private @Nullable String kind;
     private XmlSeverity severity;
     private final String simpleMessage;
-    private int numLinesAround = 2;
 
 
     /**
@@ -66,11 +65,6 @@ public class NiceXmlMessageSpec {
     }
 
 
-    public int getNumLinesAround() {
-        return numLinesAround;
-    }
-
-
     public @Nullable Throwable getCause() {
         return cause;
     }
@@ -84,12 +78,6 @@ public class NiceXmlMessageSpec {
 
     public NiceXmlMessageSpec withSeverity(XmlSeverity severity) {
         this.severity = severity;
-        return this;
-    }
-
-
-    public NiceXmlMessageSpec withContextLines(int numLinesAround) {
-        this.numLinesAround = numLinesAround;
         return this;
     }
 

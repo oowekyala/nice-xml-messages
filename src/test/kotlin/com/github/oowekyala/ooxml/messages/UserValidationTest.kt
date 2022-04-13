@@ -150,7 +150,7 @@ $HEADER
 
 
             printer.err[0].message shouldBe """
-Error at /test/File.xml
+Error at /test/File.xml:6:11
  4|           xmlns="ah!"
  5|           foo:oha ='a'
  6|           foo="&amp;" />
@@ -192,7 +192,7 @@ $HEADER
 
 
         printer.err[0].message shouldBe """
-Error at /test/File.xml
+Error at /test/File.xml:3:5
  1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
  2| <list xmlns:xsi="fooo" xmlns:foo="ah!">
  3|     <foo:list 
@@ -236,8 +236,9 @@ $HEADER
 
             reporter.at(text).error("Give better names plz")
 
+            // todo better placement for text nodes, place it below if first char is NL
             printer.err[0].message shouldBe """
-Error at /test/File.xml
+Error at /test/File.xml:2:7
  1| $HEADER
  2| <list>
           ^ Give better names plz
@@ -278,7 +279,7 @@ $HEADER
 
 
             printer.err[0].message shouldBe """
-Error at /test/File.xml
+Error at /test/File.xml:4:5
  2| <list>
  3|     text
  4|     <![CDATA[
@@ -325,7 +326,7 @@ $HEADER
 
 
             printer.err[0].message shouldBe """
-Error at /test/File.xml
+Error at /test/File.xml:7:5
  5|     cdata
  6|     ]]>
  7|     <mixed />

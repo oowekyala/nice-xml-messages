@@ -76,7 +76,7 @@ class TextDoc {
         @ZeroBased int lastL = Math.min(lines.size(), zeroL + numLinesAround);
 
         List<String> strings = lines.subList(firstL, lastL);
-        return new ContextLines(strings, firstL, zeroL - firstL);
+        return new ContextLines(strings, firstL + 1, zeroL - firstL);
     }
 
     /**

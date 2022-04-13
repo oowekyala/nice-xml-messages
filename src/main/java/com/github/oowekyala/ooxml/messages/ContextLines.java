@@ -52,6 +52,7 @@ public class ContextLines {
         this.lines = lines;
         this.first = first;
         this.errorIdx = errorIdx;
+        assert first > 0 : "line num is one based";
         assert (0 <= errorIdx && errorIdx < lines.size())
             : "Weird indices --- first=" + first + ", errorIdx=" + errorIdx + ", lines=" + lines;
     }
@@ -60,7 +61,7 @@ public class ContextLines {
     String make(OoxmlFacade ooxml, NiceXmlMessageSpec spec) {
 
         // width of largest line number
-        int pad = stringLengthOf(lines.size() + first);
+        int pad = stringLengthOf(lines.size() + first -1);
 
         List<String> withLineNums =
             IntStream.range(0, lines.size())
@@ -91,7 +92,7 @@ public class ContextLines {
 
 
     private String addLineNum(@ZeroBased int idx, int pad) {
-        return String.format(" %" + pad + "d| %s", 1 + idx + first, lines.get(idx));
+        return String.format(" %" + pad + "d| %s", idx + first, lines.get(idx));
     }
 
 
