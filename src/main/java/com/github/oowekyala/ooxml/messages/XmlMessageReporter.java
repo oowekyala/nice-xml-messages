@@ -32,21 +32,21 @@ import com.github.oowekyala.ooxml.messages.Annots.Nullable;
  * Reports errors in an XML document. This is meant as a helper
  * to carry around while validating an XML document. This interface
  * is the API provided to the validating code, what happens to the
- * messages is up to the implementation. Instances may wrap an
- * {@link XmlPositioner} to associate DOM nodes with a {@link XmlPosition position}
+ * messages is up to the implementation of the second stage (which is
+ * meant to be some specific logger/ message reporter). Instances may wrap an
+ * {@link XmlPositioner} to associate DOM nodes with an {@link XmlPosition position}
  * for better error messages.
  *
- * <p>A simple implementation is available in {@link DefaultXmlErrorReporter}.
- * Another implementation, {@link AccumulatingErrorReporter} holds
- * off the actual printing until the reporter is {@link #close() closed}.
- * Those implementations use {@link XmlMessageHandler} as a back-end
- * to render the messages.
- *
- * <p>The formatter used to template messages is implementation dependent,
- * as is the behaviour when the template argument array is null.
+ * <p>A base implementation is available in {@link XmlMessageReporterBase}.
+ * Implementations should use {@link OoxmlFacade#getPrinter()}
+ * as a back-end to render the messages.
  */
 public interface XmlMessageReporter<M> extends AutoCloseable {
 
-    M at(Node node);
+    /**
+     * Returns the second stage, which typically allows reporting
+     * messages like {@code reporter.at(node).error("an error");}.
+     */
+    M at(@Nullable Node node);
 
 }

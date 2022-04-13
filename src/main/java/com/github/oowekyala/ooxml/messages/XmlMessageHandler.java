@@ -32,10 +32,9 @@ import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 public interface XmlMessageHandler {
 
     /**
-     * Outputs messages to {@link System#err}, with colors enabled, and
-     * debug off.
+     * Outputs messages to {@link System#err}.
      */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler();
+    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(System.err);
 
     /**
      * Ignores all messages.

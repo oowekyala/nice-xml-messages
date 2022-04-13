@@ -39,12 +39,6 @@ public class PrintStreamMessageHandler implements XmlMessageHandler {
         this.err = err;
     }
 
-
-    public PrintStreamMessageHandler() {
-        this(System.err);
-    }
-
-
     @Override
     public void printMessageLn(@Nullable String kind, XmlSeverity severity, String message) {
         switch (severity) {

@@ -29,21 +29,7 @@ import java.util.function.Consumer;
 import org.w3c.dom.Node;
 
 /**
- * Reports errors in an XML document. This is meant as a helper
- * to carry around while validating an XML document. This interface
- * is the API provided to the validating code, what happens to the
- * messages is up to the implementation. Instances may wrap an
- * {@link XmlPositioner} to associate DOM nodes with a {@link XmlPosition position}
- * for better error messages.
- *
- * <p>A simple implementation is available in {@link DefaultXmlErrorReporter}.
- * Another implementation, {@link AccumulatingErrorReporter} holds
- * off the actual printing until the reporter is {@link #close() closed}.
- * Those implementations use {@link XmlMessageHandler} as a back-end
- * to render the messages.
- *
- * <p>The formatter used to template messages is implementation dependent,
- * as is the behaviour when the template argument array is null.
+ * Base implementation of {@link XmlMessageReporter}.
  */
 public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M> {
 

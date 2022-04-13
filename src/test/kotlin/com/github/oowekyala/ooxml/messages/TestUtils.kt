@@ -85,7 +85,7 @@ class SimpleMessageFacade(
         val spec = NiceXmlMessageSpec(pos, MessageFormat.format(message, args))
         spec.withSeverity(severity)
         spec.withKind(null)
-        val fullMessage = ooxml.formatter.formatSpec(spec, positioner)
+        val fullMessage = ooxml.formatter.formatSpec(ooxml, spec, positioner)
         callback(XmlException(spec, fullMessage))
     }
 }
