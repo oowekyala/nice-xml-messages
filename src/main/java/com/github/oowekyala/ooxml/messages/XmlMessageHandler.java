@@ -24,8 +24,6 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-
 /**
  * Handles XML messages, for example forwarding them to a print stream.
  */
@@ -39,7 +37,7 @@ public interface XmlMessageHandler {
     /**
      * Ignores all messages.
      */
-    XmlMessageHandler NOOP = (kind, severity, message) -> { /* do nothing*/};
+    XmlMessageHandler NOOP = (ex) -> { /* do nothing*/};
 
 
     /**
@@ -48,11 +46,6 @@ public interface XmlMessageHandler {
      *
      * @param entry Message to handle
      */
-    default void accept(XmlException entry) {
-        printMessageLn(entry.getKind(), entry.getSeverity(), entry.toString());
-    }
-
-
-    void printMessageLn(@Nullable String kind, XmlSeverity severity, String message);
+    void accept(XmlException entry);
 
 }

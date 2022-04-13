@@ -31,7 +31,7 @@ public class NiceXmlMessageSpec {
     private final XmlPosition position;
     private Throwable cause;
     private @Nullable String kind;
-    private XmlSeverity severity;
+    private XmlSeverity severity = XmlSeverity.ERROR;
     private final String simpleMessage;
 
 

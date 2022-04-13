@@ -26,8 +26,6 @@ package com.github.oowekyala.ooxml.messages;
 
 import java.io.PrintStream;
 
-import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-
 /**
  * Implements {@link XmlMessageHandler} with a pair of {@link PrintStream}s.
  */
@@ -39,12 +37,13 @@ public class PrintStreamMessageHandler implements XmlMessageHandler {
         this.err = err;
     }
 
+
     @Override
-    public void printMessageLn(@Nullable String kind, XmlSeverity severity, String message) {
-        switch (severity) {
+    public void accept(XmlException entry) {
+        switch (entry.getSeverity()) {
         case WARNING:
         case ERROR:
-            err.println(message);
+            err.println(entry);
         }
     }
 }

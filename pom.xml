@@ -18,7 +18,7 @@
     </description>
     <url>https://github.com/oowekyala/nice-xml-messages</url>
     <scm>
-        <connection>scm:git:git://github.com/oowekyala/nice-xml-messages.git</connection>
+        <connection>scm:git:https://github.com/oowekyala/nice-xml-messages.git</connection>
         <url>https://github.com/oowekyala/nice-xml-messages</url>
     </scm>
     <licenses>

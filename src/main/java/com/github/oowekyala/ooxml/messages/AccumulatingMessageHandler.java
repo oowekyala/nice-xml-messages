@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
  * Accumulates messages and does not display them until the
  * reporter is closed.
@@ -54,6 +56,9 @@ public abstract class AccumulatingMessageHandler implements XmlMessageHandler, A
                .computeIfAbsent(ex.getSimpleMessage(), m -> new ArrayList<>())
                .add(ex);
     }
+
+    protected abstract void printSummaryLine(String kind, XmlSeverity severity, String message);
+
 
     public void close() {
         close(minSeverity, minSeverity);
@@ -106,11 +111,11 @@ public abstract class AccumulatingMessageHandler implements XmlMessageHandler, A
         XmlException first = entry.get(0);
         if (entry.size() > 1) {
             String kind = first.getKind();
-            basePrinter.printMessageLn(kind,
-                                              severity,
-                                              "There were " + entry.size() + " "
-                                                  + severity.toString().toLowerCase(Locale.ROOT)
-                                                  + " like the following one:");
+            printSummaryLine(kind,
+                             severity,
+                             "There were " + entry.size() + " "
+                                 + severity.toString().toLowerCase(Locale.ROOT)
+                                 + " like the following one:");
         }
         basePrinter.accept(first);
     }

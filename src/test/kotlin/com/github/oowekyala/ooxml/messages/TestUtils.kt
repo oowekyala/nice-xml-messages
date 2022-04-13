@@ -97,10 +97,6 @@ class TestMessagePrinter : XmlMessageHandler {
     val err = mutableListOf<XmlException>()
 
 
-    override fun printMessageLn(kind: @Annots.Nullable String, severity: XmlSeverity, message: String) {
-        TODO()
-    }
-
     override fun accept(entry: XmlException) {
         when (entry.severity) {
             WARNING -> warn += entry
