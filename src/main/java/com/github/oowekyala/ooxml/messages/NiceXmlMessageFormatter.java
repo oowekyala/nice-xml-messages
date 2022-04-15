@@ -24,28 +24,41 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
- * Handles XML messages, for example forwarding them to a print stream.
+ * Formats a {@link NiceXmlMessageSpec} to make the full message
+ * of an {@link XmlException}.
+ *
+ * @see OoxmlFacade#withFormatter(NiceXmlMessageFormatter)
  */
-public interface XmlMessageHandler {
+public interface NiceXmlMessageFormatter {
 
-    /**
-     * Outputs messages to {@link System#err}.
-     */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(System.err);
+    String formatSpec(OoxmlFacade ooxml, NiceXmlMessageSpec spec, XmlPositioner positioner);
 
-    /**
-     * Ignores all messages.
-     */
-    XmlMessageHandler NOOP = (ex) -> { /* do nothing*/};
+
+    NiceXmlMessageFormatter SINGLE_LINE =
+        (ooxml, spec, positioner) -> MessageUtil.headerOnly(spec, spec.getSimpleMessage(), true);
 
 
     /**
-     * Handle an XML message. May throw, ignore, or print
-     * to an external stream.
+     * Formats errors like:
+     * <pre>{@code
+     * Error (XML parsing) at /some/file.xml:3:15
+     *     1| <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+     *     2| <list>
+     *     3|     <list foo="&amb;"/>
+     *                            ^ The entity "amb" was referenced, but not declared.
      *
-     * @param entry Message to handle
+     *     4| </list>
+     * }</pre>
      */
-    void accept(XmlException entry);
+    NiceXmlMessageFormatter FULL_MESSAGE = (ooxml, spec, positioner) -> {
+        @Nullable ContextLines linesAround =
+            positioner.getLinesAround(spec.getPosition(), ooxml.getNumContextLines());
+
+        return linesAround == null ? SINGLE_LINE.formatSpec(ooxml, spec, positioner)
+                                   : linesAround.make(ooxml, spec);
+    };
 
 }

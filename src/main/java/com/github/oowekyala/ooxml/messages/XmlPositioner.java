@@ -30,13 +30,11 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 /**
  * Associates XML nodes with a position. This is a low-level utility,
- * created by this library (see {@link XmlMessageUtils#parse(DocumentBuilder, InputSource, XmlMessageHandler)
- * XmlErrorUtils::parse}).
- * It's meant as a back-end for a validation helper, like {@link XmlErrorReporter}.
+ * created by this library (see {@link OoxmlFacade#parse(DocumentBuilder, InputSource) XmlErrorUtils::parse}).
+ * It's meant as a back-end for a validation helper, like {@link XmlMessageReporter}.
  */
 public interface XmlPositioner {
 
@@ -56,21 +54,14 @@ public interface XmlPositioner {
      * Typically this adds the source lines of the source file around
      * the error message.
      *
-     * @param position      Position of the error
-     * @param useAnsiColors Whether to use ANSI escape sequences to color the message
-     * @param kind          Kind of error
-     * @param severity      Severity of the message
-     * @param message       Error message
+     * @param position        Position of the error
+     * @param numContextLines Number of lines to include before and after
      * @return The full message
      */
-    String makePositionedMessage(
+    @Nullable ContextLines getLinesAround(
         XmlPosition position,
-        boolean useAnsiColors,
-        XmlMessageKind kind,
-        XmlSeverity severity,
-        String message
+        int numContextLines
     );
-
 
     /**
      * A positioner that returns undefined positions.
@@ -82,55 +73,18 @@ public interface XmlPositioner {
         return new XmlPositioner() {
 
             @Override
+            public @Nullable ContextLines getLinesAround(XmlPosition position, int numContextLines) {
+                return null;
+            }
+
+            @Override
             public XmlPosition startPositionOf(@Nullable Node node) {
                 return XmlPosition.undefinedIn(systemId);
             }
 
 
-            @Override
-            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
-                return withShortMessages().makePositionedMessage(position, useAnsiColors, kind, severity, message);
-            }
         };
     }
 
-
-    /**
-     * Decorates this positioner, so that the messages are shorter.
-     *
-     * @return A new positioner
-     */
-    default XmlPositioner withShortMessages() {
-        return new XmlPositioner() {
-            @Override
-            public XmlPosition startPositionOf(@Nullable Node node) {
-                return XmlPositioner.this.startPositionOf(node);
-            }
-
-
-            @Override
-            public String makePositionedMessage(XmlPosition position, boolean useAnsiColors, XmlMessageKind kind, XmlSeverity severity, String message) {
-
-                String header = severity.toString();
-                if (useAnsiColors) {
-                    header = severity.withColor(header);
-                }
-                String url = position.getSystemId();
-                if (!position.isUndefined() && url == null) {
-                    url = "(unknown file)";
-                }
-
-                if (url != null) {
-                    header += " at " + url;
-                    if (!position.isUndefined()) {
-                        header += ":" + position.getLine() + ":" + position.getColumn();
-                    }
-                }
-
-                header += " - " + message;
-                return header;
-            }
-        };
-    }
 
 }

@@ -31,35 +31,35 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
 /**
  * Accumulates messages and does not display them until the
  * reporter is closed.
  */
-public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
+public abstract class AccumulatingMessageHandler implements XmlMessageHandler, AutoCloseable {
 
     private final EnumMap<XmlSeverity, Map<String, List<XmlException>>> entries = new EnumMap<>(XmlSeverity.class);
-    private final XmlSeverity minSeverity;
+    protected final XmlSeverity minSeverity;
+    protected final XmlMessageHandler basePrinter;
 
 
-    public AccumulatingErrorReporter(XmlMessageHandler printer,
-                                     XmlPositioner positioner,
-                                     XmlSeverity minSeverity) {
-        super(printer, positioner);
+    public AccumulatingMessageHandler(XmlMessageHandler basePrinter, XmlSeverity minSeverity) {
+        this.basePrinter = basePrinter;
         this.minSeverity = minSeverity;
     }
 
 
     @Override
-    protected void handle(XmlException ex, String message) {
+    public void accept(XmlException ex) {
         entries.computeIfAbsent(ex.getSeverity(), s -> new HashMap<>())
-               .computeIfAbsent(message, m -> new ArrayList<>())
+               .computeIfAbsent(ex.getSimpleMessage(), m -> new ArrayList<>())
                .add(ex);
     }
 
+    protected abstract void printSummaryLine(String kind, XmlSeverity severity, String message);
 
-    @Override
+
     public void close() {
         close(minSeverity, minSeverity);
     }
@@ -68,7 +68,7 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
     /**
      * Close the reporter and print the accumulated exceptions.
      * The two parameters select how entries are printed to
-     * the {@link #printer}, they are dispatched to the methods
+     * the {@link #basePrinter}, they are dispatched to the methods
      * {@link #dontPrint(XmlSeverity, Map)}, {@link #printFully(XmlSeverity, String, List)}
      * and {@link #printSummary(XmlSeverity, String, List)}.
      */
@@ -95,7 +95,7 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      */
     protected void printFully(XmlSeverity severity, String message, List<XmlException> entry) {
         for (XmlException e : entry) {
-            printer.accept(e);
+            basePrinter.accept(e);
         }
     }
 
@@ -108,17 +108,16 @@ public class AccumulatingErrorReporter extends DefaultXmlErrorReporter {
      * @param entry    A nonempty list
      */
     protected void printSummary(XmlSeverity severity, String message, List<XmlException> entry) {
+        XmlException first = entry.get(0);
         if (entry.size() > 1) {
-            XmlException first = entry.get(0);
-            XmlMessageKind kind = first.getKind();
-            printer.printMessageLn(kind,
-                                   severity,
-                                   "There were " + entry.size() + " " + severity.toString().toLowerCase(Locale.ROOT)
-                                       + " like the following one:");
-            printer.accept(first);
-        } else {
-            printer.accept(entry.get(0));
+            String kind = first.getKind();
+            printSummaryLine(kind,
+                             severity,
+                             "There were " + entry.size() + " "
+                                 + severity.toString().toLowerCase(Locale.ROOT)
+                                 + " like the following one:");
         }
+        basePrinter.accept(first);
     }
 
 

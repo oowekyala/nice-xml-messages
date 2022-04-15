@@ -24,39 +24,56 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import java.util.function.Consumer;
+
 import org.w3c.dom.Node;
 
-import com.github.oowekyala.ooxml.messages.Annots.Nullable;
-
 /**
- * @author Clément Fournier
+ * Base implementation of {@link XmlMessageReporter}.
  */
-class PartialFilePositioner implements XmlPositioner {
+public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M> {
 
-    private static final int NUM_LINES_AROUND = 3;
-    protected final TextDoc textDoc;
-    private final String systemId;
+    private final XmlPositioner positioner;
+    protected final OoxmlFacade ooxml;
+
+
+    protected XmlMessageReporterBase(OoxmlFacade ooxml, XmlPositioner positioner) {
+        this.positioner = positioner;
+        this.ooxml = ooxml;
+    }
 
 
     /**
-     * @param fullFileText Full text of the XML file
+     * @param position   Position
+     * @param positioner Positioner
+     * @param handleEx   Callback to be called when an {@link XmlException} is created by the second stage
      */
-    public PartialFilePositioner(String fullFileText, String systemId) {
-        this.textDoc = new TextDoc(fullFileText);
-        this.systemId = systemId;
+    protected abstract M create2ndStage(XmlPosition position,
+                                        XmlPositioner positioner,
+                                        Consumer<XmlException> handleEx);
+
+
+    protected void handleEx(XmlException e) {
+        ooxml.getPrinter().accept(e);
     }
 
 
     @Override
-    public XmlPosition startPositionOf(@Nullable Node node) {
-        return XmlPosition.undefinedIn(systemId);
+    public M at(Node node) {
+        return create2ndStage(
+            positioner.startPositionOf(node),
+            positioner,
+            ooxml.getPrinter()::accept
+        );
     }
 
 
+    /**
+     * Do nothing by default.
+     */
     @Override
-    public @Nullable ContextLines getLinesAround(XmlPosition position, int numContextLines) {
-        return position.isUndefined() ? null : textDoc.getLinesAround(position.getLine(), numContextLines);
+    @SuppressWarnings("RedundantThrows")
+    public void close() throws Exception {
+
     }
-
-
 }

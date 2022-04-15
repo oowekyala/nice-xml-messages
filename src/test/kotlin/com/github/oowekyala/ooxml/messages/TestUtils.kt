@@ -24,42 +24,112 @@
 
 package com.github.oowekyala.ooxml.messages
 
-import io.kotest.assertions.fail
+import com.github.oowekyala.ooxml.messages.XmlSeverity.*
 import io.kotest.matchers.collections.shouldBeEmpty
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import org.junit.jupiter.api.fail
+import org.xml.sax.InputSource
+import java.text.MessageFormat
+import java.util.function.Consumer
+import javax.xml.parsers.DocumentBuilderFactory
 
 
 const val HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 
 
-class TestMessagePrinter(private val useColors: Boolean = false) : XmlMessageHandler {
+class OoxmlFixture(val ooxml: OoxmlFacade = OoxmlFacade()) {
+
+    val printer: TestMessagePrinter = TestMessagePrinter().also { ooxml.withPrinter(it) }
+
+    fun newReporter(
+        positioner: XmlPositioner
+    ): TestXmlReporter = TestXmlReporter(ooxml, positioner)
+
+    fun String.parseStr(
+        builderConfig: DocumentBuilderFactory.() -> Unit = {}
+    ): PositionedXmlDoc {
+
+        val builder =
+            DocumentBuilderFactory.newInstance()
+                .apply(builderConfig)
+                .newDocumentBuilder()
+
+
+        val isource = InputSource(this.reader()).apply {
+            systemId = "/test/File.xml"
+        }
+
+        return ooxml.parse(builder, isource)
+    }
+
+}
+
+class SimpleMessageFacade(
+    val ooxml: OoxmlFacade,
+    val pos: XmlPosition,
+    val positioner: XmlPositioner,
+    val callback: (XmlException) -> Unit
+) {
+
+
+    fun warn(message: String, vararg args: Any?) {
+        message(WARNING, message, args)
+    }
+
+    fun error(message: String, vararg args: Any?) {
+        message(ERROR, message, args)
+    }
+
+    fun message(severity: XmlSeverity, message: String, vararg args: Any?) {
+        val spec = NiceXmlMessageSpec(pos, MessageFormat.format(message, args))
+        spec.withSeverity(severity)
+        spec.withKind(null)
+        val fullMessage = ooxml.formatter.formatSpec(ooxml, spec, positioner)
+        callback(XmlException(spec, fullMessage))
+    }
+}
+
+
+class TestMessagePrinter : XmlMessageHandler {
 
     val warn = mutableListOf<XmlException>()
     val err = mutableListOf<XmlException>()
-    val out = mutableListOf<XmlException>()
-    val debug = mutableListOf<XmlException>()
 
-
-    override fun printMessageLn(kind: XmlMessageKind, severity: XmlException.XmlSeverity, message: String) {
-        TODO()
-    }
 
     override fun accept(entry: XmlException) {
         when (entry.severity) {
-            XmlException.XmlSeverity.INFO    -> out += entry
-            XmlException.XmlSeverity.DEBUG   -> debug += entry
-            XmlException.XmlSeverity.WARNING -> warn += entry
-            XmlException.XmlSeverity.ERROR   -> err += entry
-            XmlException.XmlSeverity.FATAL   -> err += entry
-            else                                                                                    -> fail("impossible")
+            WARNING -> warn += entry
+            ERROR   -> err += entry
+            else    -> fail("impossible")
         }
     }
 
 
-    override fun supportsAnsiColors(): Boolean = useColors
-
     fun shouldBeEmpty() {
         warn.shouldBeEmpty()
         err.shouldBeEmpty()
-        out.shouldBeEmpty()
+    }
+}
+
+class TestXmlReporter(
+    ooxml: OoxmlFacade,
+    positioner: XmlPositioner,
+) : XmlMessageReporterBase<SimpleMessageFacade>(ooxml, positioner) {
+
+    override fun create2ndStage(
+        position: XmlPosition,
+        positioner: XmlPositioner,
+        handleEx: Consumer<XmlException>
+    ): SimpleMessageFacade {
+        return SimpleMessageFacade(ooxml, position, positioner) { handleEx(it) }
+    }
+
+}
+
+interface IntelliMarker {
+    @EnabledIfSystemProperty(named = "wibble", matches = "wobble")
+    @TestFactory
+    fun primer() {
     }
 }

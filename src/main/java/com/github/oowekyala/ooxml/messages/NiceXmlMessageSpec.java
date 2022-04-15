@@ -24,39 +24,66 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import org.w3c.dom.Node;
-
 import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
-/**
- * @author Clément Fournier
- */
-class PartialFilePositioner implements XmlPositioner {
+public class NiceXmlMessageSpec {
 
-    private static final int NUM_LINES_AROUND = 3;
-    protected final TextDoc textDoc;
-    private final String systemId;
+    private final XmlPosition position;
+    private Throwable cause;
+    private @Nullable String kind;
+    private XmlSeverity severity = XmlSeverity.ERROR;
+    private final String simpleMessage;
 
 
     /**
-     * @param fullFileText Full text of the XML file
+     * @param position      Position of the error
+     * @param simpleMessage Error message
      */
-    public PartialFilePositioner(String fullFileText, String systemId) {
-        this.textDoc = new TextDoc(fullFileText);
-        this.systemId = systemId;
+    public NiceXmlMessageSpec(XmlPosition position, String simpleMessage) {
+        this.position = position;
+        this.simpleMessage = simpleMessage;
     }
 
 
-    @Override
-    public XmlPosition startPositionOf(@Nullable Node node) {
-        return XmlPosition.undefinedIn(systemId);
+    public XmlPosition getPosition() {
+        return position;
     }
 
 
-    @Override
-    public @Nullable ContextLines getLinesAround(XmlPosition position, int numContextLines) {
-        return position.isUndefined() ? null : textDoc.getLinesAround(position.getLine(), numContextLines);
+    public @Nullable String getKind() {
+        return kind;
     }
 
 
+    public XmlSeverity getSeverity() {
+        return severity;
+    }
+
+
+    public String getSimpleMessage() {
+        return simpleMessage;
+    }
+
+
+    public @Nullable Throwable getCause() {
+        return cause;
+    }
+
+
+    public NiceXmlMessageSpec withKind(String kind) {
+        this.kind = kind;
+        return this;
+    }
+
+
+    public NiceXmlMessageSpec withSeverity(XmlSeverity severity) {
+        this.severity = severity;
+        return this;
+    }
+
+
+    public NiceXmlMessageSpec withCause(Throwable cause) {
+        this.cause = cause;
+        return this;
+    }
 }

@@ -24,35 +24,51 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import java.util.logging.Logger;
-
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
-
 /**
- * Implements {@link XmlMessageHandler} with a {@link Logger}
- * as back-end.
+ * Severity of a message.
  */
-public class LoggerMessageHandler implements XmlMessageHandler {
+public enum XmlSeverity {
+    /**
+     * A warning, with a yellow color.
+     */
+    WARNING("Warning") {
+        @Override
+        public String withColor(String toColor) {
+            return TerminalColor.COL_YELLOW.apply(toColor, false, false, false);
+        }
+    },
+    /**
+     * An error, with a red color.
+     */
+    ERROR("Error") {
+        @Override
+        public String withColor(String toColor) {
+            return TerminalColor.COL_RED.apply(toColor, false, false, false);
+        }
+    };
 
-    private final Logger logger;
-    private final boolean supportsColor;
+    private final String displayName;
 
 
-    public LoggerMessageHandler(Logger logger, boolean supportsColor) {
-        this.logger = logger;
-        this.supportsColor = supportsColor;
+    XmlSeverity(String displayName) {
+        this.displayName = displayName;
     }
 
 
-    @Override
-    public boolean supportsAnsiColors() {
-        return supportsColor;
+    /**
+     * Add a color relevant to this kind to the given string. This uses
+     * ANSI escape sequences.
+     *
+     * @param toColor String to surround with escape sequences
+     * @return The string, prefixed with an ANSI color, and suffixed
+     * with {@value TerminalColor#ANSI_RESET}
+     */
+    public String withColor(String toColor) {
+        return toColor;
     }
 
 
-    @Override
-    public void printMessageLn(XmlMessageKind kind, XmlSeverity severity, String message) {
-        logger.log(severity.toJutilLevel(), message);
-
+    public String toString() {
+        return displayName;
     }
 }

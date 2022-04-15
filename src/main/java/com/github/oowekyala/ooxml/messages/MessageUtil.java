@@ -26,8 +26,6 @@ package com.github.oowekyala.ooxml.messages;
 
 
 import static com.github.oowekyala.ooxml.messages.ErrorCleaner.isSchemaValidationMessage;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.PARSING;
-import static com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind.SCHEMA_VALIDATION;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -38,10 +36,14 @@ import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
-import com.github.oowekyala.ooxml.messages.XmlMessageKind.StdMessageKind;
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
 
 class MessageUtil {
+
+
+    private static final String KIND_SCHEMA_VALIDATION = "Schema validation";
+    private static final String KIND_PARSING = "XML parsing";
+
 
     static String enquote(String it) {return "'" + it + "'";}
 
@@ -75,19 +77,34 @@ class MessageUtil {
     /**
      * Creates an entry for the given exception. Tries to recover the position from the exception.
      *
-     * @param useColors Use terminal colors to format the message
      * @param exception Exception
      * @return An exception, possibly enriched with context information
      */
-    static XmlException createEntryBestEffort(XmlPositioner positioner,
+    static XmlException createEntryBestEffort(OoxmlFacade ooxml,
+                                              XmlPositioner positioner,
                                               XmlSeverity severity,
-                                              boolean useColors,
                                               Throwable exception) {
 
-        StdMessageKind kind = exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage()) ? SCHEMA_VALIDATION : PARSING;
-
+        String kind = extractKind(exception);
         XmlPosition pos = extractPosition(exception);
+        String simpleMessage = extractSimpleMessage(exception);
 
+        NiceXmlMessageSpec spec = new NiceXmlMessageSpec(pos, simpleMessage)
+            .withKind(kind)
+            .withSeverity(severity)
+            .withCause(exception);
+
+        String fullMessage = ooxml.getFormatter().formatSpec(ooxml, spec, positioner);
+        return new XmlException(spec, fullMessage);
+    }
+
+
+    private static String extractKind(Throwable exception) {
+        return exception instanceof SAXParseException && isSchemaValidationMessage(exception.getMessage())
+               ? KIND_SCHEMA_VALIDATION : KIND_PARSING;
+    }
+
+    private static String extractSimpleMessage(Throwable exception) {
         final String simpleMessage;
         if (exception instanceof TransformerException
             && exception.getCause() instanceof SAXException) {
@@ -95,21 +112,7 @@ class MessageUtil {
         } else {
             simpleMessage = exception.getMessage();
         }
-
-
-        if (pos.isUndefined()) {
-            // unknown exception
-            return new XmlException(pos,
-                                    kind.getHeader(severity) + "\n" + simpleMessage,
-                                    simpleMessage,
-                                    kind,
-                                    severity,
-                                    exception);
-
-        } else {
-            String fullMessage = positioner.makePositionedMessage(pos, useColors, kind, severity, simpleMessage);
-            return new XmlException(pos, fullMessage, simpleMessage, kind, severity, exception);
-        }
+        return simpleMessage;
     }
 
 
@@ -125,5 +128,30 @@ class MessageUtil {
         }
 
         return writer.toString();
+    }
+
+
+    public static String headerOnly(NiceXmlMessageSpec spec, String message, boolean singleLine) {
+
+        @Nullable String url = spec.getPosition().getSystemId();
+
+        String header = spec.getSeverity().toString();
+        String kind = spec.getKind();
+        if (kind != null) {
+            header += " (" + kind + ")";
+        }
+        if (url != null) {
+            if (spec.getPosition().isUndefined()) {
+                header += " in " + url;
+            } else {
+                header += " at " + url + ":" + spec.getPosition().getLine() + ":" + spec.getPosition().getColumn();
+            }
+        }
+
+        if (singleLine) {
+            return header + " - " + message;
+        } else {
+            return header + "\n" + message;
+        }
     }
 }

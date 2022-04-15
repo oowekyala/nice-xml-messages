@@ -24,28 +24,29 @@
 
 package com.github.oowekyala.ooxml.messages;
 
+import org.w3c.dom.Node;
+
+import com.github.oowekyala.ooxml.messages.Annots.Nullable;
+
 /**
- * Handles XML messages, for example forwarding them to a print stream.
+ * Reports errors in an XML document. This is meant as a helper
+ * to carry around while validating an XML document. This interface
+ * is the API provided to the validating code, what happens to the
+ * messages is up to the implementation of the second stage (which is
+ * meant to be some specific logger/ message reporter). Instances may wrap an
+ * {@link XmlPositioner} to associate DOM nodes with an {@link XmlPosition position}
+ * for better error messages.
+ *
+ * <p>A base implementation is available in {@link XmlMessageReporterBase}.
+ * Implementations should use {@link OoxmlFacade#getPrinter()}
+ * as a back-end to render the messages.
  */
-public interface XmlMessageHandler {
+public interface XmlMessageReporter<M> extends AutoCloseable {
 
     /**
-     * Outputs messages to {@link System#err}.
+     * Returns the second stage, which typically allows reporting
+     * messages like {@code reporter.at(node).error("an error");}.
      */
-    XmlMessageHandler SYSTEM_ERR = new PrintStreamMessageHandler(System.err);
-
-    /**
-     * Ignores all messages.
-     */
-    XmlMessageHandler NOOP = (ex) -> { /* do nothing*/};
-
-
-    /**
-     * Handle an XML message. May throw, ignore, or print
-     * to an external stream.
-     *
-     * @param entry Message to handle
-     */
-    void accept(XmlException entry);
+    M at(@Nullable Node node);
 
 }

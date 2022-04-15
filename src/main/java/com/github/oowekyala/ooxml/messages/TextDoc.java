@@ -29,12 +29,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.github.oowekyala.ooxml.messages.Annots.OneBased;
 import com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
-import com.github.oowekyala.ooxml.messages.XmlException.XmlSeverity;
 
 class TextDoc {
 
@@ -73,13 +70,13 @@ class TextDoc {
         return sourceCode;
     }
 
-    MessageTextBuilder getLinesAround(@OneBased int line, int numLinesAround) {
+    ContextLines getLinesAround(@OneBased int line, int numLinesAround) {
         @ZeroBased int zeroL = line - 1;
         @ZeroBased int firstL = Math.max(0, zeroL - numLinesAround + 1);
         @ZeroBased int lastL = Math.min(lines.size(), zeroL + numLinesAround);
 
         List<String> strings = lines.subList(firstL, lastL);
-        return new MessageTextBuilder(strings, firstL, zeroL - firstL);
+        return new ContextLines(strings, firstL + 1, zeroL - firstL);
     }
 
     /**
@@ -118,73 +115,4 @@ class TextDoc {
         return columnOffset + 1; // 1-based column offsets
     }
 
-    /**
-     * Helper object.
-     */
-    static class MessageTextBuilder {
-
-        /** Line number of the first line of the list in the real document */
-        private final @OneBased int first;
-        /** Index in the list of the line that has the error. */
-        private final @ZeroBased int errorIdx;
-        private final List<String> lines;
-
-        MessageTextBuilder(List<String> lines, @OneBased int first, int errorIdx) {
-            this.lines = lines;
-            this.first = first;
-            this.errorIdx = errorIdx;
-            assert (0 <= errorIdx && errorIdx < lines.size())
-                : "Weird indices --- first=" + first + ", errorIdx=" + errorIdx + ", lines=" + lines;
-        }
-
-        public String make(boolean supportsAnsiColors, XmlMessageKind kind, XmlSeverity severity, XmlPosition position, String message) {
-
-            int pad = stringLengthOf(lines.size() + first);
-
-            List<String> withLineNums = IntStream.range(0, lines.size())
-                                                 .mapToObj(i -> addLineNum(i, pad))
-                                                 .collect(Collectors.collectingAndThen(Collectors.toList(), ArrayList::new));
-
-            String errorLine = addLineNum(errorIdx, pad);
-            // diff added by line numbers
-            int offset = errorLine.length() - lines.get(errorIdx).length();
-
-            String messageLine = InternalUtil.buildCaretLine(message.trim(),
-                                                             position.getColumn() + offset - 1,
-                                                             position.getLength());
-
-            String colored = supportsAnsiColors ? severity.withColor(messageLine) : messageLine;
-
-            withLineNums.add(errorIdx + 1, colored);
-            withLineNums.add(errorIdx + 2, ""); // skip a line
-
-
-            return addHeader(kind, severity, position, String.join("\n", withLineNums), false);
-        }
-
-        private int stringLengthOf(int i) {
-            return (i + "").length();
-        }
-
-        private String addLineNum(@ZeroBased int idx, int pad) {
-            return String.format(" %" + pad + "d| %s", 1 + idx + first, lines.get(idx));
-        }
-
-
-        public static String addHeader(XmlMessageKind kind, XmlSeverity severity, XmlPosition position, String message, boolean singleLine) {
-
-
-            String url = position.getSystemId();
-            String header = kind.getHeader(severity);
-            if (url != null) {
-                header += " in " + url;
-            }
-
-            if (singleLine) {
-                return header + "\t" + message;
-            } else {
-                return header + "\n" + message;
-            }
-        }
-    }
 }
