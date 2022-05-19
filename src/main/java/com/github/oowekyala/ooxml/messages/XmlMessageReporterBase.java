@@ -33,7 +33,7 @@ import org.w3c.dom.Node;
  */
 public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M> {
 
-    private final XmlPositioner positioner;
+    protected final XmlPositioner positioner;
     protected final OoxmlFacade ooxml;
 
 
