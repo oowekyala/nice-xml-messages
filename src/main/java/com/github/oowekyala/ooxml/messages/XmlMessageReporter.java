@@ -49,4 +49,7 @@ public interface XmlMessageReporter<M> extends AutoCloseable {
      */
     M at(@Nullable Node node);
 
+
+    @Override
+    void close();
 }

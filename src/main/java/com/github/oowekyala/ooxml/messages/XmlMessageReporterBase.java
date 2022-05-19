@@ -24,8 +24,6 @@
 
 package com.github.oowekyala.ooxml.messages;
 
-import java.util.function.Consumer;
-
 import org.w3c.dom.Node;
 
 /**
@@ -44,15 +42,19 @@ public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M>
 
 
     /**
-     * @param position   Position
+     * Creates the object returned by {@link #at(Node)}. Override
+     * this instead of {@link #at(Node)} because maybe in the future
+     * other {@link #at(Node)} overloads will be provided.
+     *
+     * @param position   Position of the message
      * @param positioner Positioner
-     * @param handleEx   Callback to be called when an {@link XmlException} is created by the second stage
      */
-    protected abstract M create2ndStage(XmlPosition position,
-                                        XmlPositioner positioner,
-                                        Consumer<XmlException> handleEx);
+    protected abstract M create2ndStage(XmlPosition position, XmlPositioner positioner);
 
 
+    /**
+     * Handle an XML exception. The default just calls the printer.
+     */
     protected void handleEx(XmlException e) {
         ooxml.getPrinter().accept(e);
     }
@@ -62,8 +64,7 @@ public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M>
     public M at(Node node) {
         return create2ndStage(
             positioner.startPositionOf(node),
-            positioner,
-            ooxml.getPrinter()::accept
+            positioner
         );
     }
 
@@ -73,7 +74,7 @@ public abstract class XmlMessageReporterBase<M> implements XmlMessageReporter<M>
      */
     @Override
     @SuppressWarnings("RedundantThrows")
-    public void close() throws Exception {
+    public void close() {
 
     }
 }

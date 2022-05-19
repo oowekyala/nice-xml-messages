@@ -119,8 +119,7 @@ class TestXmlReporter(
 
     override fun create2ndStage(
         position: XmlPosition,
-        positioner: XmlPositioner,
-        handleEx: Consumer<XmlException>
+        positioner: XmlPositioner
     ): SimpleMessageFacade {
         return SimpleMessageFacade(ooxml, position, positioner) { handleEx(it) }
     }
