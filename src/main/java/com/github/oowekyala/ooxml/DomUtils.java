@@ -48,9 +48,20 @@ public final class DomUtils {
      * Returns the list of children of the given element
      * that are also elements.
      */
-    public static List<Element> elementsIn(Element element) {
+    public static List<Element> children(Element element) {
         List<Node> nodes = new ArrayList<>(asList(element.getChildNodes()));
         nodes.removeIf(n -> !(n instanceof Element));
+        return (List) nodes;
+    }
+
+
+    /**
+     * Returns the list of children of the given element
+     * that are also elements.
+     */
+    public static List<Element> childrenNamed(Element element, String localName) {
+        List<Node> nodes = new ArrayList<>(asList(element.getChildNodes()));
+        nodes.removeIf(n -> !(n instanceof Element) || !n.getLocalName().equals(localName));
         return (List) nodes;
     }
 
