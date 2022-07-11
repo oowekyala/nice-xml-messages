@@ -31,6 +31,7 @@ package com.github.oowekyala.ooxml.messages;
 import static com.github.oowekyala.ooxml.messages.Annots.ZeroBased;
 
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,12 +114,12 @@ class NewOffsetScanner {
         return getOrCompute(n, CONTENT_START_OFFSET, this::contentStartOffsetImpl);
     }
 
-    private int getOrCompute(Node n, String key, Function<Node, Integer> compute) {
+    private int getOrCompute(Node n, String key, ToIntFunction<Node> compute) {
         Object data = n.getUserData(key);
         if (data instanceof Integer) {
             return (int) data;
         } else {
-            Integer i = compute.apply(n);
+            int i = compute.applyAsInt(n);
             n.setUserData(key, i, NO_DATA_HANDLER);
             return i;
         }
@@ -209,13 +210,12 @@ class NewOffsetScanner {
                 if (content < 0) {
                     return content;
                 }
-                if (content < 2) {
-                    return endIdxOf(">", content); // there can't be text or anything
-                }
 
-                if (fullText.charAt(content - 2) == '/') {
+                if (content >= 2 && fullText.charAt(content - 2) == '/') {
                     // ends with "/>", ie autoclose
                     return content;
+                } else {
+                    return endIdxOf(">", content); // there can't be text or anything
                 }
             }
 

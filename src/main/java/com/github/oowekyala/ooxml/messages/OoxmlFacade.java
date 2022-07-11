@@ -175,7 +175,7 @@ public final class OoxmlFacade {
 
         try {
             Document doc = builder.parse(isource);
-            FullFilePositioner positioner = new FullFilePositioner(isource.getReadSoFar(), isource.getSystemId());
+            FullFilePositioner positioner = new FullFilePositioner(isource.getReadSoFar(), isource.getSystemId(), doc);
 
             return new PositionedXmlDoc(doc, positioner);
         } catch (SAXException e) {

@@ -22,44 +22,38 @@
  * SOFTWARE.
  */
 
-package com.github.oowekyala.ooxml.messages;
+package com.github.oowekyala.ooxml.messages
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import org.xml.sax.InputSource
+import java.io.Reader
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
-import com.github.oowekyala.ooxml.DomUtils;
-
-/**
- * Scanner with known document context.
- */
-class FullFilePositioner extends PartialFilePositioner implements XmlPositioner {
-
-    private final NewOffsetScanner scanner;
+class CornerCases : IntelliMarker, FunSpec({
 
 
-    /**
-     * @param fullFileText Full text of the XML file
-     * @param systemId     System ID of the XML file, typically a file name
-     */
-    public FullFilePositioner(String fullFileText, String systemId, Document doc) {
-        super(fullFileText, systemId);
+    fun domBuilder(): DocumentBuilder =
+            DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
-        this.scanner = new NewOffsetScanner(systemId, textDoc);
-        // force resolution to avoid stack overflow because of
-        // recursive implementation of NewOffsetScanner
-        computePositions(doc.getDocumentElement());
+    fun Reader.parseStr(handler: TestMessagePrinter): PositionedXmlDoc =
+            OoxmlFacade()
+                .withPrinter(handler).parse(domBuilder(), InputSource(this))
+
+    test("Test stackoverflow") {
+
+        val printer = TestMessagePrinter()
+
+        val reader  = CornerCases::class.java
+            .getResourceAsStream("stackOverflowTestCase.xml")!!
+            .bufferedReader()
+
+
+        val doc = reader.parseStr(printer)
+        val lastChild = doc.document.documentElement.lastChild
+        doc.positioner.startPositionOf(lastChild)
+        printer.err.shouldBeEmpty()
     }
 
-    void computePositions(Element elt) {
-        scanner.beginPos(elt);
-        for (Element child : DomUtils.children(elt)) {
-            computePositions(child);
-        }
-    }
-
-    @Override
-    public XmlPosition startPositionOf(Node node) {
-        return scanner.beginPos(node);
-    }
-}
+})
