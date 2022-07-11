@@ -6,7 +6,7 @@
     <groupId>com.github.oowekyala.ooxml</groupId>
     <artifactId>nice-xml-messages</artifactId>
     <packaging>jar</packaging>
-    <version>3.1-SNAPSHOT</version>
+    <version>3.1</version>
 
     <name>Nice XML messages</name>
     <description>
@@ -19,7 +19,7 @@
     <scm>
         <connection>scm:git:ssh:git@github.com:oowekyala/nice-xml-messages.git</connection>
         <url>https://github.com/oowekyala/nice-xml-messages</url>
-      <tag>v3</tag>
+      <tag>v3.1</tag>
   </scm>
     <licenses>
         <license>
