@@ -31,10 +31,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.function.Supplier;
 
+import org.apache.commons.io.input.XmlStreamReader;
 import org.xml.sax.InputSource;
 
 class SpyInputSource extends InputSource {
@@ -54,15 +55,15 @@ class SpyInputSource extends InputSource {
         if (byteStream == null) {
             return;
         }
-        InputStreamReader reader;
-        if (getEncoding() != null) {
-            try {
+        Reader reader;
+        try {
+            if (getEncoding() != null) {
                 reader = new InputStreamReader(byteStream, getEncoding());
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+            } else {
+                reader = new XmlStreamReader(byteStream);
             }
-        } else {
-            reader = new InputStreamReader(byteStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
         setCharacterStream(reader);
